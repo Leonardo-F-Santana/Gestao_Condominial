@@ -1,4 +1,5 @@
-<!DOCTYPE html>
+{% load static %}
+{% load filtros %} <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
@@ -8,115 +9,262 @@
 </head>
 <body class="bg-light">
 
-    <div class="container mt-5">
-        <div class="card shadow-lg">
-            <div class="card-header bg-primary text-white text-center">
-                <h3>🏢 Controle de Acesso</h3>
+    <div class="container mt-5 mb-5">
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-dark">Olá, {{ user.username }}!</h2>
+            <form action="{% url 'logout' %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger btn-sm">Sair do Sistema 🔒</button>
+            </form>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-4 col-lg-3 mb-2">
+                <div class="card bg-success text-white shadow-sm">
+                    <div class="card-body p-2 d-flex justify-content-between align-items-center">
+                        <span class="fw-bold small">👥 Visitantes:</span>
+                        <span class="h4 mb-0 fw-bold">{{ visitantes_no_local }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 mb-2">
+                <div class="card bg-warning text-dark shadow-sm">
+                    <div class="card-body p-2 d-flex justify-content-between align-items-center">
+                        <span class="fw-bold small">📦 Pendentes:</span>
+                        <span class="h4 mb-0 fw-bold">{{ encomendas_pendentes }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <strong>Sucesso!</strong> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <ul class="nav nav-tabs mb-3" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active fw-bold" id="visitantes-tab" data-bs-toggle="tab" data-bs-target="#visitantes" type="button" role="tab">👤 Controle de Acesso</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold text-dark" id="encomendas-tab" data-bs-toggle="tab" data-bs-target="#encomendas" type="button" role="tab">📦 Gestão de Encomendas</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="myTabContent">
+            
+            <div class="tab-pane fade show active" id="visitantes" role="tabpanel">
+                
+                <div class="card shadow-lg mb-4">
+                    <div class="card-body p-4">
+                        <form method="POST" action="{% url 'home' %}">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Nome do Visitante</label>
+                                <input type="text" name="nome_completo" class="form-control" placeholder="Ex: João da Silva" required>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">CPF</label>
+                                    <input type="text" name="cpf" class="form-control" placeholder="000.000.000-00">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Data Nasc.</label>
+                                    <input type="date" name="data_nascimento" class="form-control">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Morador Responsável</label>
+                                    <select name="morador_responsavel" class="form-select" required>
+                                        <option value="" selected disabled>Selecione...</option>
+                                        {% for morador in todos_moradores %}
+                                            <option value="{{ morador.id }}">{{ morador }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Placa (Opcional)</label>
+                                    <input type="text" name="placa_veiculo" class="form-control" placeholder="ABC-1234">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Quem autorizou?</label>
+                                <input type="text" name="quem_autorizou" class="form-control" placeholder="Ex: Sr. João pelo interfone">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Observações</label>
+                                <textarea name="observacoes" class="form-control" rows="1" placeholder="Ex: Técnico da Net..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100">✅ Registrar Entrada</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mb-3">
+                    <div class="card-body p-2">
+                        <form method="GET" action="{% url 'home' %}">
+                            <div class="input-group">
+                                <input type="text" name="busca" class="form-control" placeholder="Buscar visitante por Nome ou CPF..." value="{{ query_busca|default:'' }}">
+                                <button class="btn btn-primary" type="submit">🔍 Pesquisar</button>
+                                <a href="{% url 'home' %}" class="btn btn-secondary">Limpar</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card shadow-lg">
+                    <div class="card-body p-0">
+                        <table class="table table-striped table-hover mb-0 align-middle">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Apto/Bloco</th>
+                                    <th>Chegada</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for visitante in lista_visitantes %}
+                                    <tr>
+                                        <td>{{ visitante.nome_completo }}</td>
+                                        <td>
+                                            {% if visitante.morador_responsavel %}
+                                                {{ visitante.morador_responsavel }}
+                                            {% else %}
+                                                <span class="text-muted">{{ visitante.numero_casa }} (Antigo)</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ visitante.horario_chegada|date:"d/m H:i" }}</td>
+                                        <td>
+                                            {% if visitante.horario_saida %}
+                                                <span class="badge bg-secondary">Saiu {{ visitante.horario_saida|date:"H:i" }}</span>
+                                            {% else %}
+                                                <a href="{% url 'registrar_saida' id_visitante=visitante.id %}" class="btn btn-danger btn-sm">🚪 Registrar Saída</a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr><td colspan="4" class="text-center p-3 text-muted">Nenhum registro encontrado.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="encomendas" role="tabpanel">
+                
+                <div class="card shadow-lg mb-4 border-warning">
+                    <div class="card-header bg-warning text-dark fw-bold">📦 Nova Encomenda</div>
+                    <div class="card-body">
+                        <form method="POST" action="{% url 'registrar_encomenda' %}">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <label class="fw-bold">Para qual Morador?</label>
+                                    <select name="morador_encomenda" class="form-select" required>
+                                        <option value="" selected disabled>Selecione...</option>
+                                        {% for morador in todos_moradores %}
+                                            <option value="{{ morador.id }}">{{ morador }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <label class="fw-bold">Descrição/Volume</label>
+                                    <input type="text" name="volume" class="form-control" placeholder="Ex: Caixa Amazon, Envelope..." required>
+                                </div>
+                                <div class="col-md-2 mb-2 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-dark w-100">Salvar</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <h5 class="mb-3">Caixas aguardando retirada:</h5>
+                <div class="card shadow-lg">
+                    <div class="card-body p-0">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead class="table-warning">
+                                <tr>
+                                    <th>Apto/Bloco</th>
+                                    <th>Morador</th>
+                                    <th>Volume</th>
+                                    <th>Avisar</th>
+                                    <th>Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for encomenda in lista_encomendas %}
+                                    <tr>
+                                        <td>{{ encomenda.morador.bloco }} - {{ encomenda.morador.apartamento }}</td>
+                                        <td>{{ encomenda.morador.nome }}</td>
+                                        <td class="fw-bold text-primary">{{ encomenda.volume }}</td>
+                                        
+                                        <td>
+                                            {% if encomenda.morador.telefone %}
+                                                <a href="https://wa.me/55{{ encomenda.morador.telefone|somente_numeros }}?text=Olá {{ encomenda.morador.nome }}, chegou uma encomenda para você na portaria: {{ encomenda.volume }}." 
+                                                   target="_blank" 
+                                                   class="btn btn-outline-success btn-sm">
+                                                    📱 WhatsApp
+                                                </a>
+                                            {% else %}
+                                                <span class="text-muted small">Sem telefone</span>
+                                            {% endif %}
+                                        </td>
+
+                                        <td>
+                                            <button type="button" 
+                                                    class="btn btn-success btn-sm" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#modalEntrega{{ encomenda.id }}">
+                                                ✅ Entregar
+                                            </button>
+
+                                            <div class="modal fade" id="modalEntrega{{ encomenda.id }}" tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header bg-success text-white">
+                                                            <h5 class="modal-title">Confirmar Entrega</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <form method="POST" action="{% url 'confirmar_entrega' id_encomenda=encomenda.id %}">
+                                                            {% csrf_token %}
+                                                            <div class="modal-body">
+                                                                <p>Você está entregando o volume: <br><strong>{{ encomenda.volume }}</strong></p>
+                                                                <p>Para o morador: <strong>{{ encomenda.morador.nome }}</strong></p>
+                                                                
+                                                                <div class="mb-3">
+                                                                    <label class="form-label fw-bold">Quem está retirando a caixa?</label>
+                                                                    <input type="text" name="nome_retirada" class="form-control" placeholder="Ex: O próprio, Esposa, Filho..." required>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                                <button type="submit" class="btn btn-success">Confirmar Baixa</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr><td colspan="5" class="text-center p-4 text-muted">Nenhuma encomenda pendente na portaria.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
             
-            <div class="card-body p-4">
-                
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            <strong>Sucesso!</strong> {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    {% endfor %}
-                {% endif %}
-                <form method="POST" action="">
-                    {% csrf_token %} <div class="mb-3">
-                        <label class="form-label fw-bold">Nome do Visitante</label>
-                        <input type="text" name="nome_completo" class="form-control form-control-lg" placeholder="Ex: João da Silva" required>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">CPF</label>
-                            <input type="text" name="cpf" class="form-control" placeholder="000.000.000-00">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Data de Nascimento</label>
-                            <input type="date" name="data_nascimento" class="form-control" required>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Número da Casa/Apto</label>
-                            <input type="text" name="numero_casa" class="form-control" placeholder="Ex: 102 Bloco B" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Placa do Veículo (Opcional)</label>
-                            <input type="text" name="placa_veiculo" class="form-control" placeholder="ABC-1234">
-                        </div>
-                    </div>
-
-                    <div class="d-grid gap-2 mt-4">
-                        <button type="submit" class="btn btn-success btn-lg">✅ Registrar Entrada</button>
-                    </div>
-                </form>
-                </div>
-        </div>
-        <div class="card shadow-lg mt-5">
-            <div class="card-header bg-secondary text-white">
-                <h4 class="mb-0">📋 Últimos Visitantes</h4>
-            </div>
-            <div class="card-body">
-                <table class="table table-striped table-hover">
-                    <thead>
-                        <tr>
-                            <th>Nome</th>
-                            <th>Apto/Casa</th>
-                            <th>Horário</th>
-                            <th>Horário Chegada</th>
-                            <th>Status/Ação</th>
-                            
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for visitante in lista_visitantes %}
-                            <tr>
-                                <td>{{ visitante.nome_completo }}</td>
-                                <td>{{ visitante.numero_casa }}</td>
-                                <td>{{ visitante.horario_chegada|date:"d/m H:i" }}</td>
-                                <td>
-                                    {% if visitante.horario_saida %}
-                                        <span class="text-success fw-bold">
-                                            Saiu às {{ visitante.horario_saida|date:"H:i" }}
-                                        </span>
-                                    {% else %}
-                                        <a href="{% url 'registrar_saida' id_visitante=visitante.id %}" class="btn btn-warning btn-sm">
-                                            🚪 Registrar Saída
-                                        </a>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                        {% empty %}
-                            <tr>
-                                <td colspan="4" class="text-center text-muted">
-                                    Nenhum visitante registrado.
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
-            </div> </div> <div class="text-center mt-3 text-muted">
-        <div class="text-center mt-3 text-muted">
-            <small>Sistema de Portaria v1.0</small>
-        </div>
-    </div>
-    <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="text-white">Olá, {{ user.username }}!</h2>
-    
-    <form action="{% url 'logout' %}" method="post">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-danger btn-sm">Sair do Sistema 🔒</button>
-    </form>
-</div>
+        </div> </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
