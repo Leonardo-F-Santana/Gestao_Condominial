@@ -1,8 +1,13 @@
 from django.contrib import admin
-from django.urls import path
-from portaria.views import home  # Importamos nossa view
+from django.urls import path, include # <--- Importe 'include' aqui
+from portaria.views import home, registrar_saida
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', home, name='home'), # A rota vazia '' significa a página inicial
+    
+    # Esta linha cria automaticamente as rotas de login/logout
+    path('accounts/', include('django.contrib.auth.urls')),
+    
+    path('', home, name='home'),
+    path('saida/<int:id_visitante>/', registrar_saida, name='registrar_saida'),
 ]

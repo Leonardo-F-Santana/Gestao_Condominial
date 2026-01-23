@@ -58,11 +58,65 @@
                 </form>
                 </div>
         </div>
+        <div class="card shadow-lg mt-5">
+            <div class="card-header bg-secondary text-white">
+                <h4 class="mb-0">📋 Últimos Visitantes</h4>
+            </div>
+            <div class="card-body">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Apto/Casa</th>
+                            <th>Horário</th>
+                            <th>Horário Chegada</th>
+                            <th>Status/Ação</th>
+                            
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for visitante in lista_visitantes %}
+                            <tr>
+                                <td>{{ visitante.nome_completo }}</td>
+                                <td>{{ visitante.numero_casa }}</td>
+                                <td>{{ visitante.horario_chegada|date:"d/m H:i" }}</td>
+                                <td>
+                                    {% if visitante.horario_saida %}
+                                        <span class="text-success fw-bold">
+                                            Saiu às {{ visitante.horario_saida|date:"H:i" }}
+                                        </span>
+                                    {% else %}
+                                        <a href="{% url 'registrar_saida' id_visitante=visitante.id %}" class="btn btn-warning btn-sm">
+                                            🚪 Registrar Saída
+                                        </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted">
+                                    Nenhum visitante registrado.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
         
+            </div> </div> <div class="text-center mt-3 text-muted">
         <div class="text-center mt-3 text-muted">
             <small>Sistema de Portaria v1.0</small>
         </div>
     </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="text-white">Olá, {{ user.username }}!</h2>
+    
+    <form action="{% url 'logout' %}" method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger btn-sm">Sair do Sistema 🔒</button>
+    </form>
+</div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
