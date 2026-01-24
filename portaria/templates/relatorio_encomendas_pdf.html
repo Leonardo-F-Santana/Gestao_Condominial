@@ -1,26 +1,49 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <title>Relatório de Encomendas</title>
     <style>
-        body { font-family: Helvetica, Arial, sans-serif; font-size: 11px; color: #333; }
-        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #d39e00; padding-bottom: 10px; }
+        body { 
+            font-family: Helvetica, Arial, sans-serif; 
+            font-size: 10px; /* Fonte levemente menor para caber mais info */
+            color: #333; 
+        }
+        .header { 
+            text-align: center; 
+            margin-bottom: 20px; 
+            border-bottom: 2px solid #d39e00; 
+            padding-bottom: 10px; 
+        }
         h1 { margin: 0; color: #333; font-size: 18px; }
         .meta { color: #666; font-size: 10px; margin-top: 5px; }
         
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { background-color: #ffeeba; text-align: left; padding: 6px; border-bottom: 1px solid #d39e00; font-weight: bold; }
-        td { padding: 6px; border-bottom: 1px solid #ddd; vertical-align: top; }
+        th { 
+            background-color: #ffeeba; 
+            text-align: left; 
+            padding: 6px; 
+            border-bottom: 1px solid #d39e00; 
+            font-weight: bold; 
+            font-size: 11px;
+        }
+        td { 
+            padding: 6px; 
+            border-bottom: 1px solid #ddd; 
+            vertical-align: top; 
+        }
 
-        /* LARGURAS FIXAS PARA NÃO QUEBRAR */
-        .col-chegada { width: 15%; }
-        .col-morador { width: 25%; }
-        .col-volume { width: 25%; }
-        .col-retirada { width: 35%; }
+        /* LARGURAS AJUSTADAS PARA 5 COLUNAS */
+        .col-chegada { width: 12%; }
+        .col-morador { width: 23%; }
+        .col-volume  { width: 20%; }
+        .col-retirada { width: 25%; }
+        .col-resp    { width: 20%; } /* Coluna Nova */
 
         .status-entregue { color: green; font-weight: bold; }
         .status-pendente { color: #d9534f; font-weight: bold; }
+        .text-muted { color: #777; }
     </style>
 </head>
 <body>
@@ -28,7 +51,7 @@
     <div class="header">
         <h1>Relatório de Controle de Encomendas</h1>
         <div class="meta">
-            Gerado por: {{ usuario.username }} em {{ data_geracao|date:"d/m/Y H:i" }}
+            Gerado por: {{ usuario.username|default:"Sistema" }} em {{ data_geracao|date:"d/m/Y H:i" }}
         </div>
     </div>
 
@@ -39,25 +62,48 @@
                 <th class="col-morador">Apto / Morador</th>
                 <th class="col-volume">Descrição do Volume</th>
                 <th class="col-retirada">Status / Quem Retirou</th>
+                <th class="col-resp">Porteiros Resp.</th>
             </tr>
         </thead>
         <tbody>
-            {% for e in encomendas %}
+            {% for item in encomendas %}
             <tr>
-                <td>{{ e.data_chegada|date:"d/m/Y H:i" }}</td>
+                <td>{{ item.data_chegada|date:"d/m/Y H:i" }}</td>
                 <td>
-                    <strong>{{ e.morador.bloco }} - {{ e.morador.apartamento }}</strong><br>
-                    {{ e.morador.nome }}
+                    <strong>{{ item.morador.bloco }} - {{ item.morador.apartamento }}</strong><br>
+                    {{ item.morador.nome }}
+                    
+                    {% if item.destinatario_alternativo %}
+                        <br><span style="color: #d9534f; font-weight: bold;">A/C: {{ item.destinatario_alternativo }}</span>
+                    {% endif %}
                 </td>
-                <td>{{ e.volume }}</td>
+                <td>{{ item.volume }}</td>
                 <td>
-                    {% if e.entregue %}
+                    {% if item.entregue %}
                         <div class="status-entregue">✅ ENTREGUE</div>
-                        <small>Data: {{ e.data_entrega|date:"d/m/Y H:i" }}</small><br>
-                        <small>Retirado por: <strong>{{ e.quem_retirou }}</strong></small>
+                        <small>Data: {{ item.data_entrega|date:"d/m/Y H:i" }}</small><br>
+                        <small>Retirado por: <strong>{{ item.quem_retirou }}</strong></small>
+                        
+                        {% if item.documento_retirada %}
+                            <br><small class="text-muted">Doc: {{ item.documento_retirada }}</small>
+                        {% endif %}
                     {% else %}
                         <div class="status-pendente">⚠️ NA PORTARIA</div>
                     {% endif %}
+                </td>
+                
+                <td>
+                    <small>📥 Rec: <strong>{{ item.porteiro_cadastro.username|default:"-" }}</strong></small>
+                    
+                    {% if item.entregue %}
+                        <br><small>📤 Ent: <strong>{{ item.porteiro_entrega.username|default:"-" }}</strong></small>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 20px;">
+                    Nenhum registro encontrado neste período.
                 </td>
             </tr>
             {% endfor %}

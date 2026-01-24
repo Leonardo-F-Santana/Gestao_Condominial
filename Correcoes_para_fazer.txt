@@ -1,0 +1,3 @@
+alguma informação pra ligar o porteiro tanto ao cadastro quanto a entrega;
+modificar a tela de admin;
+no relatório de visitantes os nomes não parecem os acentos

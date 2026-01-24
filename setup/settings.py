@@ -1,23 +1,34 @@
 from pathlib import Path
 import os
 
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-&%fpj7-t%22xb$h1&lq%ztl%ye*^el27xrscs33_+*x(55ysn&'
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = 'django-insecure-mude-essa-chave-para-producao'
+
+# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
+# Application definition
 INSTALLED_APPS = [
+    'jazzmin', # <--- O JAZZMIN DEVE FICAR NO TOPO
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    
+    # Apps de Terceiros
     'import_export',
+    
+    # Seus Apps
     'portaria',
 ]
 
@@ -50,10 +61,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'setup.wsgi.application'
 
-
 # Database
-# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-
+# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -61,10 +70,8 @@ DATABASES = {
     }
 }
 
-
 # Password validation
-# https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
-
+# https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -80,25 +87,107 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
-# https://docs.djangoproject.com/en/6.0/topics/i18n/
-
+# https://docs.djangoproject.com/en/5.0/topics/i18n/
 LANGUAGE_CODE = 'pt-br'
-
 TIME_ZONE = 'America/Sao_Paulo'
-
 USE_I18N = True
-
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/6.0/howto/static-files/
-
+# https://docs.djangoproject.com/en/5.0/howto/static-files/
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
-LOGIN_REDIRECT_URL = 'home'  # Para onde vai depois de logar
-LOGOUT_REDIRECT_URL = 'login' # Para onde vai depois de sair
-LOGIN_URL = 'login' # Se tentar acessar sem senha, joga pra cá
+# Default primary key field type
+# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# --- CONFIGURAÇÕES DE LOGIN ---
+LOGIN_REDIRECT_URL = 'home'
+LOGIN_URL = 'login'
+LOGOUT_REDIRECT_URL = 'login'
+
+# --- CONFIGURAÇÃO DO TEMA JAZZMIN (ADMIN) ---
+JAZZMIN_SETTINGS = {
+    # Títulos e Cabeçalhos
+    "site_title": "Portaria Inteligente",
+    "site_header": "Gestão Condominial",
+    "site_brand": "Condomínio Admin",
+    "welcome_sign": "Bem-vindo ao Painel de Controle",
+    "copyright": "Portaria Inteligente Ltda",
+    
+    # Menu Lateral
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    
+    # Ícones para os seus Modelos (FontAwesome)
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+        "auth.Group": "fas fa-users",
+        
+        "portaria.Visitante": "fas fa-user-clock",
+        "portaria.Encomenda": "fas fa-box-open",
+        "portaria.Morador": "fas fa-home",
+        "portaria.Solicitacao": "fas fa-clipboard-list",
+    },
+    
+    # Ordem do Menu Lateral
+    "order_with_respect_to": [
+        "portaria", 
+        "portaria.Solicitacao", 
+        "portaria.Encomenda", 
+        "portaria.Visitante", 
+        "portaria.Morador", 
+        "auth"
+    ],
+
+    # --- NOVO: Link no Menu Lateral para Voltar ao Site ---
+    "custom_links": {
+        "portaria": [{
+            "name": "💻 Abrir Sistema da Portaria", 
+            "url": "home", 
+            "icon": "fas fa-laptop-house",
+        }]
+    },
+    
+    # --- NOVO: Link no Menu Superior ---
+    "topmenu_links": [
+        {"name": "Ir para Portaria", "url": "home", "permissions": ["auth.view_user"]},
+        {"model": "auth.User"},
+    ],
+}
+
+# Cores e Estilo (Visual do Admin)
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small_text": False,
+    "footer_small_text": False,
+    "body_small_text": False,
+    "brand_small_text": False,
+    "brand_colour": "navbar-primary",
+    "accent": "accent-primary",
+    "navbar": "navbar-dark navbar-primary",
+    "no_navbar_border": False,
+    "navbar_fixed": False,
+    "layout_boxed": False,
+    "footer_fixed": False,
+    "sidebar_fixed": True,
+    "sidebar": "sidebar-dark-primary",
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": False,
+    "sidebar_nav_compact_style": False,
+    "sidebar_nav_legacy_style": False,
+    "sidebar_nav_flat_style": False,
+    "theme": "flatly", 
+    "dark_mode_theme": None,
+    "button_classes": {
+        "primary": "btn-primary",
+        "secondary": "btn-secondary",
+        "info": "btn-info",
+        "warning": "btn-warning",
+        "danger": "btn-danger",
+        "success": "btn-success"
+    }
+}
