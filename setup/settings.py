@@ -13,7 +13,7 @@ SECRET_KEY = 'django-insecure-mude-essa-chave-para-producao'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 INSTALLED_APPS = [
