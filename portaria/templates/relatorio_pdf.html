@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório de Visitantes</title>
+    <style>
+        /* Estilos Gerais */
+        body { 
+            font-family: Helvetica, Arial, sans-serif; 
+            font-size: 12px; 
+            color: #333;
+        }
+        .header { 
+            text-align: center; 
+            margin-bottom: 20px; 
+            border-bottom: 2px solid #333; 
+            padding-bottom: 10px; 
+        }
+        h1 { margin: 0; color: #333; font-size: 18px; }
+        .meta { color: #666; font-size: 10px; margin-top: 5px; }
+        
+        /* Tabela */
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 10px; 
+        }
+        th { 
+            background-color: #eee; 
+            text-align: left; 
+            padding: 8px; 
+            border-bottom: 1px solid #ddd; 
+            font-weight: bold;
+        }
+        td { 
+            padding: 8px; 
+            border-bottom: 1px solid #ddd; 
+            color: #444; 
+            vertical-align: top; /* Alinha texto ao topo da célula */
+        }
+
+        /* --- CORREÇÃO DO SOBREPOSIÇÃO --- */
+        /* Definimos larguras fixas para evitar que uma coluna invada a outra */
+        .col-data { width: 18%; }
+        .col-visitante { width: 27%; }
+        .col-cpf { width: 20%; } /* Espaço garantido para o CPF */
+        .col-destino { width: 25%; }
+        .col-saida { width: 10%; }
+
+        /* Cores de Status */
+        .status-open { color: green; font-weight: bold; }
+        .status-closed { color: #666; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Relatório Geral de Acesso</h1>
+        <div class="meta">
+            Gerado por: {{ usuario.username }} em {{ data_geracao|date:"d/m/Y H:i" }}
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th class="col-data">Data/Hora</th>
+                <th class="col-visitante">Visitante</th>
+                <th class="col-cpf">CPF</th>
+                <th class="col-destino">Destino (Morador)</th>
+                <th class="col-saida">Saída</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for v in visitantes %}
+            <tr>
+                <td>{{ v.horario_chegada|date:"d/m/Y H:i" }}</td>
+                <td>
+                    <strong>{{ v.nome_completo }}</strong><br>
+                    <small style="color: #777;">Autorizado por: {{ v.quem_autorizou|default:"-" }}</small>
+                </td>
+                <td>{{ v.cpf|default:"-" }}</td>
+                <td>{{ v.morador_responsavel }}</td>
+                <td>
+                    {% if v.horario_saida %}
+                        <span class="status-closed">{{ v.horario_saida|date:"H:i" }}</span>
+                    {% else %}
+                        <span class="status-open">NO LOCAL</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>

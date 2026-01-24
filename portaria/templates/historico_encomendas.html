@@ -1,0 +1,71 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico de Entregas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="mb-0">📜 Histórico de Encomendas</h3>
+                <small class="text-muted">Lista de todas as encomendas já entregues aos moradores.</small>
+            </div>
+            <a href="{% url 'home' %}" class="btn btn-secondary">⬅️ Voltar para o Painel</a>
+        </div>
+
+        <div class="card shadow-lg">
+            <div class="card-body p-0">
+                <table class="table table-striped table-hover mb-0 align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Data da Entrega</th>
+                            <th>Apto / Morador</th>
+                            <th>Volume</th>
+                            <th>Retirado Por</th>
+                            <th>Documento</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in encomendas %}
+                        <tr>
+                            <td>{{ item.data_entrega|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                <strong>{{ item.morador.bloco }} - {{ item.morador.apartamento }}</strong><br>
+                                <span class="text-muted small">{{ item.morador.nome }}</span>
+                            </td>
+                            <td class="fw-bold text-primary">{{ item.volume }}</td>
+                            <td>{{ item.quem_retirou }}</td>
+                            <td>
+                                {% if item.documento_retirada %}
+                                    {{ item.documento_retirada }}
+                                {% else %}
+                                    <span class="text-muted small">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center p-5 text-muted">
+                                <h4>Nenhuma entrega realizada ainda.</h4>
+                                <p>As encomendas baixadas aparecerão aqui.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="mt-3 text-muted small text-center">
+            Sistema de Portaria v1.0
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

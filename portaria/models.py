@@ -48,10 +48,11 @@ class Encomenda(models.Model):
     morador = models.ForeignKey(Morador, on_delete=models.CASCADE, verbose_name="Para o Morador")
     data_chegada = models.DateTimeField(auto_now_add=True, verbose_name="Data de Chegada")
     volume = models.CharField(max_length=100, verbose_name="Volume", help_text="Ex: Caixa Amazon, Envelope, Ifood...")
-    
     entregue = models.BooleanField(default=False, verbose_name="Já foi entregue?")
     data_entrega = models.DateTimeField(null=True, blank=True, verbose_name="Data da Entrega")
     quem_retirou = models.CharField(max_length=100, blank=True, verbose_name="Quem retirou?")
+    notificado = models.BooleanField(default=False, verbose_name="Morador foi avisado?")
+    documento_retirada = models.CharField(max_length=50, blank=True, verbose_name="Documento de quem retirou")
 
     def __str__(self):
         return f"{self.volume} - {self.morador}"

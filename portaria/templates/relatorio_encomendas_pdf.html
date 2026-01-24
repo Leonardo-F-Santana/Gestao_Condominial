@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório de Encomendas</title>
+    <style>
+        body { font-family: Helvetica, Arial, sans-serif; font-size: 11px; color: #333; }
+        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #d39e00; padding-bottom: 10px; }
+        h1 { margin: 0; color: #333; font-size: 18px; }
+        .meta { color: #666; font-size: 10px; margin-top: 5px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background-color: #ffeeba; text-align: left; padding: 6px; border-bottom: 1px solid #d39e00; font-weight: bold; }
+        td { padding: 6px; border-bottom: 1px solid #ddd; vertical-align: top; }
+
+        /* LARGURAS FIXAS PARA NÃO QUEBRAR */
+        .col-chegada { width: 15%; }
+        .col-morador { width: 25%; }
+        .col-volume { width: 25%; }
+        .col-retirada { width: 35%; }
+
+        .status-entregue { color: green; font-weight: bold; }
+        .status-pendente { color: #d9534f; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Relatório de Controle de Encomendas</h1>
+        <div class="meta">
+            Gerado por: {{ usuario.username }} em {{ data_geracao|date:"d/m/Y H:i" }}
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th class="col-chegada">Chegada</th>
+                <th class="col-morador">Apto / Morador</th>
+                <th class="col-volume">Descrição do Volume</th>
+                <th class="col-retirada">Status / Quem Retirou</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for e in encomendas %}
+            <tr>
+                <td>{{ e.data_chegada|date:"d/m/Y H:i" }}</td>
+                <td>
+                    <strong>{{ e.morador.bloco }} - {{ e.morador.apartamento }}</strong><br>
+                    {{ e.morador.nome }}
+                </td>
+                <td>{{ e.volume }}</td>
+                <td>
+                    {% if e.entregue %}
+                        <div class="status-entregue">✅ ENTREGUE</div>
+                        <small>Data: {{ e.data_entrega|date:"d/m/Y H:i" }}</small><br>
+                        <small>Retirado por: <strong>{{ e.quem_retirou }}</strong></small>
+                    {% else %}
+                        <div class="status-pendente">⚠️ NA PORTARIA</div>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>
