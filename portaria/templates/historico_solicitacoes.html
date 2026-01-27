@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>📢 Histórico de Solicitações</h2>
+        <div>
+            <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#modalPDF">🖨️ Gerar PDF</button>
+            <a href="{% url 'home' %}?aba=solicitacoes" class="btn btn-secondary">⬅️ Voltar</a>
+        </div>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-body p-0">
+            <table class="table table-striped table-hover mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Data</th>
+                        <th>Tipo</th>
+                        <th>Morador</th>
+                        <th>Descrição</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sol in solicitacoes %}
+                    <tr>
+                        <td>{{ sol.data_criacao|date:"d/m/Y H:i" }}</td>
+                        <td>{{ sol.get_tipo_display }}</td>
+                        <td>
+                            {% if sol.morador %}
+                                {{ sol.morador.bloco }}-{{ sol.morador.apartamento }}
+                            {% else %}
+                                <span class="text-muted">Área Comum</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ sol.descricao }}</td>
+                        <td>
+                            <span class="badge bg-{% if sol.status == 'PENDENTE' %}warning{% elif sol.status == 'APROVADO' %}success{% else %}danger{% endif %} text-dark">
+                                {{ sol.get_status_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="text-center">Nenhum registro.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalPDF" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title">Filtrar Relatório</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{% url 'exportar_relatorio_solicitacoes' %}" method="GET" target="_blank">
+                <div class="modal-body">
+                    <label>Data Início:</label>
+                    <input type="date" name="data_inicio" class="form-control mb-2">
+                    <label>Data Fim:</label>
+                    <input type="date" name="data_fim" class="form-control mb-2">
+                    <label>Tipo (Opcional):</label>
+                    <select name="tipo_filtro" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="RECLAMACAO">Reclamação</option>
+                        <option value="MANUTENCAO">Manutenção</option>
+                        <option value="RESERVA">Reserva</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Baixar PDF</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,733 +1,521 @@
-{% load static %}
+{% extends 'base.html' %}
 {% load filtros %}
 
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portaria Digital</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+{% block content %}
+<div class="container mt-4 mb-5">
     
-    <style>
-        .nav-tabs .nav-link {
-            background-color: #e9ecef;
-            color: #495057;
-            border: 1px solid #dee2e6;
-            margin-right: 4px;
-            border-radius: 8px 8px 0 0;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-        .nav-tabs .nav-link.active {
-            background-color: #ffffff;
-            color: #0d6efd;
-            border-bottom-color: transparent;
-            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
-            border-top: 3px solid #0d6efd;
-        }
-        .nav-tabs {
-            border-bottom: 2px solid #dee2e6;
-        }
-        .nav-tabs .nav-link:hover {
-            background-color: #dbe4f0;
-        }
-    </style>
-</head>
-<body class="bg-light">
-
-    <div class="container mt-5 mb-5">
-        
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h2 class="text-dark mb-0">Olá, {{ user.username }}!</h2>
-                <small class="text-muted">Painel de Controle</small>
-            </div>
-
-            <div class="d-flex gap-2 align-items-center">
-                
-                {% if user.is_staff %}
-                    <a href="/admin/" target="_blank" class="btn btn-outline-dark btn-sm d-flex align-items-center gap-1">
-                        ⚙️ <span class="d-none d-md-inline">Administração</span>
-                    </a>
-                {% endif %}
-
-                <form action="{% url 'logout' %}" method="post" class="m-0">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-danger btn-sm">Sair 🔒</button>
-                </form>
-            </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="text-dark mb-0">Olá, {{ user.username }}!</h2>
+            <small class="text-muted">Painel de Controle</small>
         </div>
 
-        <div class="row mb-4">
-            <div class="col-md-4 col-lg-3 mb-2">
-                <div class="card bg-success text-white shadow-sm">
-                    <div class="card-body p-2 d-flex justify-content-between align-items-center">
-                        <span class="fw-bold small">👥 Visitantes:</span>
-                        <span class="h4 mb-0 fw-bold">{{ visitantes_no_local }}</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 col-lg-3 mb-2">
-                <div class="card bg-warning text-dark shadow-sm">
-                    <div class="card-body p-2 d-flex justify-content-between align-items-center">
-                        <span class="fw-bold small">📦 Pendentes:</span>
-                        <span class="h4 mb-0 fw-bold">{{ encomendas_pendentes }}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <strong>Sucesso!</strong> {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
-        {% endif %}
-
-        <ul class="nav nav-tabs mb-4 ps-2" id="myTab" role="tablist" style="border-bottom: none;">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active px-4 py-2" id="visitantes-tab" data-bs-toggle="tab" data-bs-target="#visitantes" type="button" role="tab">
-                    👤 Controle de Acesso
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link px-4 py-2" id="encomendas-tab" data-bs-toggle="tab" data-bs-target="#encomendas" type="button" role="tab">
-                    📦 Gestão de Encomendas
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link px-4 py-2" id="solicitacoes-tab" data-bs-toggle="tab" data-bs-target="#solicitacoes" type="button" role="tab">
-                    📢 Solicitações
-                </button>
-            </li>
-        </ul>
-
-        <div class="tab-content" id="myTabContent">
+        <div class="d-flex gap-2 align-items-center">
             
-            <div class="tab-pane fade show active" id="visitantes" role="tabpanel">
-                
-                <div class="card shadow-lg mb-4">
-                    <div class="card-body p-4">
-                        <form method="POST" action="{% url 'home' %}">
-                            {% csrf_token %}
-                            
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Nome do Visitante</label>
-                                <input type="text" name="nome_completo" class="form-control" placeholder="Ex: João da Silva" required>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">CPF</label>
-                                    <input type="text" name="cpf" class="form-control" placeholder="000.000.000-00">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Data Nasc.</label>
-                                    <input type="date" name="data_nascimento" class="form-control">
-                                </div>
-                            </div>
+            {% if user.is_staff %}
+                <a href="{% url 'dashboard' %}" class="btn btn-primary btn-sm d-flex align-items-center gap-1" title="Ver Gráficos">
+                    📊 <span class="d-none d-md-inline">Dashboard</span>
+                </a>
+                <a href="/admin/" target="_blank" class="btn btn-outline-dark btn-sm d-flex align-items-center gap-1">
+                    ⚙️ <span class="d-none d-md-inline">Admin</span>
+                </a>
+            {% endif %}
 
-                            <hr>
-
-                            <div class="row g-2 mb-2 p-2 bg-light border rounded">
-                                <div class="col-12"><small class="text-muted fw-bold">🔍 Localizar Morador Responsável:</small></div>
-                                <div class="col-md-3">
-                                    <select id="vis_filtro_bloco" class="form-select form-select-sm">
-                                        <option value="">Selecione Bloco...</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <select id="vis_filtro_apto" class="form-select form-select-sm" disabled>
-                                        <option value="">Selecione Apto...</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6 d-flex align-items-center">
-                                    <small class="text-muted" id="vis_resultado_filtro">Selecione o Bloco...</small>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Morador Selecionado <span class="text-danger">*</span></label>
-                                    <select name="morador_responsavel" id="vis_select_morador" class="form-select" required readonly style="background-color: #e9ecef; pointer-events: none;">
-                                        <option value="" selected disabled>--- Aguardando Filtro ---</option>
-                                        {% for morador in todos_moradores %}
-                                            <option value="{{ morador.id }}" data-bloco="{{ morador.bloco }}" data-apto="{{ morador.apartamento }}">
-                                                {{ morador.bloco }} - {{ morador.apartamento }} | {{ morador.nome }}
-                                            </option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Placa (Opcional)</label>
-                                    <input type="text" name="placa_veiculo" class="form-control" placeholder="ABC-1234">
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Quem autorizou?</label>
-                                <input type="text" name="quem_autorizou" class="form-control" placeholder="Ex: Sr. João pelo interfone">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Observações</label>
-                                <textarea name="observacoes" class="form-control" rows="1" placeholder="Ex: Técnico da Net..."></textarea>
-                            </div>
-                            <button type="submit" class="btn btn-success w-100">✅ Registrar Entrada</button>
-                        </form>
-                    </div>
-                </div>
-
-                <div class="card shadow-sm mb-3">
-                    <div class="card-body p-2 d-flex gap-2">
-                        <form method="GET" action="{% url 'home' %}" class="flex-grow-1">
-                            <div class="input-group">
-                                <input type="text" name="busca" class="form-control" placeholder="Buscar visitante por Nome ou CPF..." value="{{ query_busca|default:'' }}">
-                                <button class="btn btn-primary" type="submit">🔍 Pesquisar</button>
-                                <a href="{% url 'home' %}" class="btn btn-secondary">Limpar</a>
-                            </div>
-                        </form>
-                        <button type="button" class="btn btn-dark d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#modalRelatorio">
-                            📄 Relatório
-                        </button>
-                    </div>
-                </div>
-
-                <div class="modal fade" id="modalRelatorio" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header bg-dark text-white">
-                                <h5 class="modal-title">Gerar Relatório de Acesso</h5>
-                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <form action="{% url 'exportar_relatorio' %}" method="GET" target="_blank">
-                                <div class="modal-body">
-                                    <div class="mb-3">
-                                        <label class="fw-bold">Data Inicial</label>
-                                        <input type="date" name="data_inicio" class="form-control">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="fw-bold">Data Final</label>
-                                        <input type="date" name="data_fim" class="form-control">
-                                    </div>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                    <button type="submit" class="btn btn-primary">🖨️ Baixar PDF</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card shadow-lg">
-                    <div class="card-body p-0">
-                        <table class="table table-striped table-hover mb-0 align-middle">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>Nome</th>
-                                    <th>Apto/Bloco</th>
-                                    <th>Chegada</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for visitante in lista_visitantes %}
-                                    <tr>
-                                        <td>{{ visitante.nome_completo }}</td>
-                                        <td>
-                                            {% if visitante.morador_responsavel %}
-                                                {{ visitante.morador_responsavel }}
-                                            {% else %}
-                                                <span class="text-muted">{{ visitante.numero_casa }} (Antigo)</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>{{ visitante.horario_chegada|date:"d/m H:i" }}</td>
-                                        <td>
-                                            {% if visitante.horario_saida %}
-                                                <span class="badge bg-secondary">Saiu {{ visitante.horario_saida|date:"H:i" }}</span>
-                                            {% else %}
-                                                <a href="{% url 'registrar_saida' id_visitante=visitante.id %}" class="btn btn-danger btn-sm">🚪 Saída</a>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                {% empty %}
-                                    <tr><td colspan="4" class="text-center p-3 text-muted">Nenhum registro encontrado.</td></tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <div class="d-flex justify-content-center mt-3">
-                    <nav>
-                        <ul class="pagination">
-                            {% if lista_visitantes.has_previous %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ lista_visitantes.previous_page_number }}{% if query_busca %}&busca={{ query_busca }}{% endif %}">Anterior</a>
-                                </li>
-                            {% endif %}
-                            <li class="page-item disabled">
-                                <span class="page-link">Página {{ lista_visitantes.number }} de {{ lista_visitantes.paginator.num_pages }}</span>
-                            </li>
-                            {% if lista_visitantes.has_next %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ lista_visitantes.next_page_number }}{% if query_busca %}&busca={{ query_busca }}{% endif %}">Próxima</a>
-                                </li>
-                            {% endif %}
-                        </ul>
-                    </nav>
-                </div>
-
-            </div>
-
-            <div class="tab-pane fade" id="encomendas" role="tabpanel">
-                
-                <div class="d-flex justify-content-end mb-3 gap-2">
-                    <a href="{% url 'historico_encomendas' %}" class="btn btn-primary d-flex align-items-center">
-                        📜 Ver Histórico na Tela
-                    </a>
-                    <button type="button" class="btn btn-dark d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#modalRelatorioEncomendas">
-                        📄 Gerar PDF
-                    </button>
-                </div>
-
-                <div class="modal fade" id="modalRelatorioEncomendas" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header bg-warning text-dark">
-                                <h5 class="modal-title">Relatório de Encomendas</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <form action="{% url 'exportar_relatorio_encomendas' %}" method="GET" target="_blank">
-                                <div class="modal-body">
-                                    <div class="mb-3">
-                                        <label class="fw-bold">Data Inicial</label>
-                                        <input type="date" name="data_inicio" class="form-control">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="fw-bold">Data Final</label>
-                                        <input type="date" name="data_fim" class="form-control">
-                                    </div>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                    <button type="submit" class="btn btn-dark">🖨️ Baixar PDF</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card shadow-lg mb-4 border-warning">
-                    <div class="card-header bg-warning text-dark fw-bold">📦 Nova Encomenda</div>
-                    <div class="card-body">
-                        <form method="POST" action="{% url 'registrar_encomenda' %}">
-                            {% csrf_token %}
-                            
-                            <div class="row g-2 mb-3 p-2 bg-light border rounded">
-                                <div class="col-12"><small class="text-muted fw-bold">🔍 Localizar Morador:</small></div>
-                                <div class="col-md-3">
-                                    <select id="filtro_bloco" class="form-select form-select-sm">
-                                        <option value="">Selecione Bloco...</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <select id="filtro_apto" class="form-select form-select-sm" disabled>
-                                        <option value="">Selecione Apto...</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6 d-flex align-items-center">
-                                    <small class="text-muted" id="resultado_filtro">Selecione o Bloco...</small>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6 mb-2">
-                                    <label class="fw-bold">Morador Responsável <span class="text-danger">*</span></label>
-                                    <select name="morador_encomenda" id="select_morador_final" class="form-select" required readonly style="background-color: #e9ecef; pointer-events: none;">
-                                        <option value="" selected disabled>--- Aguardando Filtro ---</option>
-                                        {% for morador in todos_moradores %}
-                                            <option value="{{ morador.id }}" data-bloco="{{ morador.bloco }}" data-apto="{{ morador.apartamento }}">
-                                                {{ morador.bloco }} - {{ morador.apartamento }} | {{ morador.nome }}
-                                            </option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                
-                                <div class="col-md-6 mb-2">
-                                    <label class="fw-bold text-muted">A/C (Opcional)</label>
-                                    <input type="text" name="destinatario_alternativo" class="form-control" placeholder="Ex: Amiga Juliana (Visitante)">
-                                    <small class="text-muted" style="font-size: 0.75rem;">Preencha se a encomenda NÃO for para o morador.</small>
-                                </div>
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-10 mb-2">
-                                    <label class="fw-bold">Descrição/Volume</label>
-                                    <input type="text" name="volume" class="form-control" placeholder="Ex: Caixa Amazon..." required>
-                                </div>
-                                <div class="col-md-2 mb-2 d-flex align-items-end">
-                                    <button type="submit" class="btn btn-dark w-100">Salvar</button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <div class="card shadow-lg">
-                    <div class="card-body p-0">
-                        <table class="table table-hover mb-0 align-middle">
-                            <thead class="table-warning">
-                                <tr>
-                                    <th>Apto/Bloco</th>
-                                    <th>Morador</th>
-                                    <th>Volume</th>
-                                    <th>Avisar</th>
-                                    <th>Ação</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for encomenda in lista_encomendas %}
-                                    <tr>
-                                        <td>{{ encomenda.morador.bloco }} - {{ encomenda.morador.apartamento }}</td>
-                                        <td>
-                                            {{ encomenda.morador.nome }}
-                                            {% if encomenda.destinatario_alternativo %}
-                                                <br><small class="text-danger fw-bold">A/C: {{ encomenda.destinatario_alternativo }}</small>
-                                            {% endif %}
-                                        </td>
-                                        <td class="fw-bold text-primary">{{ encomenda.volume }}</td>
-                                        
-                                        <td>
-                                            {% if encomenda.morador.telefone %}
-                                                {% if encomenda.notificado %}
-                                                    <span class="badge bg-info text-dark mb-1">🔔 Avisado</span><br>
-                                                    <a href="javascript:void(0)" 
-                                                       data-whatsapp="https://wa.me/55{{ encomenda.morador.telefone|somente_numeros }}?text=Olá {{ encomenda.morador.nome }}, lembrete: sua encomenda ({{ encomenda.volume }}) continua na portaria."
-                                                       data-url="{% url 'marcar_notificado' id_encomenda=encomenda.id %}"
-                                                       onclick="avisarMorador(this.getAttribute('data-whatsapp'), this.getAttribute('data-url'))"
-                                                       class="text-muted small text-decoration-none">
-                                                       Reenviar?
-                                                    </a>
-                                                {% else %}
-                                                    <button type="button" 
-                                                            class="btn btn-outline-success btn-sm fw-bold"
-                                                            data-whatsapp="https://wa.me/55{{ encomenda.morador.telefone|somente_numeros }}?text=Olá {{ encomenda.morador.nome }}, chegou uma encomenda para você na portaria: {{ encomenda.volume }}."
-                                                            data-url="{% url 'marcar_notificado' id_encomenda=encomenda.id %}"
-                                                            onclick="avisarMorador(this.getAttribute('data-whatsapp'), this.getAttribute('data-url'))">
-                                                        📱 WhatsApp
-                                                    </button>
-                                                {% endif %}
-                                            {% else %}
-                                                <span class="text-muted small">Sem telefone</span>
-                                            {% endif %}
-                                        </td>
-
-                                        <td>
-                                            <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalEntrega{{ encomenda.id }}">✅ Entregar</button>
-
-                                            <div class="modal fade" id="modalEntrega{{ encomenda.id }}" tabindex="-1" aria-hidden="true">
-                                                <div class="modal-dialog">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header bg-success text-white">
-                                                            <h5 class="modal-title">Confirmar Entrega</h5>
-                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                        </div>
-                                                        <form method="POST" action="{% url 'confirmar_entrega' id_encomenda=encomenda.id %}">
-                                                            {% csrf_token %}
-                                                            <div class="modal-body">
-                                                                <p>Entregando volume: <br><strong>{{ encomenda.volume }}</strong></p>
-                                                                <p>Para: <strong>{{ encomenda.morador.nome }}</strong></p>
-                                                                
-                                                                <div class="mb-3">
-                                                                    <label class="form-label fw-bold">Quem está retirando?</label>
-                                                                    <input type="text" name="nome_retirada" class="form-control" placeholder="Ex: O próprio, Filho..." required>
-                                                                </div>
-                                                                <div class="mb-3">
-                                                                    <label class="form-label fw-bold">Documento (RG/CPF)</label>
-                                                                    <input type="text" name="documento_retirada" class="form-control" placeholder="Opcional">
-                                                                </div>
-                                                            </div>
-                                                            <div class="modal-footer">
-                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                                                <button type="submit" class="btn btn-success">Confirmar Baixa</button>
-                                                            </div>
-                                                        </form>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                {% empty %}
-                                    <tr><td colspan="5" class="text-center p-4 text-muted">Nenhuma encomenda pendente.</td></tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div class="tab-pane fade" id="solicitacoes" role="tabpanel">
-                
-                <div class="card shadow-lg mb-4 border-info">
-                    <div class="card-header bg-info text-white fw-bold">📢 Nova Ocorrência / Reserva</div>
-                    <div class="card-body">
-                        <form method="POST" action="{% url 'registrar_solicitacao' %}">
-                            {% csrf_token %}
-                            
-                            <div class="row">
-                                <div class="col-md-4 mb-3">
-                                    <label class="fw-bold">Tipo</label>
-                                    <select name="tipo" class="form-select" required>
-                                        <option value="" selected disabled>Selecione...</option>
-                                        <option value="RECLAMACAO">📢 Reclamação</option>
-                                        <option value="MANUTENCAO">🛠️ Manutenção</option>
-                                        <option value="MUDANCA">🚚 Mudança</option>
-                                        <option value="RESERVA">📅 Reserva de Espaço</option>
-                                        <option value="OUTRO">📝 Outro</option>
-                                    </select>
-                                </div>
-
-                                <div class="col-md-8 mb-3">
-                                    <label class="fw-bold">Morador Vinculado (Opcional)</label>
-                                    
-                                    <div class="d-flex gap-2 mb-2">
-                                        <select id="sol_filtro_bloco" class="form-select form-select-sm" style="width: 30%;">
-                                            <option value="">Bloco...</option>
-                                        </select>
-                                        <select id="sol_filtro_apto" class="form-select form-select-sm" style="width: 30%;" disabled>
-                                            <option value="">Apto...</option>
-                                        </select>
-                                        <small class="text-muted d-flex align-items-center" id="sol_resultado_filtro">Filtre se necessário</small>
-                                    </div>
-
-                                    <select name="morador_solicitacao" id="sol_select_morador" class="form-select" readonly style="background-color: #e9ecef; pointer-events: none;">
-                                        <option value="" selected>-- Sem morador vinculado (Área Comum) --</option>
-                                        {% for morador in todos_moradores %}
-                                            <option value="{{ morador.id }}" data-bloco="{{ morador.bloco }}" data-apto="{{ morador.apartamento }}">
-                                                {{ morador.bloco }} - {{ morador.apartamento }} | {{ morador.nome }}
-                                            </option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="fw-bold">Descrição Detalhada</label>
-                                <textarea name="descricao" class="form-control" rows="2" placeholder="Ex: Lâmpada do hall queimada OU Reserva salão dia 15..." required></textarea>
-                            </div>
-
-                            <button type="submit" class="btn btn-info text-white w-100 fw-bold">Registrar Solicitação</button>
-                        </form>
-                    </div>
-                </div>
-
-                <div class="card shadow-lg">
-                    <div class="card-header bg-light fw-bold">Últimos Registros</div>
-                    <div class="card-body p-0">
-                        <table class="table table-hover mb-0 align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Data</th>
-                                    <th>Tipo</th>
-                                    <th>Detalhes</th>
-                                    <th>Registrado Por</th>
-                                    <th>Status (Admin)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for sol in lista_solicitacoes %}
-                                    <tr>
-                                        <td>{{ sol.data_criacao|date:"d/m H:i" }}</td>
-                                        <td>
-                                            {% if sol.tipo == 'RECLAMACAO' %}📢{% endif %}
-                                            {% if sol.tipo == 'MANUTENCAO' %}🛠️{% endif %}
-                                            {% if sol.tipo == 'MUDANCA' %}🚚{% endif %}
-                                            {% if sol.tipo == 'RESERVA' %}📅{% endif %}
-                                            {{ sol.get_tipo_display }}
-                                        </td>
-                                        <td>
-                                            {% if sol.morador %}
-                                                <strong class="text-primary">{{ sol.morador.bloco }}-{{ sol.morador.apartamento }}</strong>: 
-                                            {% endif %}
-                                            {{ sol.descricao|truncatechars:50 }}
-                                            {% if sol.resposta_admin %}
-                                                <br><small class="text-danger">💬 Resp: {{ sol.resposta_admin }}</small>
-                                            {% endif %}
-                                        </td>
-                                        
-                                        <td>
-                                            <span class="badge bg-secondary text-white">
-                                                👤 {{ sol.criado_por.username|default:"Sistema" }}
-                                            </span>
-                                        </td>
-
-                                        <td>
-                                            {% if sol.status == 'PENDENTE' %}
-                                                <span class="badge bg-warning text-dark">🟠 Pendente</span>
-                                            {% elif sol.status == 'APROVADO' %}
-                                                <span class="badge bg-success">🟢 Aprovado</span>
-                                            {% elif sol.status == 'NEGADO' %}
-                                                <span class="badge bg-danger">🔴 Negado</span>
-                                            {% else %}
-                                                <span class="badge bg-primary">🔵 Em Análise</span>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                {% empty %}
-                                    <tr><td colspan="5" class="text-center p-4 text-muted">Nenhuma solicitação recente.</td></tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-            </div>
-            
+            <form action="{% url 'logout' %}" method="post" class="m-0">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger btn-sm">Sair 🔒</button>
+            </form>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <script>
-        // 1. Função WhatsApp
-        function avisarMorador(urlWhatsApp, urlNotificacao) {
-            window.open(urlWhatsApp, '_blank');
-            window.location.href = urlNotificacao;
-        }
+    <div class="row mb-4">
+        <div class="col-md-4 col-lg-3 mb-2">
+            <div class="card bg-success text-white shadow-sm">
+                <div class="card-body p-2 d-flex justify-content-between align-items-center">
+                    <span class="fw-bold small">👥 Visitantes:</span>
+                    <span class="h4 mb-0 fw-bold">{{ visitantes_no_local }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-3 mb-2">
+            <div class="card bg-warning text-dark shadow-sm">
+                <div class="card-body p-2 d-flex justify-content-between align-items-center">
+                    <span class="fw-bold small">📦 Pendentes:</span>
+                    <span class="h4 mb-0 fw-bold">{{ encomendas_pendentes }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        // 2. Função de Filtro (CORRIGIDA PARA MÚLTIPLOS MORADORES E BLOCO GERAL)
-        function configurarFiltroCascata(idSelectFinal, idFiltroBloco, idFiltroApto, idLabelResultado) {
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <strong>Nota:</strong> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <ul class="nav nav-tabs mb-4 ps-2" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active px-4" id="visitantes-tab" data-bs-toggle="tab" data-bs-target="#visitantes" type="button">👤 Controle de Acesso</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link px-4" id="encomendas-tab" data-bs-toggle="tab" data-bs-target="#encomendas" type="button">📦 Gestão de Encomendas</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link px-4" id="solicitacoes-tab" data-bs-toggle="tab" data-bs-target="#solicitacoes" type="button">📢 Solicitações</button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="myTabContent">
+        
+        <div class="tab-pane fade show active" id="visitantes" role="tabpanel">
             
-            const selectFinal = document.getElementById(idSelectFinal);
-            const filtroBloco = document.getElementById(idFiltroBloco);
-            const filtroApto = document.getElementById(idFiltroApto);
-            const labelResultado = document.getElementById(idLabelResultado);
-
-            if(!selectFinal || !filtroBloco || !filtroApto) return;
-
-            // Mapeia todos os dados (Backup da lista original)
-            const todasOpcoes = Array.from(selectFinal.options).slice(1); // Pula o "Selecione..."
-            
-            const todosMoradores = todasOpcoes.map(option => {
-                let blocoRaw = option.getAttribute('data-bloco');
-                let blocoTratado = (blocoRaw && blocoRaw.trim() !== "") ? blocoRaw : "Geral";
-                return {
-                    id: option.value,
-                    texto: option.text,
-                    bloco: blocoTratado, 
-                    apto: option.getAttribute('data-apto'),
-                    htmlOriginal: option // Guarda a referência do elemento HTML
-                };
-            });
-
-            // Popula Blocos
-            const blocosUnicos = [...new Set(todosMoradores.map(m => m.bloco))].sort();
-            filtroBloco.innerHTML = '<option value="">Selecione Bloco...</option>';
-            blocosUnicos.forEach(bloco => {
-                const opt = document.createElement('option');
-                opt.value = bloco;
-                opt.innerText = bloco === "Geral" ? "Geral" : "Bloco " + bloco;
-                filtroBloco.appendChild(opt);
-            });
-
-            // --- EVENTO: MUDOU O BLOCO ---
-            filtroBloco.addEventListener('change', function() {
-                const blocoEscolhido = this.value;
-                filtroApto.innerHTML = '<option value="">Selecione Apto...</option>';
-                filtroApto.disabled = true;
-                
-                // Reseta o Select Final
-                selectFinal.innerHTML = '<option value="" selected disabled>--- Aguardando Filtro ---</option>';
-                selectFinal.style.pointerEvents = "none";
-                selectFinal.style.backgroundColor = "#e9ecef";
-                // Alguns navegadores pedem disabled em vez de readOnly para selects
-                selectFinal.disabled = true; 
-
-                if (blocoEscolhido) {
-                    labelResultado.innerText = "Agora escolha o apartamento...";
-                    
-                    const aptosDoBloco = todosMoradores
-                        .filter(m => m.bloco === blocoEscolhido)
-                        .map(m => m.apto)
-                        .sort((a, b) => a.localeCompare(b, undefined, {numeric: true}));
-                    
-                    const aptosUnicos = [...new Set(aptosDoBloco)];
-
-                    aptosUnicos.forEach(apto => {
-                        const opt = document.createElement('option');
-                        opt.value = apto;
-                        opt.innerText = "Apto " + apto;
-                        filtroApto.appendChild(opt);
-                    });
-                    filtroApto.disabled = false;
-                } else {
-                    labelResultado.innerText = "Selecione o Bloco primeiro...";
-                }
-            });
-
-            // --- EVENTO: MUDOU O APTO (A MÁGICA ACONTECE AQUI) ---
-            filtroApto.addEventListener('change', function() {
-                const blocoEscolhido = filtroBloco.value;
-                const aptoEscolhido = this.value;
-
-                if (blocoEscolhido && aptoEscolhido) {
-                    // Filtra TODOS os moradores daquele apartamento
-                    const moradoresEncontrados = todosMoradores.filter(m => 
-                        m.bloco === blocoEscolhido && m.apto === aptoEscolhido
-                    );
-
-                    if (moradoresEncontrados.length > 0) {
-                        // Limpa o select e adiciona só os moradores daquela casa
-                        // Nota: Se for o campo de solicitação, adiciona a opção "Sem morador"
-                        if(selectFinal.id === 'sol_select_morador') {
-                             selectFinal.innerHTML = '<option value="" selected>-- Sem morador vinculado --</option>';
-                        } else {
-                             selectFinal.innerHTML = '<option value="" selected disabled>👇 Selecione quem receberá</option>';
-                        }
+            <div class="card shadow-lg mb-4">
+                <div class="card-body p-4">
+                    <form method="POST" action="{% url 'home' %}">
+                        {% csrf_token %}
                         
-                        moradoresEncontrados.forEach(m => {
-                            // Clona a opção original para colocar no select
-                            const novaOpcao = m.htmlOriginal.cloneNode(true);
-                            selectFinal.appendChild(novaOpcao);
-                        });
+                        <div class="mb-3">
+                            <label class="fw-bold">Nome do Visitante</label>
+                            <input type="text" name="nome_completo" class="form-control" placeholder="Ex: João da Silva" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label>CPF</label>
+                                <input type="text" name="cpf" class="form-control" placeholder="000.000.000-00">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label>Data Nasc.</label>
+                                <input type="date" name="data_nascimento" class="form-control">
+                            </div>
+                        </div>
 
-                        // Destrava o campo para o porteiro escolher
-                        selectFinal.style.pointerEvents = "auto";
-                        selectFinal.style.backgroundColor = "#fff";
-                        selectFinal.disabled = false;
+                        <hr>
+
+                        <div class="row g-2 mb-2 p-2 bg-light border rounded">
+                            <div class="col-12"><small class="text-muted fw-bold">🔍 Localizar Morador Responsável:</small></div>
+                            <div class="col-md-3">
+                                <select id="vis_filtro_bloco" class="form-select form-select-sm"><option value="">Bloco...</option></select>
+                            </div>
+                            <div class="col-md-3">
+                                <select id="vis_filtro_apto" class="form-select form-select-sm" disabled><option value="">Apto...</option></select>
+                            </div>
+                            <div class="col-md-6 d-flex align-items-center">
+                                <small class="text-muted" id="vis_resultado_filtro">Selecione o Bloco...</small>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="fw-bold">Morador Selecionado <span class="text-danger">*</span></label>
+                                <select name="morador_responsavel" id="vis_select_morador" class="form-select" required readonly style="background-color: #e9ecef; pointer-events: none;">
+                                    <option value="" disabled selected>--- Aguardando Filtro ---</option>
+                                    {% for morador in todos_moradores %}
+                                        <option value="{{ morador.id }}" data-bloco="{{ morador.bloco }}" data-apto="{{ morador.apartamento }}">
+                                            {{ morador.bloco }} - {{ morador.apartamento }} | {{ morador.nome }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label>Placa (Opcional)</label>
+                                <input type="text" name="placa_veiculo" class="form-control" placeholder="ABC-1234">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Quem autorizou?</label>
+                            <input type="text" name="quem_autorizou" class="form-control" placeholder="Ex: Sr. João pelo interfone">
+                        </div>
+                        <div class="mb-3">
+                            <label>Observações</label>
+                            <textarea name="observacoes" class="form-control" rows="1"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">✅ Registrar Entrada</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-3">
+                <div class="card-body p-2 d-flex gap-2">
+                    <form method="GET" action="{% url 'home' %}" class="flex-grow-1 d-flex gap-2">
+                        <input type="text" name="busca" class="form-control" placeholder="Buscar visitante..." value="{{ query_busca|default:'' }}">
+                        <button class="btn btn-primary" type="submit">🔍</button>
+                        <a href="{% url 'home' %}" class="btn btn-secondary">Limpar</a>
+                    </form>
+                    <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#modalRelatorio">📄 Relatório</button>
+                </div>
+            </div>
+
+            <div class="card shadow-lg">
+                <table class="table table-striped table-hover mb-0 align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Nome</th>
+                            <th>Destino</th>
+                            <th>Chegada</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for visitante in lista_visitantes %}
+                            <tr>
+                                <td>{{ visitante.nome_completo }}</td>
+                                <td>
+                                    {% if visitante.morador_responsavel %}
+                                        {{ visitante.morador_responsavel }}
+                                    {% else %}
+                                        <span class="text-muted">Antigo/Sem morador</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ visitante.horario_chegada|date:"d/m H:i" }}</td>
+                                <td>
+                                    {% if visitante.horario_saida %}
+                                        <span class="badge bg-secondary">Saiu {{ visitante.horario_saida|date:"H:i" }}</span>
+                                    {% else %}
+                                        <a href="{% url 'registrar_saida' visitante.id %}" class="btn btn-danger btn-sm">🚪 Saída</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="4" class="text-center p-3 text-muted">Nenhum visitante no momento.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="modal fade" id="modalRelatorio" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header bg-dark text-white">
+                            <h5 class="modal-title">Relatório de Acesso</h5>
+                            <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <form action="{% url 'exportar_relatorio' %}" target="_blank">
+                            <div class="modal-body">
+                                <label class="fw-bold">Data Inicial</label>
+                                <input type="date" name="data_inicio" class="form-control mb-3">
+                                <label class="fw-bold">Data Final</label>
+                                <input type="date" name="data_fim" class="form-control">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-primary">🖨️ Gerar PDF</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="encomendas" role="tabpanel">
+            
+            <div class="d-flex justify-content-end mb-3 gap-2">
+                <a href="{% url 'historico_encomendas' %}" class="btn btn-primary d-flex align-items-center">📜 Histórico</a>
+                <a href="{% url 'exportar_relatorio_encomendas' %}" target="_blank" class="btn btn-dark d-flex align-items-center">📄 Relatório</a>
+            </div>
+
+            <div class="card shadow-lg mb-4 border-warning">
+                <div class="card-header bg-warning text-dark fw-bold">📦 Nova Encomenda</div>
+                <div class="card-body">
+                    <form method="POST" action="{% url 'registrar_encomenda' %}">
+                        {% csrf_token %}
                         
-                        labelResultado.innerHTML = `<span class="text-success fw-bold">✅ ${moradoresEncontrados.length} Morador(es) encontrado(s)!</span>`;
-                    } else {
-                        labelResultado.innerHTML = '<span class="text-danger">Erro: Ninguém cadastrado.</span>';
-                    }
-                }
-            });
-        }
+                        <div class="row g-2 mb-3 p-2 bg-light border rounded">
+                            <div class="col-12"><small class="text-muted fw-bold">🔍 Localizar Morador:</small></div>
+                            <div class="col-md-3">
+                                <select id="filtro_bloco" class="form-select form-select-sm"><option value="">Bloco...</option></select>
+                            </div>
+                            <div class="col-md-3">
+                                <select id="filtro_apto" class="form-select form-select-sm" disabled><option value="">Apto...</option></select>
+                            </div>
+                            <div class="col-md-6 d-flex align-items-center">
+                                <small class="text-muted" id="resultado_filtro">Selecione o Bloco...</small>
+                            </div>
+                        </div>
 
-        // Inicialização
-        document.addEventListener("DOMContentLoaded", function() {
-            // Filtro Visitantes
-            configurarFiltroCascata('vis_select_morador', 'vis_filtro_bloco', 'vis_filtro_apto', 'vis_resultado_filtro');
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <label class="fw-bold">Morador Responsável <span class="text-danger">*</span></label>
+                                <select name="morador_encomenda" id="select_morador_final" class="form-select" required readonly style="background-color: #e9ecef; pointer-events: none;">
+                                    <option value="" selected disabled>--- Aguardando Filtro ---</option>
+                                    {% for morador in todos_moradores %}
+                                        <option value="{{ morador.id }}" data-bloco="{{ morador.bloco }}" data-apto="{{ morador.apartamento }}">
+                                            {{ morador.bloco }} - {{ morador.apartamento }} | {{ morador.nome }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label class="fw-bold text-muted">A/C (Opcional)</label>
+                                <input type="text" name="destinatario_alternativo" class="form-control" placeholder="Ex: Filha, Empregada...">
+                            </div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <input type="text" name="volume" class="form-control" placeholder="Descrição (Ex: Caixa Amazon, Envelope...)" required>
+                            <button type="submit" class="btn btn-dark">Salvar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card shadow-lg">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-warning">
+                        <tr>
+                            <th>Morador</th>
+                            <th>Volume</th>
+                            <th>Avisar</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for encomenda in lista_encomendas %}
+                            <tr>
+                                <td>
+                                    {{ encomenda.morador.nome }}
+                                    <br><small class="text-muted">{{ encomenda.morador.bloco }} - {{ encomenda.morador.apartamento }}</small>
+                                    {% if encomenda.destinatario_alternativo %}
+                                        <br><small class="text-danger fw-bold">A/C: {{ encomenda.destinatario_alternativo }}</small>
+                                    {% endif %}
+                                </td>
+                                <td class="fw-bold text-primary">{{ encomenda.volume }}</td>
+                                <td>
+                                    {% if encomenda.morador.telefone %}
+                                        <button type="button" 
+                                                class="btn btn-sm {% if encomenda.notificado %}btn-info{% else %}btn-outline-success{% endif %}"
+                                                onclick="avisarMorador('https://wa.me/55{{ encomenda.morador.telefone|somente_numeros }}?text=Olá, chegou encomenda: {{ encomenda.volume }}', '{% url 'marcar_notificado' encomenda.id %}')">
+                                            {% if encomenda.notificado %}Reenviar?{% else %}WhatsApp{% endif %}
+                                        </button>
+                                    {% else %}
+                                        <span class="text-muted small">Sem tel</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalEnt{{ encomenda.id }}">Entregar</button>
+                                    <div class="modal fade" id="modalEnt{{ encomenda.id }}" tabindex="-1">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header bg-success text-white"><h5 class="modal-title">Baixa na Encomenda</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+                                                <form method="POST" action="{% url 'confirmar_entrega' encomenda.id %}">
+                                                    {% csrf_token %}
+                                                    <div class="modal-body">
+                                                        <p>Entregando: <strong>{{ encomenda.volume }}</strong></p>
+                                                        <input type="text" name="nome_retirada" class="form-control mb-2" placeholder="Quem retirou?" required>
+                                                        <input type="text" name="documento_retirada" class="form-control" placeholder="Documento (Opcional)">
+                                                    </div>
+                                                    <div class="modal-footer"><button type="submit" class="btn btn-success">Confirmar</button></div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="4" class="text-center p-4 text-muted">Nenhuma encomenda pendente.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="solicitacoes" role="tabpanel">
             
-            // Filtro Encomendas
-            configurarFiltroCascata('select_morador_final', 'filtro_bloco', 'filtro_apto', 'resultado_filtro');
+            <div class="d-flex justify-content-end mb-2">
+                <a href="{% url 'historico_solicitacoes' %}" class="btn btn-info text-white fw-bold">📂 Ver Histórico Completo</a>
+            </div>
+
+            <div class="card shadow-lg mb-4 border-info">
+                <div class="card-header bg-info text-white fw-bold">📢 Nova Ocorrência / Reserva</div>
+                <div class="card-body">
+                    <form method="POST" action="{% url 'registrar_solicitacao' %}">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="fw-bold">Tipo</label>
+                                <select name="tipo" class="form-select" required>
+                                    <option value="" selected disabled>Selecione...</option>
+                                    <option value="RECLAMACAO">📢 Reclamação</option>
+                                    <option value="MANUTENCAO">🛠️ Manutenção</option>
+                                    <option value="MUDANCA">🚚 Mudança</option>
+                                    <option value="RESERVA">📅 Reserva</option>
+                                    <option value="OUTRO">📝 Outro</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-8 mb-3">
+                                <label class="fw-bold">Morador Vinculado (Opcional)</label>
+                                <div class="d-flex gap-2 mb-2">
+                                    <select id="sol_filtro_bloco" class="form-select form-select-sm" style="width: 30%;"><option value="">Bloco...</option></select>
+                                    <select id="sol_filtro_apto" class="form-select form-select-sm" style="width: 30%;" disabled><option value="">Apto...</option></select>
+                                    <small class="text-muted d-flex align-items-center" id="sol_resultado_filtro">Filtre...</small>
+                                </div>
+                                <select name="morador_solicitacao" id="sol_select_morador" class="form-select" readonly style="background-color: #e9ecef; pointer-events: none;">
+                                    <option value="" selected>-- Sem morador vinculado (Área Comum) --</option>
+                                    {% for morador in todos_moradores %}
+                                        <option value="{{ morador.id }}" data-bloco="{{ morador.bloco }}" data-apto="{{ morador.apartamento }}">
+                                            {{ morador.bloco }} - {{ morador.apartamento }} | {{ morador.nome }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="fw-bold">Descrição</label>
+                            <textarea name="descricao" class="form-control" rows="2" placeholder="Detalhes..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-info text-white w-100 fw-bold">Registrar</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card shadow-lg">
+                <div class="card-header bg-light fw-bold">Últimos Registros</div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Data</th>
+                                <th>Tipo</th>
+                                <th>Detalhes</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sol in lista_solicitacoes %}
+                                <tr>
+                                    <td>{{ sol.data_criacao|date:"d/m H:i" }}</td>
+                                    <td>{{ sol.get_tipo_display }}</td>
+                                    <td>
+                                        {% if sol.morador %}<strong class="text-primary">{{ sol.morador.bloco }}-{{ sol.morador.apartamento }}</strong>:{% endif %}
+                                        {{ sol.descricao|truncatechars:40 }}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if sol.status == 'PENDENTE' %}warning text-dark{% elif sol.status == 'APROVADO' %}success{% else %}danger{% endif %}">
+                                            {{ sol.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr><td colspan="4" class="text-center p-4 text-muted">Nenhuma solicitação recente.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // Função para abrir WhatsApp e marcar como notificado
+    function avisarMorador(urlWhatsApp, urlNotificacao) {
+        window.open(urlWhatsApp, '_blank');
+        window.location.href = urlNotificacao;
+    }
+
+    // Função ÚNICA para configurar os Filtros em Cascata
+    function configurarFiltroCascata(idSelectFinal, idFiltroBloco, idFiltroApto, idLabelResultado) {
+        
+        const selectFinal = document.getElementById(idSelectFinal);
+        const filtroBloco = document.getElementById(idFiltroBloco);
+        const filtroApto = document.getElementById(idFiltroApto);
+        const labelResultado = document.getElementById(idLabelResultado);
+
+        if(!selectFinal || !filtroBloco || !filtroApto) return;
+
+        // Extrai todas as opções do select original (escondido)
+        const todasOpcoes = Array.from(selectFinal.options).slice(1);
+        
+        const dados = todasOpcoes.map(opt => ({
+            val: opt.value,
+            txt: opt.text,
+            bloco: opt.getAttribute('data-bloco') || "Geral",
+            apto: opt.getAttribute('data-apto'),
+            html: opt.outerHTML
+        }));
+
+        // 1. Popula o Select de Blocos
+        const blocosUnicos = [...new Set(dados.map(d => d.bloco))].sort();
+        filtroBloco.innerHTML = '<option value="">Bloco...</option>';
+        blocosUnicos.forEach(b => {
+            const opt = document.createElement('option');
+            opt.value = b;
+            opt.innerText = b;
+            filtroBloco.appendChild(opt);
+        });
+
+        // 2. Quando mudar o Bloco
+        filtroBloco.addEventListener('change', function() {
+            const blocoSel = this.value;
+            filtroApto.innerHTML = '<option value="">Apto...</option>';
+            filtroApto.disabled = !blocoSel;
             
-            // Filtro Solicitações (Nova Aba)
-            configurarFiltroCascata('sol_select_morador', 'sol_filtro_bloco', 'sol_filtro_apto', 'sol_resultado_filtro');
-            
-            // Abas Persistentes
-            const urlParams = new URLSearchParams(window.location.search);
-            const abaAlvo = urlParams.get('aba');
-            if (abaAlvo) {
-                const botaoAba = document.getElementById(abaAlvo + '-tab');
-                if (botaoAba) {
-                    new bootstrap.Tab(botaoAba).show();
-                }
+            // Reseta o select final
+            selectFinal.innerHTML = '<option value="" selected disabled>...</option>';
+            selectFinal.disabled = true;
+            selectFinal.style.pointerEvents = 'none';
+            selectFinal.style.backgroundColor = '#e9ecef';
+
+            if(blocoSel) {
+                const aptos = [...new Set(dados.filter(d => d.bloco === blocoSel).map(d => d.apto))].sort((a,b)=>a-b);
+                aptos.forEach(a => {
+                    const opt = document.createElement('option');
+                    opt.value = a;
+                    opt.innerText = a;
+                    filtroApto.appendChild(opt);
+                });
+                labelResultado.innerText = "Escolha o apto...";
+            } else {
+                labelResultado.innerText = "Selecione o Bloco...";
             }
         });
-    </script>
-</body>
-</html>
+
+        // 3. Quando mudar o Apartamento
+        filtroApto.addEventListener('change', function() {
+            const blocoSel = filtroBloco.value;
+            const aptoSel = this.value;
+
+            const encontrados = dados.filter(d => d.bloco === blocoSel && d.apto === aptoSel);
+            
+            selectFinal.innerHTML = '';
+            encontrados.forEach(item => {
+                // Recria o HTML da option original
+                selectFinal.insertAdjacentHTML('beforeend', item.html);
+            });
+
+            if(encontrados.length > 0) {
+                selectFinal.disabled = false;
+                selectFinal.style.pointerEvents = 'auto';
+                selectFinal.style.backgroundColor = '#fff';
+                selectFinal.selectedIndex = 0; // Seleciona o primeiro automaticamente
+                labelResultado.innerText = "✅ Encontrado!";
+            } else {
+                labelResultado.innerText = "❌ Ninguém";
+            }
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        // Inicia os filtros para as 3 abas
+        configurarFiltroCascata('vis_select_morador', 'vis_filtro_bloco', 'vis_filtro_apto', 'vis_resultado_filtro');
+        configurarFiltroCascata('select_morador_final', 'filtro_bloco', 'filtro_apto', 'resultado_filtro');
+        configurarFiltroCascata('sol_select_morador', 'sol_filtro_bloco', 'sol_filtro_apto', 'sol_resultado_filtro');
+
+        // Mantém a aba ativa após recarregar a página (via URL ?aba=...)
+        const urlParams = new URLSearchParams(window.location.search);
+        const abaAlvo = urlParams.get('aba');
+        if (abaAlvo) {
+            const botaoAba = document.getElementById(abaAlvo + '-tab');
+            if (botaoAba) {
+                new bootstrap.Tab(botaoAba).show();
+            }
+        }
+    });
+</script>
+{% endblock %}

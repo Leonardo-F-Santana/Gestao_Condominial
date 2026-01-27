@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* Estilos exclusivos para impressão/PDF */
+    @media print {
+        .btn, .navbar, .no-print { display: none !important; }
+        .card { border: 1px solid #ddd !important; break-inside: avoid; box-shadow: none !important; }
+        .card-header { background-color: #f8f9fa !important; color: #000 !important; border-bottom: 1px solid #ddd !important; }
+        body { background-color: white !important; font-family: sans-serif; }
+        h2 { color: #000 !important; }
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>📊 Dashboard Gerencial</h2>
+        <div>
+            <button onclick="window.print()" class="btn btn-dark me-2">🖨️ Salvar Relatório (PDF)</button>
+            <a href="{% url 'home' %}" class="btn btn-secondary">⬅️ Voltar</a>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary mb-3 shadow">
+                <div class="card-header">Visitantes Hoje</div>
+                <div class="card-body"><h1 class="card-title display-4 fw-bold">{{ total_visitantes_hoje }}</h1></div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning mb-3 shadow">
+                <div class="card-header text-dark">📦 Na Portaria</div>
+                <div class="card-body text-dark"><h1 class="card-title display-4 fw-bold">{{ encomendas_pendentes }}</h1></div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3 shadow">
+                <div class="card-header">📦 Entregues Total</div>
+                <div class="card-body"><h1 class="card-title display-4 fw-bold">{{ entregues }}</h1></div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-danger mb-3 shadow">
+                <div class="card-header">⚠️ Ocorrências</div>
+                <div class="card-body"><h1 class="card-title display-4 fw-bold">{{ solicitacoes_pendentes }}</h1></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        
+        <div class="col-md-4 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header fw-bold bg-light">📌 Tipos de Solicitação</div>
+                <div class="card-body">
+                    <canvas id="graficoPizza"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header fw-bold bg-light">🚦 Eficiência (Status)</div>
+                <div class="card-body">
+                    <canvas id="graficoStatus"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header fw-bold bg-light">📦 Fluxo de Encomendas</div>
+                <div class="card-body">
+                    <canvas id="graficoBarras"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // --- Configurações Comuns ---
+    Chart.defaults.font.family = "'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+    Chart.defaults.plugins.legend.position = 'bottom';
+
+    // 1. Gráfico de Pizza (Tipos)
+    var ctxPizza = document.getElementById('graficoPizza').getContext('2d');
+    new Chart(ctxPizza, {
+        type: 'pie',
+        data: {
+            labels: {{ labels_pizza|safe }},
+            datasets: [{
+                data: {{ data_pizza|safe }},
+                backgroundColor: ['#6f42c1', '#0d6efd', '#ffc107', '#20c997', '#dc3545', '#adb5bd'],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            plugins: {
+                legend: { display: true }
+            }
+        }
+    });
+
+    // 2. Gráfico de Rosca (Status/Eficiência)
+    var ctxStatus = document.getElementById('graficoStatus').getContext('2d');
+    new Chart(ctxStatus, {
+        type: 'doughnut',
+        data: {
+            labels: {{ labels_status|safe }},
+            datasets: [{
+                data: {{ data_status|safe }},
+                backgroundColor: [
+                    '#ffc107', // Amarelo (Pendente)
+                    '#198754', // Verde (Aprovado)
+                    '#dc3545', // Vermelho (Negado)
+                    '#0d6efd'  // Azul (Em Análise/Outro)
+                ],
+                borderWidth: 2,
+                borderColor: '#ffffff',
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            cutout: '60%', // Deixa a rosca mais fina e elegante
+            plugins: {
+                legend: { labels: { boxWidth: 15 } }
+            }
+        }
+    });
+
+    // 3. Gráfico de Barras (Encomendas)
+    var ctxBarras = document.getElementById('graficoBarras').getContext('2d');
+    new Chart(ctxBarras, {
+        type: 'bar',
+        data: {
+            labels: ['Entregues', 'Na Portaria'],
+            datasets: [{
+                label: 'Volume Total',
+                data: [{{ entregues }}, {{ pendentes }}],
+                backgroundColor: ['#28a745', '#ffc107'],
+                borderRadius: 5, // Bordas arredondadas nas barras
+                barPercentage: 0.6 // Barras um pouco mais finas
+            }]
+        },
+        options: {
+            scales: { y: { beginAtZero: true, grid: { drawBorder: false } }, x: { grid: { display: false } } },
+            plugins: { legend: { display: false } } // Esconde a legenda pois o eixo X já explica
+        }
+    });
+</script>
+{% endblock %}

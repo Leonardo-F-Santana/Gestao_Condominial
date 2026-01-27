@@ -1,0 +1,4 @@
+mostrar os últimos 5 visitantes com paginação
+voltar a tela na aba gestão de encomendas
+api do whatsapp pra mandar msg direta quando cadastrar
+não ta gerando informação no relatório das solicitacoes

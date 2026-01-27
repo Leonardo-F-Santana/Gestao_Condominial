@@ -1,23 +1,18 @@
 from pathlib import Path
 import os
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-mude-essa-chave-para-producao'
 
-# SECURITY WARNING: don't run with debug turned on in production!
+
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-# Application definition
 INSTALLED_APPS = [
-    'jazzmin', # <--- O JAZZMIN DEVE FICAR NO TOPO
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -25,10 +20,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
-    # Apps de Terceiros
     'import_export',
     
-    # Seus Apps
+    
     'portaria',
 ]
 
@@ -61,8 +55,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'setup.wsgi.application'
 
-# Database
-# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -70,8 +63,7 @@ DATABASES = {
     }
 }
 
-# Password validation
-# https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -87,41 +79,34 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# Internationalization
-# https://docs.djangoproject.com/en/5.0/topics/i18n/
+
 LANGUAGE_CODE = 'pt-br'
 TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.0/howto/static-files/
+
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# --- CONFIGURAÇÕES DE LOGIN ---
+
 LOGIN_REDIRECT_URL = 'home'
 LOGIN_URL = 'login'
 LOGOUT_REDIRECT_URL = 'login'
 
-# --- CONFIGURAÇÃO DO TEMA JAZZMIN (ADMIN) ---
 JAZZMIN_SETTINGS = {
-    # Títulos e Cabeçalhos
     "site_title": "Portaria Inteligente",
     "site_header": "Gestão Condominial",
     "site_brand": "Condomínio Admin",
     "welcome_sign": "Bem-vindo ao Painel de Controle",
     "copyright": "Portaria Inteligente Ltda",
     
-    # Menu Lateral
     "show_sidebar": True,
     "navigation_expanded": True,
     
-    # Ícones para os seus Modelos (FontAwesome)
     "icons": {
         "auth": "fas fa-users-cog",
         "auth.user": "fas fa-user",
@@ -133,7 +118,6 @@ JAZZMIN_SETTINGS = {
         "portaria.Solicitacao": "fas fa-clipboard-list",
     },
     
-    # Ordem do Menu Lateral
     "order_with_respect_to": [
         "portaria", 
         "portaria.Solicitacao", 
@@ -143,7 +127,6 @@ JAZZMIN_SETTINGS = {
         "auth"
     ],
 
-    # --- NOVO: Link no Menu Lateral para Voltar ao Site ---
     "custom_links": {
         "portaria": [{
             "name": "💻 Abrir Sistema da Portaria", 
@@ -152,14 +135,12 @@ JAZZMIN_SETTINGS = {
         }]
     },
     
-    # --- NOVO: Link no Menu Superior ---
     "topmenu_links": [
         {"name": "Ir para Portaria", "url": "home", "permissions": ["auth.view_user"]},
         {"model": "auth.User"},
     ],
 }
 
-# Cores e Estilo (Visual do Admin)
 JAZZMIN_UI_TWEAKS = {
     "navbar_small_text": False,
     "footer_small_text": False,

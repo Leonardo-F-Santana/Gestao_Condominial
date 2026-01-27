@@ -2,7 +2,6 @@ from django.contrib import admin
 from django.utils.html import format_html
 from .models import Visitante, Morador, Encomenda, Solicitacao
 
-# --- CONFIGURAÇÃO DE VISITANTES ---
 @admin.register(Visitante)
 class VisitanteAdmin(admin.ModelAdmin):
     list_display = ('nome_completo', 'morador_responsavel', 'horario_chegada', 'horario_saida', 'registrado_por')
@@ -10,7 +9,6 @@ class VisitanteAdmin(admin.ModelAdmin):
     search_fields = ('nome_completo', 'cpf', 'placa_veiculo')
     readonly_fields = ('horario_chegada', 'registrado_por')
 
-# --- CONFIGURAÇÃO DE MORADORES ---
 @admin.register(Morador)
 class MoradorAdmin(admin.ModelAdmin):
     list_display = ('nome', 'bloco', 'apartamento', 'telefone')
@@ -18,7 +16,6 @@ class MoradorAdmin(admin.ModelAdmin):
     search_fields = ('nome', 'apartamento')
     ordering = ('bloco', 'apartamento')
 
-# --- CONFIGURAÇÃO DE ENCOMENDAS (CORRIGIDO AQUI) ---
 @admin.register(Encomenda)
 class EncomendaAdmin(admin.ModelAdmin):
     list_display = ('morador', 'volume', 'data_chegada', 'get_status_html', 'porteiro_cadastro')
@@ -26,15 +23,12 @@ class EncomendaAdmin(admin.ModelAdmin):
     search_fields = ('morador__nome', 'volume', 'quem_retirou')
     readonly_fields = ('data_chegada', 'data_entrega', 'porteiro_cadastro', 'porteiro_entrega')
 
-    # Status Colorido para Encomendas (CORREÇÃO APLICADA)
     def get_status_html(self, obj):
         if obj.entregue:
-            # Usamos {} para injetar o texto de forma segura
             return format_html('<span style="color: green; font-weight: bold;">{}</span>', '✅ Entregue')
         return format_html('<span style="color: orange; font-weight: bold;">{}</span>', '📦 Na Portaria')
     get_status_html.short_description = 'Status'
 
-# --- CONFIGURAÇÃO DE SOLICITAÇÕES ---
 @admin.register(Solicitacao)
 class SolicitacaoAdmin(admin.ModelAdmin):
     list_display = ('get_tipo_html', 'morador', 'descricao_curta', 'criado_por', 'data_criacao', 'get_status_html')

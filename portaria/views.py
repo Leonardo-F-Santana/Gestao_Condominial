@@ -1,284 +1,258 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.utils import timezone
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.core.paginator import Paginator
 from django.http import HttpResponse
-from django.urls import reverse 
-from django.template.loader import get_template
-from io import BytesIO
-from xhtml2pdf import pisa
-from .models import Visitante, Morador, Encomenda, Solicitacao # <--- IMPORTANTE: Solicitacao adicionada
+from .models import Visitante, Morador, Encomenda, Solicitacao
 
-# --- FUNÇÃO UTILITÁRIA PARA GERAR PDF (UTF-8) ---
-def render_to_pdf(template_src, context_dict={}):
-    template = get_template(template_src)
-    html  = template.render(context_dict)
-    result = BytesIO()
-    
-    # UTF-8 para aceitar emojis e acentos
-    pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
-    
-    if not pdf.err:
-        return result.getvalue()
-    return None
+# Tenta importar biblioteca de PDF
+try:
+    from django.template.loader import get_template
+    from xhtml2pdf import pisa
+except ImportError:
+    pisa = None
 
-# --- VIEW PRINCIPAL (DASHBOARD) ---
-@login_required
-def home(request):
-    # 1. PROCESSAMENTO DO FORMULÁRIO DE VISITANTES (POST)
-    if request.method == "POST":
-        nome_completo = request.POST.get('nome_completo')
-        cpf = request.POST.get('cpf')
-        data_nascimento = request.POST.get('data_nascimento')
-        placa_veiculo = request.POST.get('placa_veiculo')
-        morador_responsavel_id = request.POST.get('morador_responsavel')
-        quem_autorizou = request.POST.get('quem_autorizou')
-        observacoes = request.POST.get('observacoes')
+# ==========================================
+# 1. AUTENTICAÇÃO
+# ==========================================
 
-        morador_obj = None
-        if morador_responsavel_id:
-            morador_obj = get_object_or_404(Morador, id=morador_responsavel_id)
-
-        try:
-            visitante = Visitante(
-                nome_completo=nome_completo,
-                cpf=cpf,
-                data_nascimento=data_nascimento if data_nascimento else None,
-                placa_veiculo=placa_veiculo,
-                morador_responsavel=morador_obj,
-                quem_autorizou=quem_autorizou,
-                observacoes=observacoes,
-                registrado_por=request.user
-            )
-            visitante.save()
-            messages.success(request, 'Visitante registrado com sucesso!')
-        except Exception as e:
-            messages.error(request, f'Erro ao registrar: {e}')
-        
+def login_view(request):
+    if request.user.is_authenticated:
         return redirect('home')
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            login(request, form.get_user())
+            return redirect('home')
+        else:
+            messages.error(request, "Usuário ou senha inválidos.")
+    else:
+        form = AuthenticationForm()
+    return render(request, 'login.html', {'form': form})
 
-    # 2. PREPARAÇÃO DOS DADOS PARA EXIBIÇÃO (GET)
-    
-    # A) Filtros e Paginação de Visitantes
-    visitantes_list = Visitante.objects.all().order_by('-horario_chegada')
-    
-    query = request.GET.get('busca')
-    if query:
-        visitantes_list = visitantes_list.filter(
-            Q(nome_completo__icontains=query) | Q(cpf__icontains=query)
-        )
-    
-    paginator = Paginator(visitantes_list, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+def logout_view(request):
+    logout(request)
+    return redirect('login')
 
-    # B) Lista Completa de Moradores (Para os filtros JS)
-    todos_moradores = Morador.objects.all().order_by('bloco', 'apartamento') 
+# ==========================================
+# 2. DASHBOARD (GRÁFICOS ATUALIZADOS)
+# ==========================================
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def dashboard(request):
+    hoje = timezone.now().date()
     
-    # C) Contadores do Dashboard
-    visitantes_no_local = Visitante.objects.filter(horario_saida__isnull=True).count()
+    # 1. Cards do Topo
+    total_visitantes_hoje = Visitante.objects.filter(horario_chegada__date=hoje).count()
     encomendas_pendentes = Encomenda.objects.filter(entregue=False).count()
-    
-    # D) Lista Rápida de Encomendas (Top 5)
-    lista_encomendas = Encomenda.objects.filter(entregue=False).order_by('-data_chegada')[:5]
+    encomendas_entregues = Encomenda.objects.filter(entregue=True).count()
+    solicitacoes_pendentes = Solicitacao.objects.filter(status='PENDENTE').count()
 
-    # E) Lista Rápida de Solicitações (Top 10) <--- NOVO
-    lista_solicitacoes = Solicitacao.objects.all().order_by('-data_criacao')[:10]
+    # 2. Gráfico 1: Tipos de Solicitação (Pizza)
+    tipos_solicitacao = Solicitacao.objects.values('tipo').annotate(total=Count('tipo'))
+    labels_pizza = [item['tipo'] for item in tipos_solicitacao]
+    data_pizza = [item['total'] for item in tipos_solicitacao]
+
+    # 3. Gráfico 2: Eficiência/Status (NOVO - Rosca) 🟢🟡🔴
+    status_counts = Solicitacao.objects.values('status').annotate(total=Count('status'))
+    labels_status = [item['status'] for item in status_counts]
+    data_status = [item['total'] for item in status_counts]
 
     context = {
-        'nome_pagina': 'Início',
-        'lista_visitantes': page_obj,
-        'todos_moradores': todos_moradores,
-        'visitantes_no_local': visitantes_no_local,
+        'total_visitantes_hoje': total_visitantes_hoje,
         'encomendas_pendentes': encomendas_pendentes,
-        'lista_encomendas': lista_encomendas,
-        'lista_solicitacoes': lista_solicitacoes, # <--- NOVO
+        'solicitacoes_pendentes': solicitacoes_pendentes,
+        'entregues': encomendas_entregues,
+        'pendentes': encomendas_pendentes,
+        
+        # Dados Gráficos
+        'labels_pizza': labels_pizza,
+        'data_pizza': data_pizza,
+        'labels_status': labels_status, # <--- Enviando para o HTML
+        'data_status': data_status,     # <--- Enviando para o HTML
+    }
+    return render(request, 'dashboard.html', context)
+
+# ==========================================
+# 3. HOME & VISITANTES
+# ==========================================
+
+@login_required
+def home(request):
+    if request.method == 'POST' and 'nome_completo' in request.POST:
+        registrar_visitante(request)
+        return redirect('home')
+
+    query = request.GET.get('busca')
+    visitantes = Visitante.objects.filter(horario_saida__isnull=True).order_by('-horario_chegada')
+    
+    if query:
+        visitantes = visitantes.filter(Q(nome_completo__icontains=query) | Q(cpf__icontains=query))
+
+    paginator = Paginator(visitantes, 5)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    context = {
+        'lista_visitantes': page_obj,
+        'visitantes_no_local': Visitante.objects.filter(horario_saida__isnull=True).count(),
+        'encomendas_pendentes': Encomenda.objects.filter(entregue=False).count(),
+        'lista_encomendas': Encomenda.objects.filter(entregue=False).order_by('-data_chegada'),
+        'lista_solicitacoes': Solicitacao.objects.all().order_by('-data_criacao')[:5],
+        'todos_moradores': Morador.objects.all().order_by('bloco', 'apartamento'),
         'query_busca': query,
     }
-    
     return render(request, 'index.html', context)
 
-# --- REGISTRAR SAÍDA DE VISITANTE ---
+@login_required
+def registrar_visitante(request):
+    if request.method == 'POST':
+        morador_id = request.POST.get('morador_responsavel')
+        morador = Morador.objects.get(id=morador_id) if morador_id else None
+        
+        Visitante.objects.create(
+            nome_completo=request.POST.get('nome_completo'),
+            cpf=request.POST.get('cpf'),
+            data_nascimento=request.POST.get('data_nascimento') or None,
+            placa_veiculo=request.POST.get('placa_veiculo'),
+            morador_responsavel=morador,
+            quem_autorizou=request.POST.get('quem_autorizou'),
+            observacoes=request.POST.get('observacoes'),
+            registrado_por=request.user
+        )
+        messages.success(request, "Visitante registrado!")
+    return redirect('home')
+
 @login_required
 def registrar_saida(request, id_visitante):
     visitante = get_object_or_404(Visitante, id=id_visitante)
-    
     visitante.horario_saida = timezone.now()
     visitante.save()
-    
-    messages.success(request, f"Saída registrada para {visitante.nome_completo}")
+    messages.info(request, "Saída registrada.")
     return redirect('home')
 
-# --- REGISTRAR NOVA ENCOMENDA ---
+# ==========================================
+# 4. ENCOMENDAS
+# ==========================================
+
 @login_required
 def registrar_encomenda(request):
-    if request.method == "POST":
+    if request.method == 'POST':
         morador_id = request.POST.get('morador_encomenda')
-        volume = request.POST.get('volume')
-        destinatario_alternativo = request.POST.get('destinatario_alternativo')
-        
-        if morador_id and volume:
-            morador = get_object_or_404(Morador, id=morador_id)
-            
+        if morador_id:
             Encomenda.objects.create(
-                morador=morador,
-                volume=volume,
-                destinatario_alternativo=destinatario_alternativo,
-                porteiro_cadastro=request.user # Rastreabilidade
+                morador=Morador.objects.get(id=morador_id),
+                volume=request.POST.get('volume'),
+                destinatario_alternativo=request.POST.get('destinatario_alternativo'),
+                porteiro_cadastro=request.user
             )
-            
-            msg = f"Encomenda registrada para {morador.nome}"
-            if destinatario_alternativo:
-                msg += f" (A/C: {destinatario_alternativo})"
-            
-            messages.success(request, msg)
+            messages.success(request, "Encomenda registrada!")
         else:
-            messages.error(request, "Erro: Selecione um morador e descreva o volume.")
-        
-        return redirect(f"{reverse('home')}?aba=encomendas")
-    
-    return redirect('home')
+            messages.error(request, "Selecione um morador.")
+    return redirect('/?aba=encomendas')
 
-# --- REGISTRAR SOLICITAÇÃO / OCORRÊNCIA (NOVO) ---
-@login_required
-def registrar_solicitacao(request):
-    if request.method == "POST":
-        tipo = request.POST.get('tipo')
-        descricao = request.POST.get('descricao')
-        morador_id = request.POST.get('morador_solicitacao') # Opcional
-        
-        if tipo and descricao:
-            nova_sol = Solicitacao(
-                tipo=tipo,
-                descricao=descricao,
-                criado_por=request.user
-            )
-            
-            if morador_id:
-                morador = get_object_or_404(Morador, id=morador_id)
-                nova_sol.morador = morador
-            
-            nova_sol.save()
-            messages.success(request, 'Solicitação registrada com sucesso!')
-        else:
-            messages.error(request, 'Preencha o tipo e a descrição.')
-            
-        return redirect(f"{reverse('home')}?aba=solicitacoes")
-
-    return redirect('home')
-
-# --- CONFIRMAR ENTREGA ---
 @login_required
 def confirmar_entrega(request, id_encomenda):
-    if request.method == "POST":
-        encomenda = get_object_or_404(Encomenda, id=id_encomenda)
-        
-        nome_retirada = request.POST.get('nome_retirada')
-        documento_retirada = request.POST.get('documento_retirada')
-        
-        encomenda.entregue = True
-        encomenda.data_entrega = timezone.now()
-        encomenda.quem_retirou = nome_retirada
-        encomenda.documento_retirada = documento_retirada
-        encomenda.porteiro_entrega = request.user # Rastreabilidade
-        
-        encomenda.save()
-        
-        messages.success(request, f'Entregue para: {nome_retirada}')
-        return redirect(f"{reverse('home')}?aba=encomendas")
-    
-    return redirect('home')
+    if request.method == 'POST':
+        enc = get_object_or_404(Encomenda, id=id_encomenda)
+        enc.entregue = True
+        enc.data_entrega = timezone.now()
+        enc.quem_retirou = request.POST.get('nome_retirada')
+        enc.documento_retirada = request.POST.get('documento_retirada')
+        enc.porteiro_entrega = request.user
+        enc.save()
+        messages.success(request, "Encomenda entregue!")
+    return redirect('/?aba=encomendas')
 
-# --- MARCAR COMO NOTIFICADO ---
 @login_required
 def marcar_notificado(request, id_encomenda):
-    encomenda = get_object_or_404(Encomenda, id=id_encomenda)
-    encomenda.notificado = True
-    encomenda.save()
-    return redirect(f"{reverse('home')}?aba=encomendas")
+    enc = get_object_or_404(Encomenda, id=id_encomenda)
+    enc.notificado = True
+    enc.save()
+    return redirect('/?aba=encomendas')
 
-# --- HISTÓRICO COMPLETO DE ENCOMENDAS ---
 @login_required
 def historico_encomendas(request):
-    busca = request.GET.get('busca')
-    
-    encomendas_list = Encomenda.objects.filter(entregue=True).order_by('-data_entrega')
-    
-    if busca:
-        encomendas_list = encomendas_list.filter(
-            Q(morador__nome__icontains=busca) | 
-            Q(morador__apartamento__icontains=busca) |
-            Q(morador__bloco__icontains=busca) |
-            Q(volume__icontains=busca) |
-            Q(destinatario_alternativo__icontains=busca)
-        )
-    
-    paginator = Paginator(encomendas_list, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    
-    context = {
-        'encomendas': page_obj,
-        'busca': busca
-    }
-    return render(request, 'historico_encomendas.html', context)
+    encomendas = Encomenda.objects.filter(entregue=True).order_by('-data_entrega')[:50]
+    return render(request, 'historico_encomendas.html', {'encomendas': encomendas})
 
-# --- EXPORTAR RELATÓRIO PDF (VISITANTES) ---
+# ==========================================
+# 5. SOLICITAÇÕES
+# ==========================================
+
+@login_required
+def registrar_solicitacao(request):
+    if request.method == 'POST':
+        morador_id = request.POST.get('morador_solicitacao')
+        morador = Morador.objects.get(id=morador_id) if morador_id else None
+        Solicitacao.objects.create(
+            tipo=request.POST.get('tipo'),
+            descricao=request.POST.get('descricao'),
+            morador=morador,
+            criado_por=request.user
+        )
+        messages.success(request, "Solicitação registrada!")
+    return redirect('/?aba=solicitacoes')
+
+@login_required
+def historico_solicitacoes(request):
+    solicitacoes = Solicitacao.objects.all().order_by('-data_criacao')
+    return render(request, 'historico_solicitacoes.html', {'solicitacoes': solicitacoes})
+
+# ==========================================
+# 6. RELATÓRIOS PDF
+# ==========================================
+
+def _gerar_pdf(request, template_name, context, filename):
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    if pisa:
+        html = get_template(template_name).render(context)
+        pisa.CreatePDF(html, dest=response)
+        return response
+    return HttpResponse("Erro: Biblioteca xhtml2pdf não instalada.")
+
 @login_required
 def exportar_relatorio(request):
     data_inicio = request.GET.get('data_inicio')
     data_fim = request.GET.get('data_fim')
-    
     visitantes = Visitante.objects.all().order_by('-horario_chegada')
-    
     if data_inicio and data_fim:
-        visitantes = visitantes.filter(
-            horario_chegada__date__range=[data_inicio, data_fim]
-        )
-    
-    contexto = {
-        'visitantes': visitantes,
-        'usuario': request.user,
-        'data_geracao': timezone.now(),
-    }
-    
-    pdf = render_to_pdf('relatorio_pdf.html', contexto)
-    
-    if pdf:
-        response = HttpResponse(pdf, content_type='application/pdf')
-        filename = f"Relatorio_{data_inicio}_a_{data_fim}.pdf" if data_inicio else "Relatorio_Geral.pdf"
-        response['Content-Disposition'] = f"attachment; filename={filename}"
-        return response
-    
-    return HttpResponse("Erro ao gerar PDF")
+        from datetime import datetime, timedelta
+        dt_i = datetime.strptime(data_inicio, "%Y-%m-%d")
+        dt_f = datetime.strptime(data_fim, "%Y-%m-%d") + timedelta(days=1)
+        visitantes = visitantes.filter(horario_chegada__range=(dt_i, dt_f))
+    return _gerar_pdf(request, 'relatorio_pdf.html', {'visitantes': visitantes, 'user': request.user}, 'relatorio_acesso.pdf')
 
-# --- EXPORTAR RELATÓRIO PDF (ENCOMENDAS) ---
 @login_required
 def exportar_relatorio_encomendas(request):
     data_inicio = request.GET.get('data_inicio')
     data_fim = request.GET.get('data_fim')
-    
-    encomendas = Encomenda.objects.all().order_by('-data_chegada')
-    
+    encomendas = Encomenda.objects.filter(entregue=True).order_by('-data_entrega')
     if data_inicio and data_fim:
-        encomendas = encomendas.filter(
-            data_chegada__date__range=[data_inicio, data_fim]
-        )
-    
-    contexto = {
-        'encomendas': encomendas,
-        'usuario': request.user,
-        'data_geracao': timezone.now(),
-    }
-    
-    pdf = render_to_pdf('relatorio_encomendas_pdf.html', contexto)
-    
-    if pdf:
-        response = HttpResponse(pdf, content_type='application/pdf')
-        filename = "Relatorio_Encomendas.pdf"
-        response['Content-Disposition'] = f"attachment; filename={filename}"
-        return response
-    
-    return HttpResponse("Erro ao gerar PDF")
+        from datetime import datetime, timedelta
+        dt_i = datetime.strptime(data_inicio, "%Y-%m-%d")
+        dt_f = datetime.strptime(data_fim, "%Y-%m-%d") + timedelta(days=1)
+        encomendas = encomendas.filter(data_entrega__range=(dt_i, dt_f))
+    context = {'titulo': 'Relatório de Encomendas', 'encomendas': encomendas, 'user': request.user, 'tipo_relatorio': 'encomendas'}
+    return _gerar_pdf(request, 'relatorio_pdf.html', context, 'relatorio_encomendas.pdf')
+
+@login_required
+def exportar_relatorio_solicitacoes(request):
+    data_inicio = request.GET.get('data_inicio')
+    data_fim = request.GET.get('data_fim')
+    tipo = request.GET.get('tipo_filtro')
+    solicitacoes = Solicitacao.objects.all().order_by('-data_criacao')
+    if data_inicio and data_fim:
+        from datetime import datetime, timedelta
+        dt_i = datetime.strptime(data_inicio, "%Y-%m-%d")
+        dt_f = datetime.strptime(data_fim, "%Y-%m-%d") + timedelta(days=1)
+        solicitacoes = solicitacoes.filter(data_criacao__range=(dt_i, dt_f))
+    if tipo:
+        solicitacoes = solicitacoes.filter(tipo=tipo)
+    context = {'titulo': 'Relatório de Solicitações', 'solicitacoes': solicitacoes, 'user': request.user, 'tipo_relatorio': 'solicitacoes'}
+    return _gerar_pdf(request, 'relatorio_pdf.html', context, 'relatorio_ocorrencias.pdf')
