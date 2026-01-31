@@ -1,18 +1,28 @@
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+
+# 1. Carrega as variáveis do arquivo .env (o cofre)
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# ==============================================================================
+# 2. SEGURANÇA (AQUI FOI A MUDANÇA PRINCIPAL)
+# ==============================================================================
 
-SECRET_KEY = 'django-insecure-mude-essa-chave-para-producao'
+# Pega a chave do .env. Se não achar, usa essa chave insegura (só pra não dar erro em dev)
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-chave-padrao-desenvolvimento')
 
-
-DEBUG = True
+# Pega o DEBUG do .env. Se estiver escrito 'True' lá, vira Verdadeiro.
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = ['*']
 
+# ==============================================================================
+
 INSTALLED_APPS = [
-    'jazzmin',
+    'jazzmin',  # Tema Admin
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -20,10 +30,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
-    'import_export',
+    'import_export', # Biblioteca extra
     
-    
-    'portaria',
+    'portaria', # Seu App
 ]
 
 MIDDLEWARE = [
@@ -55,14 +64,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'setup.wsgi.application'
 
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -79,24 +86,23 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 LANGUAGE_CODE = 'pt-br'
 TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
 USE_TZ = True
 
-
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 
 LOGIN_REDIRECT_URL = 'home'
 LOGIN_URL = 'login'
 LOGOUT_REDIRECT_URL = 'login'
 
+# ==============================================================================
+# CONFIGURAÇÕES DO JAZZMIN (Visual do Admin)
+# ==============================================================================
 JAZZMIN_SETTINGS = {
     "site_title": "Portaria Inteligente",
     "site_header": "Gestão Condominial",
@@ -111,7 +117,6 @@ JAZZMIN_SETTINGS = {
         "auth": "fas fa-users-cog",
         "auth.user": "fas fa-user",
         "auth.Group": "fas fa-users",
-        
         "portaria.Visitante": "fas fa-user-clock",
         "portaria.Encomenda": "fas fa-box-open",
         "portaria.Morador": "fas fa-home",

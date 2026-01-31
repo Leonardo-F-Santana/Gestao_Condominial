@@ -1,0 +1,21 @@
+# --- Segurança (O MAIS IMPORTANTE) ---
+.env
+.env.local
+
+# --- Arquivos do Sistema Operacional (Lixo) ---
+.DS_Store
+Thumbs.db
+
+# --- Python e Django (Lixo) ---
+*.pyc
+__pycache__/
+db.sqlite3
+*.log
+
+# --- Ambiente Virtual (Pesado demais pra subir) ---
+venv/
+env/
+.venv/
+
+# --- VS Code (Configurações locais suas) ---
+.vscode/
