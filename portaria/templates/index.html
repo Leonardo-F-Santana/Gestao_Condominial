@@ -11,9 +11,8 @@
         </div>
 
         <div class="d-flex gap-2 align-items-center">
-            
             {% if user.is_staff %}
-                <a href="{% url 'dashboard' %}" class="btn btn-primary btn-sm d-flex align-items-center gap-1" title="Ver Gráficos">
+                <a href="{% url 'dashboard' %}" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
                     📊 <span class="d-none d-md-inline">Dashboard</span>
                 </a>
                 <a href="/admin/" target="_blank" class="btn btn-outline-dark btn-sm d-flex align-items-center gap-1">
@@ -71,68 +70,38 @@
     <div class="tab-content" id="myTabContent">
         
         <div class="tab-pane fade show active" id="visitantes" role="tabpanel">
-            
             <div class="card shadow-lg mb-4">
                 <div class="card-body p-4">
                     <form method="POST" action="{% url 'home' %}">
                         {% csrf_token %}
-                        
                         <div class="mb-3">
                             <label class="fw-bold">Nome do Visitante</label>
                             <input type="text" name="nome_completo" class="form-control" placeholder="Ex: João da Silva" required>
                         </div>
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label>CPF</label>
-                                <input type="text" name="cpf" class="form-control" placeholder="000.000.000-00">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label>Data Nasc.</label>
-                                <input type="date" name="data_nascimento" class="form-control">
-                            </div>
+                            <div class="col-md-6 mb-3"><label>CPF</label><input type="text" name="cpf" class="form-control"></div>
+                            <div class="col-md-6 mb-3"><label>Data Nasc.</label><input type="date" name="data_nascimento" class="form-control"></div>
                         </div>
-
                         <hr>
-
                         <div class="row g-2 mb-2 p-2 bg-light border rounded">
                             <div class="col-12"><small class="text-muted fw-bold">🔍 Localizar Morador Responsável:</small></div>
-                            <div class="col-md-3">
-                                <select id="vis_filtro_bloco" class="form-select form-select-sm"><option value="">Bloco...</option></select>
-                            </div>
-                            <div class="col-md-3">
-                                <select id="vis_filtro_apto" class="form-select form-select-sm" disabled><option value="">Apto...</option></select>
-                            </div>
-                            <div class="col-md-6 d-flex align-items-center">
-                                <small class="text-muted" id="vis_resultado_filtro">Selecione o Bloco...</small>
-                            </div>
+                            <div class="col-md-3"><select id="vis_filtro_bloco" class="form-select form-select-sm"><option value="">Bloco...</option></select></div>
+                            <div class="col-md-3"><select id="vis_filtro_apto" class="form-select form-select-sm" disabled><option value="">Apto...</option></select></div>
                         </div>
-
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="fw-bold">Morador Selecionado <span class="text-danger">*</span></label>
                                 <select name="morador_responsavel" id="vis_select_morador" class="form-select" required readonly style="background-color: #e9ecef; pointer-events: none;">
                                     <option value="" disabled selected>--- Aguardando Filtro ---</option>
                                     {% for morador in todos_moradores %}
-                                        <option value="{{ morador.id }}" data-bloco="{{ morador.bloco }}" data-apto="{{ morador.apartamento }}">
-                                            {{ morador.bloco }} - {{ morador.apartamento }} | {{ morador.nome }}
-                                        </option>
+                                        <option value="{{ morador.id }}" data-bloco="{{ morador.bloco }}" data-apto="{{ morador.apartamento }}">{{ morador.bloco }} - {{ morador.apartamento }} | {{ morador.nome }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label>Placa (Opcional)</label>
-                                <input type="text" name="placa_veiculo" class="form-control" placeholder="ABC-1234">
-                            </div>
+                            <div class="col-md-6 mb-3"><label>Placa (Opcional)</label><input type="text" name="placa_veiculo" class="form-control"></div>
                         </div>
-
-                        <div class="mb-3">
-                            <label>Quem autorizou?</label>
-                            <input type="text" name="quem_autorizou" class="form-control" placeholder="Ex: Sr. João pelo interfone">
-                        </div>
-                        <div class="mb-3">
-                            <label>Observações</label>
-                            <textarea name="observacoes" class="form-control" rows="1"></textarea>
-                        </div>
+                        <div class="mb-3"><label>Quem autorizou?</label><input type="text" name="quem_autorizou" class="form-control"></div>
+                        <div class="mb-3"><label>Observações</label><textarea name="observacoes" class="form-control" rows="1"></textarea></div>
                         <button type="submit" class="btn btn-success w-100">✅ Registrar Entrada</button>
                     </form>
                 </div>
@@ -145,75 +114,68 @@
                         <button class="btn btn-primary" type="submit">🔍</button>
                         <a href="{% url 'home' %}" class="btn btn-secondary">Limpar</a>
                     </form>
-                    <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#modalRelatorio">📄 Relatório</button>
+                    <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#modalRelatorioVisitantes">📄 Relatório</button>
                 </div>
             </div>
 
-            <div class="card shadow-lg">
-                <table class="table table-striped table-hover mb-0 align-middle">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Nome</th>
-                            <th>Destino</th>
-                            <th>Chegada</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for visitante in lista_visitantes %}
-                            <tr>
-                                <td>{{ visitante.nome_completo }}</td>
-                                <td>
-                                    {% if visitante.morador_responsavel %}
-                                        {{ visitante.morador_responsavel }}
-                                    {% else %}
-                                        <span class="text-muted">Antigo/Sem morador</span>
-                                    {% endif %}
-                                </td>
-                                <td>{{ visitante.horario_chegada|date:"d/m H:i" }}</td>
-                                <td>
-                                    {% if visitante.horario_saida %}
-                                        <span class="badge bg-secondary">Saiu {{ visitante.horario_saida|date:"H:i" }}</span>
-                                    {% else %}
-                                        <a href="{% url 'registrar_saida' visitante.id %}" class="btn btn-danger btn-sm">🚪 Saída</a>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                        {% empty %}
-                            <tr><td colspan="4" class="text-center p-3 text-muted">Nenhum visitante no momento.</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="modal fade" id="modalRelatorio" tabindex="-1">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header bg-dark text-white">
-                            <h5 class="modal-title">Relatório de Acesso</h5>
-                            <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                        </div>
-                        <form action="{% url 'exportar_relatorio' %}" target="_blank">
-                            <div class="modal-body">
-                                <label class="fw-bold">Data Inicial</label>
-                                <input type="date" name="data_inicio" class="form-control mb-3">
-                                <label class="fw-bold">Data Final</label>
-                                <input type="date" name="data_fim" class="form-control">
-                            </div>
-                            <div class="modal-footer">
-                                <button type="submit" class="btn btn-primary">🖨️ Gerar PDF</button>
-                            </div>
-                        </form>
-                    </div>
+            <div class="card shadow-lg mb-4">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0 align-middle">
+                        <thead class="table-dark">
+                            <tr><th>Nome</th><th>Destino</th><th>Chegada</th><th>Status</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for visitante in lista_visitantes %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ visitante.nome_completo }}</strong>
+                                        {% if visitante.placa_veiculo %}<br><small class="text-muted">🚗 {{ visitante.placa_veiculo }}</small>{% endif %}
+                                    </td>
+                                    <td>
+                                        {% if visitante.morador_responsavel %}
+                                            {{ visitante.morador_responsavel.bloco }} - {{ visitante.morador_responsavel.apartamento }}
+                                        {% else %}
+                                            <span class="text-muted">Não informado</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ visitante.horario_chegada|date:"d/m H:i" }}</td>
+                                    <td>
+                                        {% if visitante.horario_saida %}
+                                            <span class="badge bg-secondary">Saiu {{ visitante.horario_saida|date:"H:i" }}</span>
+                                        {% else %}
+                                            <a href="{% url 'registrar_saida' visitante.id %}" class="btn btn-danger btn-sm">🚪 Marcar Saída</a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr><td colspan="4" class="text-center p-3 text-muted">Nenhum visitante.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
+                
+                {% if lista_visitantes.has_other_pages %}
+                <div class="card-footer bg-light d-flex justify-content-center">
+                    <nav>
+                        <ul class="pagination mb-0">
+                            {% if lista_visitantes.has_previous %}
+                                <li class="page-item"><a class="page-link" href="?page={{ lista_visitantes.previous_page_number }}&busca={{ query_busca|default:'' }}">Anterior</a></li>
+                            {% else %}<li class="page-item disabled"><span class="page-link">Anterior</span></li>{% endif %}
+                            <li class="page-item active"><span class="page-link">{{ lista_visitantes.number }}</span></li>
+                            {% if lista_visitantes.has_next %}
+                                <li class="page-item"><a class="page-link" href="?page={{ lista_visitantes.next_page_number }}&busca={{ query_busca|default:'' }}">Próxima</a></li>
+                            {% else %}<li class="page-item disabled"><span class="page-link">Próxima</span></li>{% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
             </div>
         </div>
 
         <div class="tab-pane fade" id="encomendas" role="tabpanel">
-            
             <div class="d-flex justify-content-end mb-3 gap-2">
-                <a href="{% url 'historico_encomendas' %}" class="btn btn-primary d-flex align-items-center">📜 Histórico</a>
-                <a href="{% url 'exportar_relatorio_encomendas' %}" target="_blank" class="btn btn-dark d-flex align-items-center">📄 Relatório</a>
+                <a href="{% url 'historico_encomendas' %}" class="btn btn-primary">📜 Histórico</a>
+                <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#modalRelatorioEncomendas">📄 Relatório Geral</button>
             </div>
 
             <div class="card shadow-lg mb-4 border-warning">
@@ -221,40 +183,25 @@
                 <div class="card-body">
                     <form method="POST" action="{% url 'registrar_encomenda' %}">
                         {% csrf_token %}
-                        
                         <div class="row g-2 mb-3 p-2 bg-light border rounded">
                             <div class="col-12"><small class="text-muted fw-bold">🔍 Localizar Morador:</small></div>
-                            <div class="col-md-3">
-                                <select id="filtro_bloco" class="form-select form-select-sm"><option value="">Bloco...</option></select>
-                            </div>
-                            <div class="col-md-3">
-                                <select id="filtro_apto" class="form-select form-select-sm" disabled><option value="">Apto...</option></select>
-                            </div>
-                            <div class="col-md-6 d-flex align-items-center">
-                                <small class="text-muted" id="resultado_filtro">Selecione o Bloco...</small>
-                            </div>
+                            <div class="col-md-3"><select id="filtro_bloco" class="form-select form-select-sm"><option value="">Bloco...</option></select></div>
+                            <div class="col-md-3"><select id="filtro_apto" class="form-select form-select-sm" disabled><option value="">Apto...</option></select></div>
                         </div>
-
                         <div class="row">
                             <div class="col-md-6 mb-2">
                                 <label class="fw-bold">Morador Responsável <span class="text-danger">*</span></label>
                                 <select name="morador_encomenda" id="select_morador_final" class="form-select" required readonly style="background-color: #e9ecef; pointer-events: none;">
                                     <option value="" selected disabled>--- Aguardando Filtro ---</option>
                                     {% for morador in todos_moradores %}
-                                        <option value="{{ morador.id }}" data-bloco="{{ morador.bloco }}" data-apto="{{ morador.apartamento }}">
-                                            {{ morador.bloco }} - {{ morador.apartamento }} | {{ morador.nome }}
-                                        </option>
+                                        <option value="{{ morador.id }}" data-bloco="{{ morador.bloco }}" data-apto="{{ morador.apartamento }}">{{ morador.bloco }} - {{ morador.apartamento }} | {{ morador.nome }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="col-md-6 mb-2">
-                                <label class="fw-bold text-muted">A/C (Opcional)</label>
-                                <input type="text" name="destinatario_alternativo" class="form-control" placeholder="Ex: Filha, Empregada...">
-                            </div>
+                            <div class="col-md-6 mb-2"><label class="fw-bold text-muted">A/C (Opcional)</label><input type="text" name="destinatario_alternativo" class="form-control"></div>
                         </div>
-                        
                         <div class="input-group">
-                            <input type="text" name="volume" class="form-control" placeholder="Descrição (Ex: Caixa Amazon, Envelope...)" required>
+                            <input type="text" name="volume" class="form-control" placeholder="Descrição (Ex: Caixa Amazon...)" required>
                             <button type="submit" class="btn btn-dark">Salvar</button>
                         </div>
                     </form>
@@ -263,68 +210,65 @@
 
             <div class="card shadow-lg">
                 <table class="table table-hover mb-0 align-middle">
-                    <thead class="table-warning">
-                        <tr>
-                            <th>Morador</th>
-                            <th>Volume</th>
-                            <th>Avisar</th>
-                            <th>Ação</th>
-                        </tr>
-                    </thead>
+                    <thead class="table-warning"><tr><th>Morador</th><th>Volume</th><th>Avisar</th><th>Ação</th></tr></thead>
                     <tbody>
                         {% for encomenda in lista_encomendas %}
                             <tr>
-                                <td>
-                                    {{ encomenda.morador.nome }}
-                                    <br><small class="text-muted">{{ encomenda.morador.bloco }} - {{ encomenda.morador.apartamento }}</small>
-                                    {% if encomenda.destinatario_alternativo %}
-                                        <br><small class="text-danger fw-bold">A/C: {{ encomenda.destinatario_alternativo }}</small>
-                                    {% endif %}
-                                </td>
+                                <td>{{ encomenda.morador.nome }}<br><small>{{ encomenda.morador.bloco }}-{{ encomenda.morador.apartamento }}</small></td>
                                 <td class="fw-bold text-primary">{{ encomenda.volume }}</td>
                                 <td>
                                     {% if encomenda.morador.telefone %}
-                                        <button type="button" 
-                                                class="btn btn-sm {% if encomenda.notificado %}btn-info{% else %}btn-outline-success{% endif %}"
-                                                onclick="avisarMorador('https://wa.me/55{{ encomenda.morador.telefone|somente_numeros }}?text=Olá, chegou encomenda: {{ encomenda.volume }}', '{% url 'marcar_notificado' encomenda.id %}')">
+                                        <button class="btn btn-sm {% if encomenda.notificado %}btn-info{% else %}btn-outline-success{% endif %}" onclick="avisarMorador('https://wa.me/55{{ encomenda.morador.telefone|somente_numeros }}?text={% if encomenda.notificado %}Olá! Só reforçando: sua encomenda ainda está aqui esperando por você.{% else %}Olá! Sua encomenda chegou e já está disponível para retirada na portaria.{% endif %}', '{% url 'marcar_notificado' encomenda.id %}')">
                                             {% if encomenda.notificado %}Reenviar?{% else %}WhatsApp{% endif %}
                                         </button>
-                                    {% else %}
-                                        <span class="text-muted small">Sem tel</span>
-                                    {% endif %}
+                                    {% else %}Sem tel{% endif %}
                                 </td>
                                 <td>
                                     <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalEnt{{ encomenda.id }}">Entregar</button>
+                                    
                                     <div class="modal fade" id="modalEnt{{ encomenda.id }}" tabindex="-1">
                                         <div class="modal-dialog">
                                             <div class="modal-content">
-                                                <div class="modal-header bg-success text-white"><h5 class="modal-title">Baixa na Encomenda</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+                                                <div class="modal-header bg-success text-white">
+                                                    <h5 class="modal-title">Confirmar Entrega</h5>
+                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                </div>
                                                 <form method="POST" action="{% url 'confirmar_entrega' encomenda.id %}">
                                                     {% csrf_token %}
                                                     <div class="modal-body">
-                                                        <p>Entregando: <strong>{{ encomenda.volume }}</strong></p>
-                                                        <input type="text" name="nome_retirada" class="form-control mb-2" placeholder="Quem retirou?" required>
-                                                        <input type="text" name="documento_retirada" class="form-control" placeholder="Documento (Opcional)">
+                                                        <p class="mb-1">Entregando volume:</p>
+                                                        <h5 class="fw-bold">{{ encomenda.volume }}</h5>
+                                                        <p>Para: <strong>{{ encomenda.morador.nome }}</strong></p>
+                                                        
+                                                        <div class="mb-3">
+                                                            <label class="fw-bold">Quem está retirando?</label>
+                                                            <input type="text" name="nome_retirada" class="form-control" placeholder="Ex: O próprio, Filho..." required>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label class="fw-bold">Documento (RG/CPF)</label>
+                                                            <input type="text" name="documento_retirada" class="form-control" placeholder="Opcional">
+                                                        </div>
                                                     </div>
-                                                    <div class="modal-footer"><button type="submit" class="btn btn-success">Confirmar</button></div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                        <button type="submit" class="btn btn-success">Confirmar Baixa</button>
+                                                    </div>
                                                 </form>
                                             </div>
                                         </div>
                                     </div>
                                 </td>
                             </tr>
-                        {% empty %}
-                            <tr><td colspan="4" class="text-center p-4 text-muted">Nenhuma encomenda pendente.</td></tr>
-                        {% endfor %}
+                        {% empty %}<tr><td colspan="4" class="text-center p-4">Nenhuma encomenda pendente.</td></tr>{% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
 
         <div class="tab-pane fade" id="solicitacoes" role="tabpanel">
-            
-            <div class="d-flex justify-content-end mb-2">
-                <a href="{% url 'historico_solicitacoes' %}" class="btn btn-info text-white fw-bold">📂 Ver Histórico Completo</a>
+            <div class="d-flex justify-content-end mb-2 gap-2">
+                <a href="{% url 'historico_solicitacoes' %}" class="btn btn-info text-white fw-bold">📂 Ver Histórico</a>
+                <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#modalRelatorioSolicitacoes">📄 Relatório Ocorrências</button>
             </div>
 
             <div class="card shadow-lg mb-4 border-info">
@@ -332,190 +276,160 @@
                 <div class="card-body">
                     <form method="POST" action="{% url 'registrar_solicitacao' %}">
                         {% csrf_token %}
-                        
                         <div class="row">
                             <div class="col-md-4 mb-3">
-                                <label class="fw-bold">Tipo</label>
+                                <label>Tipo</label>
                                 <select name="tipo" class="form-select" required>
-                                    <option value="" selected disabled>Selecione...</option>
-                                    <option value="RECLAMACAO">📢 Reclamação</option>
-                                    <option value="MANUTENCAO">🛠️ Manutenção</option>
-                                    <option value="MUDANCA">🚚 Mudança</option>
-                                    <option value="RESERVA">📅 Reserva</option>
-                                    <option value="OUTRO">📝 Outro</option>
+                                    <option value="RECLAMACAO">Reclamação</option><option value="MANUTENCAO">Manutenção</option><option value="MUDANCA">Mudança</option><option value="RESERVA">Reserva</option><option value="OUTRO">Outro</option>
                                 </select>
                             </div>
-
                             <div class="col-md-8 mb-3">
-                                <label class="fw-bold">Morador Vinculado (Opcional)</label>
+                                <label>Morador (Opcional)</label>
                                 <div class="d-flex gap-2 mb-2">
-                                    <select id="sol_filtro_bloco" class="form-select form-select-sm" style="width: 30%;"><option value="">Bloco...</option></select>
-                                    <select id="sol_filtro_apto" class="form-select form-select-sm" style="width: 30%;" disabled><option value="">Apto...</option></select>
-                                    <small class="text-muted d-flex align-items-center" id="sol_resultado_filtro">Filtre...</small>
+                                    <select id="sol_filtro_bloco" class="form-select form-select-sm" style="width:30%"><option value="">Bloco...</option></select>
+                                    <select id="sol_filtro_apto" class="form-select form-select-sm" style="width:30%" disabled><option value="">Apto...</option></select>
                                 </div>
-                                <select name="morador_solicitacao" id="sol_select_morador" class="form-select" readonly style="background-color: #e9ecef; pointer-events: none;">
-                                    <option value="" selected>-- Sem morador vinculado (Área Comum) --</option>
-                                    {% for morador in todos_moradores %}
-                                        <option value="{{ morador.id }}" data-bloco="{{ morador.bloco }}" data-apto="{{ morador.apartamento }}">
-                                            {{ morador.bloco }} - {{ morador.apartamento }} | {{ morador.nome }}
-                                        </option>
-                                    {% endfor %}
+                                <select name="morador_solicitacao" id="sol_select_morador" class="form-select" readonly style="background-color:#e9ecef;pointer-events:none;"><option value="">-- Área Comum --</option>
+                                    {% for morador in todos_moradores %}<option value="{{ morador.id }}" data-bloco="{{ morador.bloco }}" data-apto="{{ morador.apartamento }}">{{ morador.bloco }}-{{ morador.apartamento }} | {{ morador.nome }}</option>{% endfor %}
                                 </select>
                             </div>
                         </div>
-
-                        <div class="mb-3">
-                            <label class="fw-bold">Descrição</label>
-                            <textarea name="descricao" class="form-control" rows="2" placeholder="Detalhes..." required></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-info text-white w-100 fw-bold">Registrar</button>
+                        <div class="mb-3"><label>Descrição</label><textarea name="descricao" class="form-control" rows="2" required></textarea></div>
+                        <button type="submit" class="btn btn-info text-white w-100">Registrar</button>
                     </form>
                 </div>
             </div>
 
             <div class="card shadow-lg">
-                <div class="card-header bg-light fw-bold">Últimos Registros</div>
-                <div class="card-body p-0">
-                    <table class="table table-hover mb-0 align-middle">
-                        <thead class="table-light">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Data</th>
+                            <th>Tipo</th>
+                            <th>Detalhes</th>
+                            <th>Status</th>
+                            <th>Criado Por</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sol in lista_solicitacoes %}
                             <tr>
-                                <th>Data</th>
-                                <th>Tipo</th>
-                                <th>Detalhes</th>
-                                <th>Status</th>
+                                <td>{{ sol.data_criacao|date:"d/m H:i" }}</td>
+                                <td>{{ sol.get_tipo_display }}</td>
+                                <td>{% if sol.morador %}<strong>{{ sol.morador.bloco }}-{{ sol.morador.apartamento }}</strong>:{% endif %} {{ sol.descricao|truncatechars:40 }}</td>
+                                <td>
+                                    {% with s=sol.status|upper %}
+                                        {% if s == 'PENDENTE' %}
+                                            <span class="badge bg-warning text-dark">🟡 Pendente</span>
+                                        {% elif s == 'EM_ANALISE' or s == 'EM_ANDAMENTO' or 'ANALISE' in s %}
+                                            <span class="badge bg-primary">🔵 Em Análise</span>
+                                        {% elif s == 'APROVADO' or s == 'RESOLVIDO' or s == 'CONCLUIDO' %}
+                                            <span class="badge bg-success">🟢 Aprovado</span>
+                                        {% elif s == 'NEGADO' or s == 'CANCELADO' %}
+                                            <span class="badge bg-danger">🔴 Cancelado</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">⚪ {{ sol.get_status_display }}</span>
+                                        {% endif %}
+                                    {% endwith %}
+                                </td>
+                                <td>
+                                    <small class="text-muted">
+                                        {% if sol.criado_por %}
+                                            {{ sol.criado_por.username }}
+                                        {% else %}
+                                            Sistema
+                                        {% endif %}
+                                    </small>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            {% for sol in lista_solicitacoes %}
-                                <tr>
-                                    <td>{{ sol.data_criacao|date:"d/m H:i" }}</td>
-                                    <td>{{ sol.get_tipo_display }}</td>
-                                    <td>
-                                        {% if sol.morador %}<strong class="text-primary">{{ sol.morador.bloco }}-{{ sol.morador.apartamento }}</strong>:{% endif %}
-                                        {{ sol.descricao|truncatechars:40 }}
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-{% if sol.status == 'PENDENTE' %}warning text-dark{% elif sol.status == 'APROVADO' %}success{% else %}danger{% endif %}">
-                                            {{ sol.status }}
-                                        </span>
-                                    </td>
-                                </tr>
-                            {% empty %}
-                                <tr><td colspan="4" class="text-center p-4 text-muted">Nenhuma solicitação recente.</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                        {% empty %}<tr><td colspan="5" class="text-center p-4">Nenhuma solicitação.</td></tr>{% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
+    </div>
+</div>
 
+<div class="modal fade" id="modalRelatorioVisitantes" tabindex="-1">
+    <div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-dark text-white"><h5 class="modal-title">Relatório de Acesso</h5><button class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><form action="{% url 'exportar_relatorio' %}" target="_blank"><div class="modal-body"><label>Data Inicial</label><input type="date" name="data_inicio" class="form-control mb-3"><label>Data Final</label><input type="date" name="data_fim" class="form-control"></div><div class="modal-footer"><button type="submit" class="btn btn-primary">🖨️ Gerar PDF</button></div></form></div></div>
+</div>
+
+<div class="modal fade" id="modalRelatorioEncomendas" tabindex="-1">
+    <div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-warning text-dark"><h5 class="modal-title">Relatório de Encomendas</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><form action="{% url 'exportar_relatorio_encomendas' %}" target="_blank"><div class="modal-body"><label>Data Inicial</label><input type="date" name="data_inicio" class="form-control mb-3"><label>Data Final</label><input type="date" name="data_fim" class="form-control"><small class="text-muted">Se deixar vazio, gera de todo o histórico.</small></div><div class="modal-footer"><button type="submit" class="btn btn-warning">🖨️ Gerar PDF</button></div></form></div></div>
+</div>
+
+<div class="modal fade" id="modalRelatorioSolicitacoes" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">Relatório de Ocorrências</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{% url 'exportar_relatorio_solicitacoes' %}" target="_blank">
+                <div class="modal-body">
+                    <label>Data Inicial</label><input type="date" name="data_inicio" class="form-control mb-3">
+                    <label>Data Final</label><input type="date" name="data_fim" class="form-control">
+                    <hr>
+                    <label>Filtrar por Tipo (Opcional)</label>
+                    <select name="tipo_filtro" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="RECLAMACAO">Reclamação</option>
+                        <option value="MANUTENCAO">Manutenção</option>
+                        <option value="MUDANCA">Mudança</option>
+                        <option value="RESERVA">Reserva</option>
+                        <option value="OUTRO">Outro</option>
+                    </select>
+                </div>
+                <div class="modal-footer"><button type="submit" class="btn btn-info text-white">🖨️ Gerar PDF</button></div>
+            </form>
+        </div>
     </div>
 </div>
 
 <script>
-    // Função para abrir WhatsApp e marcar como notificado
-    function avisarMorador(urlWhatsApp, urlNotificacao) {
-        window.open(urlWhatsApp, '_blank');
-        window.location.href = urlNotificacao;
-    }
+    function avisarMorador(urlWhatsApp, urlNotificacao) { window.open(urlWhatsApp, '_blank'); window.location.href = urlNotificacao; }
 
-    // Função ÚNICA para configurar os Filtros em Cascata
     function configurarFiltroCascata(idSelectFinal, idFiltroBloco, idFiltroApto, idLabelResultado) {
-        
         const selectFinal = document.getElementById(idSelectFinal);
         const filtroBloco = document.getElementById(idFiltroBloco);
         const filtroApto = document.getElementById(idFiltroApto);
-        const labelResultado = document.getElementById(idLabelResultado);
-
         if(!selectFinal || !filtroBloco || !filtroApto) return;
-
-        // Extrai todas as opções do select original (escondido)
-        const todasOpcoes = Array.from(selectFinal.options).slice(1);
         
-        const dados = todasOpcoes.map(opt => ({
-            val: opt.value,
-            txt: opt.text,
-            bloco: opt.getAttribute('data-bloco') || "Geral",
-            apto: opt.getAttribute('data-apto'),
-            html: opt.outerHTML
-        }));
+        const todasOpcoes = Array.from(selectFinal.options).slice(1);
+        const dados = todasOpcoes.map(opt => ({ val: opt.value, txt: opt.text, bloco: opt.getAttribute('data-bloco') || "Geral", apto: opt.getAttribute('data-apto'), html: opt.outerHTML }));
 
-        // 1. Popula o Select de Blocos
         const blocosUnicos = [...new Set(dados.map(d => d.bloco))].sort();
         filtroBloco.innerHTML = '<option value="">Bloco...</option>';
-        blocosUnicos.forEach(b => {
-            const opt = document.createElement('option');
-            opt.value = b;
-            opt.innerText = b;
-            filtroBloco.appendChild(opt);
-        });
+        blocosUnicos.forEach(b => { const opt = document.createElement('option'); opt.value = b; opt.innerText = b; filtroBloco.appendChild(opt); });
 
-        // 2. Quando mudar o Bloco
         filtroBloco.addEventListener('change', function() {
             const blocoSel = this.value;
-            filtroApto.innerHTML = '<option value="">Apto...</option>';
-            filtroApto.disabled = !blocoSel;
-            
-            // Reseta o select final
-            selectFinal.innerHTML = '<option value="" selected disabled>...</option>';
-            selectFinal.disabled = true;
-            selectFinal.style.pointerEvents = 'none';
-            selectFinal.style.backgroundColor = '#e9ecef';
+            filtroApto.innerHTML = '<option value="">Apto...</option>'; filtroApto.disabled = !blocoSel;
+            selectFinal.innerHTML = '<option value="" selected disabled>...</option>'; selectFinal.disabled = true; selectFinal.style.pointerEvents = 'none'; selectFinal.style.backgroundColor = '#e9ecef';
 
             if(blocoSel) {
                 const aptos = [...new Set(dados.filter(d => d.bloco === blocoSel).map(d => d.apto))].sort((a,b)=>a-b);
-                aptos.forEach(a => {
-                    const opt = document.createElement('option');
-                    opt.value = a;
-                    opt.innerText = a;
-                    filtroApto.appendChild(opt);
-                });
-                labelResultado.innerText = "Escolha o apto...";
-            } else {
-                labelResultado.innerText = "Selecione o Bloco...";
+                aptos.forEach(a => { const opt = document.createElement('option'); opt.value = a; opt.innerText = a; filtroApto.appendChild(opt); });
             }
         });
 
-        // 3. Quando mudar o Apartamento
         filtroApto.addEventListener('change', function() {
-            const blocoSel = filtroBloco.value;
-            const aptoSel = this.value;
-
+            const blocoSel = filtroBloco.value; const aptoSel = this.value;
             const encontrados = dados.filter(d => d.bloco === blocoSel && d.apto === aptoSel);
-            
             selectFinal.innerHTML = '';
-            encontrados.forEach(item => {
-                // Recria o HTML da option original
-                selectFinal.insertAdjacentHTML('beforeend', item.html);
-            });
-
-            if(encontrados.length > 0) {
-                selectFinal.disabled = false;
-                selectFinal.style.pointerEvents = 'auto';
-                selectFinal.style.backgroundColor = '#fff';
-                selectFinal.selectedIndex = 0; // Seleciona o primeiro automaticamente
-                labelResultado.innerText = "✅ Encontrado!";
-            } else {
-                labelResultado.innerText = "❌ Ninguém";
-            }
+            encontrados.forEach(item => { selectFinal.insertAdjacentHTML('beforeend', item.html); });
+            if(encontrados.length > 0) { selectFinal.disabled = false; selectFinal.style.pointerEvents = 'auto'; selectFinal.style.backgroundColor = '#fff'; selectFinal.selectedIndex = 0; }
         });
     }
 
     document.addEventListener("DOMContentLoaded", function() {
-        // Inicia os filtros para as 3 abas
         configurarFiltroCascata('vis_select_morador', 'vis_filtro_bloco', 'vis_filtro_apto', 'vis_resultado_filtro');
         configurarFiltroCascata('select_morador_final', 'filtro_bloco', 'filtro_apto', 'resultado_filtro');
         configurarFiltroCascata('sol_select_morador', 'sol_filtro_bloco', 'sol_filtro_apto', 'sol_resultado_filtro');
-
-        // Mantém a aba ativa após recarregar a página (via URL ?aba=...)
+        
         const urlParams = new URLSearchParams(window.location.search);
         const abaAlvo = urlParams.get('aba');
-        if (abaAlvo) {
-            const botaoAba = document.getElementById(abaAlvo + '-tab');
-            if (botaoAba) {
-                new bootstrap.Tab(botaoAba).show();
-            }
-        }
+        if (abaAlvo) { const botaoAba = document.getElementById(abaAlvo + '-tab'); if (botaoAba) { new bootstrap.Tab(botaoAba).show(); } }
     });
 </script>
 {% endblock %}

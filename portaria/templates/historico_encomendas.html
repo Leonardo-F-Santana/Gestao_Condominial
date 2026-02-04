@@ -1,111 +1,115 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Histórico de Entregas</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-    <div class="container mt-5">
-        
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h3 class="mb-0">📜 Histórico de Encomendas</h3>
-                <small class="text-muted">Auditoria de entregas realizadas.</small>
-            </div>
-            <a href="{% url 'home' %}" class="btn btn-secondary">⬅️ Voltar para o Painel</a>
-        </div>
+{% extends 'base.html' %}
 
-        <div class="card shadow-sm mb-4">
-            <div class="card-body p-2">
-                <form method="GET" action="{% url 'historico_encomendas' %}" class="d-flex gap-2">
-                    <input type="text" name="busca" class="form-control" placeholder="Pesquisar por Morador, Apto, Bloco ou Volume..." value="{{ busca|default:'' }}">
-                    <button class="btn btn-primary" type="submit">🔍 Buscar</button>
-                    {% if busca %}
-                        <a href="{% url 'historico_encomendas' %}" class="btn btn-outline-secondary">Limpar</a>
-                    {% endif %}
-                </form>
-            </div>
-        </div>
+{% block content %}
+<div class="container mt-4">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>📜 Histórico de Encomendas Entregues</h2>
+        <a href="{% url 'home' %}?aba=encomendas" class="btn btn-secondary">⬅️ Voltar</a>
+    </div>
 
-        <div class="card shadow-lg">
-            <div class="card-body p-0">
-                <table class="table table-striped table-hover mb-0 align-middle">
-                    <thead class="table-dark">
+    <div class="card shadow-sm mb-4 bg-light">
+        <div class="card-body">
+            <form method="GET" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Buscar</label>
+                    <input type="text" name="busca" class="form-control" placeholder="Morador, Apto ou Quem retirou..." value="{{ busca|default:'' }}">
+                </div>
+                
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">De:</label>
+                    <input type="date" name="data_inicio" class="form-control" value="{{ data_inicio|default:'' }}">
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Até:</label>
+                    <input type="date" name="data_fim" class="form-control" value="{{ data_fim|default:'' }}">
+                </div>
+
+                <div class="col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+                    <a href="{% url 'historico_encomendas' %}" class="btn btn-outline-secondary" title="Limpar Filtros">❌</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-lg">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Entrega</th>
+                        <th>Morador</th>
+                        <th>Volume</th>
+                        <th>Retirado Por</th>
+                        <th>Porteiro</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for enc in encomendas %}
                         <tr>
-                            <th>Data Entrega</th>
-                            <th>Apto / Morador</th>
-                            <th>Volume</th>
-                            <th>Retirado Por / Doc</th>
-                            <th>Porteiros Resp.</th> </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in encomendas %}
-                        <tr>
-                            <td>{{ item.data_entrega|date:"d/m/Y H:i" }}</td>
                             <td>
-                                <strong>{{ item.morador.bloco }} - {{ item.morador.apartamento }}</strong><br>
-                                <span class="text-muted small">{{ item.morador.nome }}</span>
-                            </td>
-                            <td class="fw-bold text-primary">{{ item.volume }}</td>
-                            <td>
-                                {{ item.quem_retirou }}<br>
-                                <small class="text-muted">Doc: {{ item.documento_retirada|default:"-" }}</small>
+                                <strong>{{ enc.data_entrega|date:"d/m/Y" }}</strong>
+                                <br><small class="text-muted">{{ enc.data_entrega|date:"H:i" }}</small>
                             </td>
                             <td>
-                                <small>📥 Recebeu: <strong>{{ item.porteiro_cadastro.username|default:"Sistema" }}</strong></small><br>
-                                <small>📤 Baixou: <strong>{{ item.porteiro_entrega.username|default:"Sistema" }}</strong></small>
+                                {{ enc.morador.nome }}
+                                <br><small class="text-primary fw-bold">{{ enc.morador.bloco }} - {{ enc.morador.apartamento }}</small>
+                            </td>
+                            <td>{{ enc.volume }}</td>
+                            <td>
+                                <span class="badge bg-success">✔ {{ enc.quem_retirou }}</span>
+                                {% if enc.documento_retirada %}
+                                    <br><small class="text-muted">Doc: {{ enc.documento_retirada }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small class="text-muted">
+                                    Entrada: {{ enc.porteiro_cadastro.username|default:"-" }}
+                                    <br>Saída: {{ enc.porteiro_entrega.username|default:"-" }}
+                                </small>
                             </td>
                         </tr>
-                        {% empty %}
+                    {% empty %}
                         <tr>
                             <td colspan="5" class="text-center p-5 text-muted">
                                 <h4>Nenhum registro encontrado.</h4>
+                                <p>Tente mudar os filtros de busca.</p>
                             </td>
                         </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
 
-        <div class="d-flex justify-content-center mt-3">
+        {% if encomendas.has_other_pages %}
+        <div class="card-footer bg-white d-flex justify-content-center pt-3">
             <nav>
                 <ul class="pagination">
                     {% if encomendas.has_previous %}
                         <li class="page-item">
-                            <a class="page-link" href="?page=1{% if busca %}&busca={{ busca }}{% endif %}">&laquo; Primeira</a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ encomendas.previous_page_number }}{% if busca %}&busca={{ busca }}{% endif %}">Anterior</a>
+                            <a class="page-link" href="?page={{ encomendas.previous_page_number }}&busca={{ busca }}&data_inicio={{ data_inicio }}&data_fim={{ data_fim }}">Anterior</a>
                         </li>
                     {% else %}
-                        <li class="page-item disabled"><span class="page-link">&laquo; Primeira</span></li>
+                        <li class="page-item disabled"><span class="page-link">Anterior</span></li>
                     {% endif %}
 
                     <li class="page-item active">
-                        <span class="page-link">
-                            Página {{ encomendas.number }} de {{ encomendas.paginator.num_pages }}
-                        </span>
+                        <span class="page-link">Página {{ encomendas.number }} de {{ encomendas.paginator.num_pages }}</span>
                     </li>
 
                     {% if encomendas.has_next %}
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ encomendas.next_page_number }}{% if busca %}&busca={{ busca }}{% endif %}">Próxima</a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ encomendas.paginator.num_pages }}{% if busca %}&busca={{ busca }}{% endif %}">Última &raquo;</a>
+                            <a class="page-link" href="?page={{ encomendas.next_page_number }}&busca={{ busca }}&data_inicio={{ data_inicio }}&data_fim={{ data_fim }}">Próxima</a>
                         </li>
                     {% else %}
-                        <li class="page-item disabled"><span class="page-link">Última &raquo;</span></li>
+                        <li class="page-item disabled"><span class="page-link">Próxima</span></li>
                     {% endif %}
                 </ul>
             </nav>
         </div>
-        
+        {% endif %}
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+</div>
+{% endblock %}

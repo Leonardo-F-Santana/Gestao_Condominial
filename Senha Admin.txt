@@ -1,2 +1,0 @@
-Login: Admin
-Senha: Leo123456
