@@ -1,6 +1,29 @@
 from django.contrib import admin
 from django.utils.html import format_html
+from import_export import resources
+from import_export.admin import ImportExportModelAdmin
 from .models import Visitante, Morador, Encomenda, Solicitacao
+
+# --- CONFIGURAÇÃO DE MORADORES (COM IMPORTAÇÃO) ---
+
+# 1. Receita de como ler o Excel
+class MoradorResource(resources.ModelResource):
+    class Meta:
+        model = Morador
+        # Campos que podem vir no Excel
+        fields = ('nome', 'cpf', 'bloco', 'apartamento', 'telefone', 'email')
+        # Identificador único (se o CPF já existir, ele atualiza em vez de duplicar)
+        import_id_fields = ('cpf',)
+
+@admin.register(Morador)
+class MoradorAdmin(ImportExportModelAdmin):  # Mudamos de admin.ModelAdmin para ImportExportModelAdmin
+    resource_class = MoradorResource
+    list_display = ('nome', 'bloco', 'apartamento', 'telefone')
+    list_filter = ('bloco',)
+    search_fields = ('nome', 'apartamento', 'cpf')
+    ordering = ('bloco', 'apartamento')
+
+# --- OUTROS CADASTROS (MANTIDOS IGUAIS) ---
 
 @admin.register(Visitante)
 class VisitanteAdmin(admin.ModelAdmin):
@@ -8,13 +31,6 @@ class VisitanteAdmin(admin.ModelAdmin):
     list_filter = ('horario_chegada', 'registrado_por')
     search_fields = ('nome_completo', 'cpf', 'placa_veiculo')
     readonly_fields = ('horario_chegada', 'registrado_por')
-
-@admin.register(Morador)
-class MoradorAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'bloco', 'apartamento', 'telefone')
-    list_filter = ('bloco',)
-    search_fields = ('nome', 'apartamento')
-    ordering = ('bloco', 'apartamento')
 
 @admin.register(Encomenda)
 class EncomendaAdmin(admin.ModelAdmin):

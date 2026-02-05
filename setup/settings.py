@@ -2,27 +2,21 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 
-# 1. Carrega as variáveis do arquivo .env (o cofre)
+
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ==============================================================================
-# 2. SEGURANÇA (AQUI FOI A MUDANÇA PRINCIPAL)
-# ==============================================================================
 
-# Pega a chave do .env. Se não achar, usa essa chave insegura (só pra não dar erro em dev)
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-chave-padrao-desenvolvimento')
 
-# Pega o DEBUG do .env. Se estiver escrito 'True' lá, vira Verdadeiro.
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = ['*']
 
-# ==============================================================================
 
 INSTALLED_APPS = [
-    'jazzmin',  # Tema Admin
+    'jazzmin',  
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
