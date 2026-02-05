@@ -1,0 +1,29 @@
+
+
+1. No seu Computador (VS Code):
+
+Faça as alterações no código.
+
+Teste se funciona.
+
+Envie para o GitHub:
+
+Bash
+git add .
+git commit -m "Novas melhorias"
+git push
+2. No PythonAnywhere (Console):
+
+Baixe as novidades:
+
+Bash
+cd Gestao_Condominial
+git pull
+(Só se mudou algo no banco de dados):
+
+Bash
+source venv/bin/activate
+python manage.py migrate
+3. No Painel Web:
+
+Botão verde Reload.
