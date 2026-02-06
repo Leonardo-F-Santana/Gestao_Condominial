@@ -1,0 +1,123 @@
+{% extends 'morador/base_morador.html' %}
+
+{% block title %}Início - Portal do Morador{% endblock %}
+
+{% block content %}
+<!-- Saudação -->
+<div class="mb-4">
+    <h4 class="fw-bold mb-1" style="color: #78716c;" id="saudacao">
+        Olá, {{ morador.nome|truncatewords:1 }}! 👋
+    </h4>
+    <p class="text-muted mb-0 small">
+        <i class="bi bi-geo-alt"></i> {% if morador.bloco %}Bloco {{ morador.bloco }} - {% endif %}Apto {{ morador.apartamento }}
+    </p>
+</div>
+
+<!-- Stats Cards - COM ANIMAÇÃO -->
+<div class="row g-3 mb-4">
+    <div class="col-6">
+        <div class="glass-card stat-card card-animate delay-1">
+            <div class="icon">📦</div>
+            <div class="number">{{ encomendas_pendentes }}</div>
+            <div class="label">Encomendas</div>
+            <a href="{% url 'morador_encomendas' %}" class="stretched-link"></a>
+        </div>
+    </div>
+    <div class="col-6">
+        <div class="glass-card stat-card card-animate delay-2">
+            <div class="icon">📋</div>
+            <div class="number">{{ solicitacoes_recentes|length }}</div>
+            <div class="label">Solicitações</div>
+            <a href="{% url 'morador_solicitacoes' %}" class="stretched-link"></a>
+        </div>
+    </div>
+</div>
+
+<!-- Ação Rápida -->
+<div class="glass-card mb-4">
+    <div class="card-body p-4">
+        <h6 class="fw-bold mb-3" style="color: #57534e;">
+            <i class="bi bi-lightning-charge-fill text-warning"></i> Ação Rápida
+        </h6>
+        <a href="{% url 'morador_nova_solicitacao' %}" class="btn btn-gradient w-100">
+            <i class="bi bi-plus-circle me-2"></i> Nova Solicitação
+        </a>
+    </div>
+</div>
+
+<!-- Avisos Recentes -->
+{% if avisos %}
+<div class="glass-card mb-4">
+    <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center p-4 pb-0">
+        <h6 class="mb-0 fw-bold" style="color: #57534e;">
+            <i class="bi bi-megaphone-fill" style="color: var(--primary);"></i> Avisos
+        </h6>
+        <a href="{% url 'morador_avisos' %}" class="text-decoration-none small fw-semibold" style="color: var(--primary);">
+            Ver todos <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+    <div class="list-group list-group-flush">
+        {% for aviso in avisos %}
+        <div class="list-group-item border-0 list-item-animated px-4 py-3">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h6 class="mb-1 fw-semibold" style="color: #44403c;">{{ aviso.titulo }}</h6>
+                    <p class="mb-0 text-muted small">{{ aviso.conteudo|truncatechars:80 }}</p>
+                </div>
+                <small class="text-muted ms-2">{{ aviso.data_publicacao|date:"d/m" }}</small>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Minhas Solicitações -->
+{% if solicitacoes_recentes %}
+<div class="glass-card">
+    <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center p-4 pb-0">
+        <h6 class="mb-0 fw-bold" style="color: #57534e;">
+            <i class="bi bi-clock-history text-secondary"></i> Recentes
+        </h6>
+        <a href="{% url 'morador_solicitacoes' %}" class="text-decoration-none small fw-semibold" style="color: var(--primary);">
+            Ver todas <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+    <div class="list-group list-group-flush">
+        {% for sol in solicitacoes_recentes %}
+        <a href="{% url 'morador_ver_solicitacao' sol.id %}" class="list-group-item list-group-item-action border-0 list-item-animated px-4 py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="badge bg-light text-dark me-2 rounded-pill">{{ sol.get_tipo_display }}</span>
+                    <span class="text-truncate small">{{ sol.descricao|truncatechars:30 }}</span>
+                </div>
+                {% if sol.status == 'PENDENTE' %}
+                    <span class="badge badge-pending rounded-pill">Pendente</span>
+                {% elif sol.status == 'EM_ANDAMENTO' %}
+                    <span class="badge badge-progress rounded-pill">Em Andamento</span>
+                {% elif sol.status == 'CONCLUIDO' %}
+                    <span class="badge badge-done rounded-pill">Concluído</span>
+                {% else %}
+                    <span class="badge badge-cancelled rounded-pill">Cancelado</span>
+                {% endif %}
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Saudação dinâmica
+    const hora = new Date().getHours();
+    const el = document.getElementById('saudacao');
+    let msg = 'Olá';
+    if (hora >= 5 && hora < 12) msg = 'Bom dia';
+    else if (hora >= 12 && hora < 18) msg = 'Boa tarde';
+    else msg = 'Boa noite';
+    el.textContent = msg + ', {{ morador.nome|truncatewords:1 }}!';
+</script>
+{% endblock %}

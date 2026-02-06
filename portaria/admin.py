@@ -1,8 +1,9 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from import_export import resources
-from import_export.admin import ImportExportModelAdmin
-from .models import Visitante, Morador, Encomenda, Solicitacao
+from unfold.admin import ModelAdmin
+from unfold.contrib.import_export.forms import ExportForm, ImportForm
+from .models import Visitante, Morador, Encomenda, Solicitacao, Aviso
 
 # --- CONFIGURAÇÃO DE MORADORES (COM IMPORTAÇÃO) ---
 
@@ -16,24 +17,26 @@ class MoradorResource(resources.ModelResource):
         import_id_fields = ('cpf',)
 
 @admin.register(Morador)
-class MoradorAdmin(ImportExportModelAdmin):  # Mudamos de admin.ModelAdmin para ImportExportModelAdmin
+class MoradorAdmin(ModelAdmin):
     resource_class = MoradorResource
-    list_display = ('nome', 'bloco', 'apartamento', 'telefone')
+    import_form_class = ImportForm
+    export_form_class = ExportForm
+    list_display = ('nome', 'bloco', 'apartamento', 'telefone', 'email')
     list_filter = ('bloco',)
-    search_fields = ('nome', 'apartamento', 'cpf')
+    search_fields = ('nome', 'apartamento', 'cpf', 'email')
     ordering = ('bloco', 'apartamento')
 
-# --- OUTROS CADASTROS (MANTIDOS IGUAIS) ---
+# --- OUTROS CADASTROS ---
 
 @admin.register(Visitante)
-class VisitanteAdmin(admin.ModelAdmin):
+class VisitanteAdmin(ModelAdmin):
     list_display = ('nome_completo', 'morador_responsavel', 'horario_chegada', 'horario_saida', 'registrado_por')
     list_filter = ('horario_chegada', 'registrado_por')
     search_fields = ('nome_completo', 'cpf', 'placa_veiculo')
     readonly_fields = ('horario_chegada', 'registrado_por')
 
 @admin.register(Encomenda)
-class EncomendaAdmin(admin.ModelAdmin):
+class EncomendaAdmin(ModelAdmin):
     list_display = ('morador', 'volume', 'data_chegada', 'get_status_html', 'porteiro_cadastro')
     list_filter = ('entregue', 'data_chegada', 'porteiro_cadastro')
     search_fields = ('morador__nome', 'volume', 'quem_retirou')
@@ -46,7 +49,7 @@ class EncomendaAdmin(admin.ModelAdmin):
     get_status_html.short_description = 'Status'
 
 @admin.register(Solicitacao)
-class SolicitacaoAdmin(admin.ModelAdmin):
+class SolicitacaoAdmin(ModelAdmin):
     list_display = ('get_tipo_html', 'morador', 'descricao_curta', 'criado_por', 'data_criacao', 'get_status_html')
     list_filter = ('status', 'tipo', 'data_criacao', 'criado_por')
     search_fields = ('descricao', 'morador__nome', 'morador__apartamento')
@@ -55,9 +58,9 @@ class SolicitacaoAdmin(admin.ModelAdmin):
     def get_status_html(self, obj):
         cores = {
             'PENDENTE': 'orange',
-            'EM_ANALISE': 'blue',
-            'APROVADO': 'green',
-            'NEGADO': 'red',
+            'EM_ANDAMENTO': 'blue',
+            'CONCLUIDO': 'green',
+            'CANCELADO': 'red',
         }
         cor = cores.get(obj.status, 'black')
         return format_html(
@@ -76,3 +79,17 @@ class SolicitacaoAdmin(admin.ModelAdmin):
             return obj.descricao[:50] + "..."
         return obj.descricao
     descricao_curta.short_description = "Descrição Detalhada"
+
+
+@admin.register(Aviso)
+class AvisoAdmin(ModelAdmin):
+    list_display = ('titulo', 'data_publicacao', 'ativo', 'criado_por')
+    list_filter = ('ativo', 'data_publicacao')
+    search_fields = ('titulo', 'conteudo')
+    readonly_fields = ('data_publicacao', 'criado_por')
+    list_editable = ('ativo',)
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.criado_por = request.user
+        super().save_model(request, obj, form, change)

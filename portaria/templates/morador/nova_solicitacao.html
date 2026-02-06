@@ -1,0 +1,103 @@
+{% extends 'morador/base_morador.html' %}
+
+{% block title %}Nova Solicitação - Portal do Morador{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h4 class="fw-bold mb-1" style="color: #57534e;">
+        <i class="bi bi-plus-circle-fill" style="color: var(--primary);"></i> Nova Solicitação
+    </h4>
+    <p class="text-muted mb-0 small">Envie sua solicitação para a administração</p>
+</div>
+
+<div class="glass-card">
+    <div class="card-body p-4">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="mb-4">
+                <label class="form-label fw-semibold" style="color: #57534e;">
+                    <i class="bi bi-tag"></i> Tipo de Solicitação
+                </label>
+                <select name="tipo" class="form-select rounded-pill" required>
+                    <option value="">Selecione o tipo...</option>
+                    <option value="RECLAMACAO">📢 Reclamação</option>
+                    <option value="MANUTENCAO">🛠️ Manutenção</option>
+                    <option value="RESERVA">📅 Reserva de Espaço</option>
+                    <option value="MUDANCA">🚚 Mudança</option>
+                    <option value="OUTRO">📝 Outro Assunto</option>
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-semibold" style="color: #57534e;">
+                    <i class="bi bi-chat-text"></i> Descrição
+                </label>
+                <textarea name="descricao" class="form-control" rows="5" 
+                    placeholder="Descreva detalhadamente sua solicitação..." 
+                    style="border-radius: 16px;" required></textarea>
+                <small class="text-muted">Quanto mais detalhes, melhor!</small>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-semibold" style="color: #57534e;">
+                    <i class="bi bi-camera"></i> Foto ou Vídeo (opcional)
+                </label>
+                <input type="file" name="arquivo" class="form-control rounded-pill" 
+                    accept="image/*,video/*" id="fileInput">
+                <small class="text-muted">JPG, PNG, MP4 (máx. 50MB)</small>
+                
+                <div id="filePreview" class="mt-3" style="display: none;">
+                    <img id="imagePreview" src="" class="img-fluid rounded-3 shadow" style="max-height: 200px; display: none;">
+                    <video id="videoPreview" controls class="rounded-3 shadow" style="max-width: 100%; max-height: 200px; display: none;"></video>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-gradient w-100">
+                <i class="bi bi-send-fill me-2"></i> Enviar Solicitação
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="glass-card mt-4">
+    <div class="card-body p-4">
+        <h6 class="fw-bold mb-3" style="color: #57534e;">
+            <i class="bi bi-lightbulb text-warning"></i> Dicas
+        </h6>
+        <ul class="list-unstyled mb-0 small text-muted">
+            <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i> Seja claro e específico</li>
+            <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i> Inclua local exato se aplicável</li>
+            <li><i class="bi bi-check-circle text-success me-2"></i> Fotos ajudam muito!</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        const preview = document.getElementById('filePreview');
+        const imagePreview = document.getElementById('imagePreview');
+        const videoPreview = document.getElementById('videoPreview');
+        
+        if (file) {
+            preview.style.display = 'block';
+            if (file.type.startsWith('image/')) {
+                imagePreview.style.display = 'block';
+                videoPreview.style.display = 'none';
+                const reader = new FileReader();
+                reader.onload = function(e) { imagePreview.src = e.target.result; };
+                reader.readAsDataURL(file);
+            } else if (file.type.startsWith('video/')) {
+                videoPreview.style.display = 'block';
+                imagePreview.style.display = 'none';
+                videoPreview.src = URL.createObjectURL(file);
+            }
+        } else {
+            preview.style.display = 'none';
+        }
+    });
+</script>
+{% endblock %}

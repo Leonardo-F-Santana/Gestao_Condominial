@@ -16,7 +16,11 @@ ALLOWED_HOSTS = ['*']
 
 
 INSTALLED_APPS = [
-    'jazzmin',  
+    'unfold',  # Django Unfold - Tema moderno do admin
+    'unfold.contrib.filters',  # Filtros avançados
+    'unfold.contrib.forms',  # Formulários melhorados
+    'unfold.contrib.import_export',  # Integração com import_export
+    
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -24,9 +28,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
-    'import_export', # Biblioteca extra
+    'import_export',  # Biblioteca extra
     
-    'portaria', # Seu App
+    'portaria',  # Seu App
 ]
 
 MIDDLEWARE = [
@@ -87,6 +91,14 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+# Configuração de arquivos de mídia (uploads)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Limite de upload de arquivos (50MB)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800
+FILE_UPLOAD_MAX_MEMORY_SIZE = 52428800
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

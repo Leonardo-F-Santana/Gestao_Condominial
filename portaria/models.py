@@ -2,7 +2,10 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class Morador(models.Model):
+    usuario = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, 
+                                    verbose_name="Conta de Acesso", related_name='morador')
     nome = models.CharField(max_length=100, verbose_name="Nome Completo")
+    email = models.EmailField(verbose_name="E-mail", blank=True)
     cpf = models.CharField(max_length=14, verbose_name="CPF", blank=True)
     telefone = models.CharField(max_length=20, verbose_name="Telefone", blank=True)
     bloco = models.CharField(max_length=10, verbose_name="Bloco", blank=True)
@@ -55,16 +58,17 @@ class Solicitacao(models.Model):
     ]
 
     STATUS_CHOICES = [
-        ('PENDENTE', '🟠 Pendente'),
-        ('EM_ANALISE', '🔵 Em Análise'),
-        ('APROVADO', '🟢 Aprovado / Resolvido'),
-        ('NEGADO', '🔴 Negado / Cancelado'),
+        ('PENDENTE', '🟡 Pendente'),
+        ('EM_ANDAMENTO', '🔵 Em Andamento'),
+        ('CONCLUIDO', '🟢 Concluído'),
+        ('CANCELADO', '🔴 Cancelado'),
     ]
 
     tipo = models.CharField(max_length=20, choices=TIPOS_CHOICES, verbose_name="Tipo de Solicitação")
     descricao = models.TextField(verbose_name="Descrição do Pedido")
     morador = models.ForeignKey(Morador, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Morador Solicitante")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDENTE', verbose_name="Status Atual")
+    arquivo = models.FileField(upload_to='solicitacoes/%Y/%m/', blank=True, verbose_name="Foto/Vídeo")
     
     criado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, verbose_name="Registrado por")
     data_criacao = models.DateTimeField(auto_now_add=True, verbose_name="Data do Registro")
@@ -76,3 +80,20 @@ class Solicitacao(models.Model):
     class Meta:
         verbose_name = "Solicitação / Ocorrência"
         verbose_name_plural = "Solicitações e Ocorrências"
+
+
+class Aviso(models.Model):
+    """Avisos e comunicados do condomínio para os moradores"""
+    titulo = models.CharField(max_length=200, verbose_name="Título")
+    conteudo = models.TextField(verbose_name="Conteúdo")
+    data_publicacao = models.DateTimeField(auto_now_add=True, verbose_name="Data de Publicação")
+    ativo = models.BooleanField(default=True, verbose_name="Ativo")
+    criado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, verbose_name="Publicado por")
+
+    def __str__(self):
+        return self.titulo
+
+    class Meta:
+        verbose_name = "Aviso"
+        verbose_name_plural = "Avisos"
+        ordering = ['-data_publicacao']

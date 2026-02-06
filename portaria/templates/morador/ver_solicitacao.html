@@ -1,0 +1,84 @@
+{% extends 'morador/base_morador.html' %}
+
+{% block title %}Solicitação #{{ solicitacao.id }} - Portal do Morador{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{% url 'morador_solicitacoes' %}" class="btn btn-light btn-sm rounded-pill mb-3 shadow-sm">
+        <i class="bi bi-arrow-left"></i> Voltar
+    </a>
+    <h4 class="fw-bold mb-0" style="color: #57534e;">
+        Solicitação #{{ solicitacao.id }}
+    </h4>
+</div>
+
+<div class="glass-card mb-4">
+    <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-start mb-4">
+            <span class="badge bg-light text-dark rounded-pill px-3 py-2 fw-semibold">
+                {{ solicitacao.get_tipo_display }}
+            </span>
+            {% if solicitacao.status == 'PENDENTE' %}
+                <span class="badge badge-pending rounded-pill px-3 py-2">🟡 Pendente</span>
+            {% elif solicitacao.status == 'EM_ANDAMENTO' %}
+                <span class="badge badge-progress rounded-pill px-3 py-2">🔵 Em Andamento</span>
+            {% elif solicitacao.status == 'CONCLUIDO' %}
+                <span class="badge badge-done rounded-pill px-3 py-2">✅ Concluído</span>
+            {% else %}
+                <span class="badge badge-cancelled rounded-pill px-3 py-2">❌ Cancelado</span>
+            {% endif %}
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label text-muted small fw-semibold">DESCRIÇÃO</label>
+            <p class="mb-0" style="color: #44403c;">{{ solicitacao.descricao }}</p>
+        </div>
+
+        {% if solicitacao.arquivo %}
+        <div class="mb-4">
+            <label class="form-label text-muted small fw-semibold">ANEXO</label>
+            <div class="bg-light rounded-3 p-3 text-center">
+                {% if 'image' in solicitacao.arquivo.url %}
+                    <img src="{{ solicitacao.arquivo.url }}" class="img-fluid rounded-3 shadow" style="max-height: 300px;">
+                {% elif 'video' in solicitacao.arquivo.url %}
+                    <video controls class="rounded-3 shadow" style="max-width: 100%; max-height: 300px;">
+                        <source src="{{ solicitacao.arquivo.url }}">
+                    </video>
+                {% else %}
+                    <a href="{{ solicitacao.arquivo.url }}" class="btn btn-outline-primary rounded-pill" target="_blank">
+                        <i class="bi bi-download me-2"></i> Ver Anexo
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="text-muted small">
+            <i class="bi bi-calendar3"></i> {{ solicitacao.data_criacao|date:"d/m/Y H:i" }}
+        </div>
+    </div>
+</div>
+
+{% if solicitacao.resposta %}
+<div class="glass-card" style="border-left: 4px solid #10b981;">
+    <div class="card-body p-4">
+        <h6 class="fw-bold mb-3" style="color: #57534e;">
+            <i class="bi bi-building" style="color: var(--primary);"></i> Resposta da Administração
+        </h6>
+        <p class="mb-3" style="color: #44403c;">{{ solicitacao.resposta }}</p>
+        {% if solicitacao.data_resposta %}
+            <small class="text-muted">
+                <i class="bi bi-clock"></i> {{ solicitacao.data_resposta|date:"d/m/Y H:i" }}
+            </small>
+        {% endif %}
+    </div>
+</div>
+{% else %}
+<div class="glass-card">
+    <div class="card-body p-4 text-center">
+        <div class="mb-2" style="font-size: 2rem;">⏳</div>
+        <p class="mb-0 text-muted">Aguardando resposta da administração...</p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

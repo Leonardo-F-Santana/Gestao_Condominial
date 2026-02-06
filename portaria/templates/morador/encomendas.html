@@ -1,0 +1,100 @@
+{% extends 'morador/base_morador.html' %}
+
+{% block title %}Minhas Encomendas - Portal do Morador{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0" style="color: #57534e;">
+        <i class="bi bi-box-seam-fill" style="color: var(--primary);"></i> Minhas Encomendas
+    </h4>
+</div>
+
+<!-- Filtro de Status -->
+<div class="glass-card mb-4">
+    <div class="card-body p-2">
+        <div class="btn-group w-100" role="group">
+            <a href="?status=pendentes" class="btn {% if status_filtro != 'entregues' %}btn-gradient{% else %}btn-light{% endif %} rounded-start-pill">
+                📦 Na Portaria
+            </a>
+            <a href="?status=entregues" class="btn {% if status_filtro == 'entregues' %}btn-gradient{% else %}btn-light{% endif %} rounded-end-pill">
+                ✅ Retiradas
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Lista de Encomendas -->
+<div class="glass-card">
+    {% if encomendas %}
+    <div class="list-group list-group-flush">
+        {% for enc in encomendas %}
+        <div class="list-group-item border-0 list-item-animated p-4">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h6 class="mb-1 fw-bold" style="color: #44403c;">
+                        <i class="bi bi-box" style="color: var(--primary);"></i> {{ enc.volume }}
+                    </h6>
+                    {% if enc.destinatario_alternativo %}
+                        <small class="text-muted">
+                            <i class="bi bi-person"></i> A/C: {{ enc.destinatario_alternativo }}
+                        </small><br>
+                    {% endif %}
+                    <small class="text-muted">
+                        <i class="bi bi-calendar3"></i> 
+                        Chegou em {{ enc.data_chegada|date:"d/m/Y" }} às {{ enc.data_chegada|date:"H:i" }}
+                    </small>
+                </div>
+                <div class="text-end">
+                    {% if enc.entregue %}
+                        <span class="badge badge-done rounded-pill px-3 py-2">✅ Retirada</span>
+                        <br><small class="text-muted">{{ enc.data_entrega|date:"d/m H:i" }}</small>
+                    {% else %}
+                        <span class="badge badge-pending rounded-pill px-3 py-2">📦 Aguardando</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    {% if encomendas.has_other_pages %}
+    <div class="card-footer bg-transparent text-center border-0 p-4">
+        <nav>
+            <ul class="pagination pagination-sm mb-0 justify-content-center">
+                {% if encomendas.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link rounded-pill" href="?status={{ status_filtro }}&page={{ encomendas.previous_page_number }}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                {% endif %}
+                <li class="page-item active">
+                    <span class="page-link rounded-pill border-0" style="background: var(--primary);">{{ encomendas.number }}</span>
+                </li>
+                {% if encomendas.has_next %}
+                    <li class="page-item">
+                        <a class="page-link rounded-pill" href="?status={{ status_filtro }}&page={{ encomendas.next_page_number }}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+    
+    {% else %}
+    <div class="card-body text-center py-5">
+        <div class="mb-3" style="font-size: 4rem;">📭</div>
+        <h5 class="text-muted fw-bold">Nenhuma encomenda</h5>
+        <p class="text-muted small mb-0">
+            {% if status_filtro == 'entregues' %}
+                Você ainda não retirou nenhuma encomenda.
+            {% else %}
+                Você não tem encomendas aguardando.
+            {% endif %}
+        </p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends 'morador/base_morador.html' %}
+
+{% block title %}Minhas Solicitações - Portal do Morador{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0" style="color: #57534e;">
+        <i class="bi bi-clipboard2-check-fill" style="color: var(--primary);"></i> Minhas Solicitações
+    </h4>
+    <a href="{% url 'morador_nova_solicitacao' %}" class="btn btn-light btn-sm rounded-pill px-3 shadow-sm">
+        <i class="bi bi-plus-lg"></i> Nova
+    </a>
+</div>
+
+<!-- Filtros -->
+<div class="glass-card mb-4">
+    <div class="card-body p-3">
+        <form method="GET" class="row g-2">
+            <div class="col-6">
+                <select name="tipo" class="form-select form-select-sm rounded-pill" onchange="this.form.submit()">
+                    <option value="">Todos os tipos</option>
+                    <option value="RECLAMACAO" {% if tipo_filtro == 'RECLAMACAO' %}selected{% endif %}>📢 Reclamação</option>
+                    <option value="MANUTENCAO" {% if tipo_filtro == 'MANUTENCAO' %}selected{% endif %}>🛠️ Manutenção</option>
+                    <option value="RESERVA" {% if tipo_filtro == 'RESERVA' %}selected{% endif %}>📅 Reserva</option>
+                    <option value="MUDANCA" {% if tipo_filtro == 'MUDANCA' %}selected{% endif %}>🚚 Mudança</option>
+                    <option value="OUTRO" {% if tipo_filtro == 'OUTRO' %}selected{% endif %}>📝 Outro</option>
+                </select>
+            </div>
+            <div class="col-6">
+                <select name="status" class="form-select form-select-sm rounded-pill" onchange="this.form.submit()">
+                    <option value="">Todos os status</option>
+                    <option value="PENDENTE" {% if status_filtro == 'PENDENTE' %}selected{% endif %}>🟡 Pendente</option>
+                    <option value="EM_ANDAMENTO" {% if status_filtro == 'EM_ANDAMENTO' %}selected{% endif %}>🔵 Em Andamento</option>
+                    <option value="CONCLUIDO" {% if status_filtro == 'CONCLUIDO' %}selected{% endif %}>🟢 Concluído</option>
+                    <option value="CANCELADO" {% if status_filtro == 'CANCELADO' %}selected{% endif %}>🔴 Cancelado</option>
+                </select>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Lista de Solicitações -->
+<div class="glass-card">
+    {% if solicitacoes %}
+    <div class="list-group list-group-flush">
+        {% for sol in solicitacoes %}
+        <a href="{% url 'morador_ver_solicitacao' sol.id %}" class="list-group-item list-group-item-action border-0 list-item-animated p-4">
+            <div class="d-flex justify-content-between align-items-start">
+                <div style="flex: 1;">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-light text-dark me-2 rounded-pill fw-semibold">{{ sol.get_tipo_display }}</span>
+                        <small class="text-muted">{{ sol.data_criacao|date:"d/m/Y" }}</small>
+                    </div>
+                    <p class="mb-0 text-truncate fw-medium" style="max-width: 220px; color: #44403c;">{{ sol.descricao }}</p>
+                </div>
+                <div class="text-end ms-2">
+                    {% if sol.status == 'PENDENTE' %}
+                        <span class="badge badge-pending rounded-pill px-3">Pendente</span>
+                    {% elif sol.status == 'EM_ANDAMENTO' %}
+                        <span class="badge badge-progress rounded-pill px-3">Em Andamento</span>
+                    {% elif sol.status == 'CONCLUIDO' %}
+                        <span class="badge badge-done rounded-pill px-3">Concluído</span>
+                    {% else %}
+                        <span class="badge badge-cancelled rounded-pill px-3">Cancelado</span>
+                    {% endif %}
+                    {% if sol.arquivo %}
+                        <br><small class="text-muted"><i class="bi bi-paperclip"></i></small>
+                    {% endif %}
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    
+    {% if solicitacoes.has_other_pages %}
+    <div class="card-footer bg-transparent text-center border-0 p-4">
+        <nav>
+            <ul class="pagination pagination-sm mb-0 justify-content-center">
+                {% if solicitacoes.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link rounded-pill" href="?tipo={{ tipo_filtro }}&status={{ status_filtro }}&page={{ solicitacoes.previous_page_number }}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                {% endif %}
+                <li class="page-item active">
+                    <span class="page-link rounded-pill border-0" style="background: var(--primary);">{{ solicitacoes.number }}</span>
+                </li>
+                {% if solicitacoes.has_next %}
+                    <li class="page-item">
+                        <a class="page-link rounded-pill" href="?tipo={{ tipo_filtro }}&status={{ status_filtro }}&page={{ solicitacoes.next_page_number }}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+    
+    {% else %}
+    <div class="card-body text-center py-5">
+        <div class="mb-3" style="font-size: 4rem;">📝</div>
+        <h5 class="text-muted fw-bold">Nenhuma solicitação</h5>
+        <p class="text-muted small mb-3">Você ainda não abriu nenhuma solicitação.</p>
+        <a href="{% url 'morador_nova_solicitacao' %}" class="btn btn-gradient">
+            <i class="bi bi-plus-circle me-2"></i> Abrir Solicitação
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

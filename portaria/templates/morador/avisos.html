@@ -1,0 +1,68 @@
+{% extends 'morador/base_morador.html' %}
+
+{% block title %}Avisos - Portal do Morador{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h4 class="fw-bold mb-1" style="color: #57534e;">
+        <i class="bi bi-megaphone-fill" style="color: var(--primary);"></i> Avisos do Condomínio
+    </h4>
+    <p class="text-muted mb-0 small">Fique por dentro das novidades</p>
+</div>
+
+<div class="glass-card">
+    {% if avisos %}
+    <div class="list-group list-group-flush">
+        {% for aviso in avisos %}
+        <div class="list-group-item border-0 list-item-animated p-4">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <h6 class="mb-0 fw-bold" style="color: #44403c;">
+                    <i class="bi bi-chat-square-text" style="color: var(--primary);"></i> {{ aviso.titulo }}
+                </h6>
+                <small class="text-muted">{{ aviso.data_publicacao|date:"d/m/Y" }}</small>
+            </div>
+            <p class="mb-0 text-muted">{{ aviso.conteudo }}</p>
+            {% if aviso.criado_por %}
+            <small class="text-muted d-block mt-2">
+                <i class="bi bi-person"></i> {{ aviso.criado_por.first_name|default:aviso.criado_por.username }}
+            </small>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    
+    {% if avisos.has_other_pages %}
+    <div class="card-footer bg-transparent text-center border-0 p-4">
+        <nav>
+            <ul class="pagination pagination-sm mb-0 justify-content-center">
+                {% if avisos.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link rounded-pill" href="?page={{ avisos.previous_page_number }}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                {% endif %}
+                <li class="page-item active">
+                    <span class="page-link rounded-pill border-0" style="background: var(--primary);">{{ avisos.number }}</span>
+                </li>
+                {% if avisos.has_next %}
+                    <li class="page-item">
+                        <a class="page-link rounded-pill" href="?page={{ avisos.next_page_number }}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+    
+    {% else %}
+    <div class="card-body text-center py-5">
+        <div class="mb-3" style="font-size: 4rem;">📢</div>
+        <h5 class="text-muted fw-bold">Nenhum aviso</h5>
+        <p class="text-muted small mb-0">Não há avisos publicados no momento.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

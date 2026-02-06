@@ -17,9 +17,19 @@ from portaria.views import (
     dashboard, 
     exportar_relatorio, 
     exportar_relatorio_encomendas, 
-    exportar_relatorio_solicitacoes, # Novo
+    exportar_relatorio_solicitacoes,
     historico_encomendas,
-    historico_solicitacoes # Novo
+    historico_solicitacoes
+)
+
+# Views do Portal do Morador
+from portaria.views_morador import (
+    portal_home,
+    minhas_encomendas,
+    minhas_solicitacoes,
+    nova_solicitacao,
+    ver_solicitacao,
+    avisos
 )
 
 urlpatterns = [
@@ -49,6 +59,14 @@ urlpatterns = [
     # --- Gestão e Relatórios Gerais ---
     path('dashboard/', dashboard, name='dashboard'),
     path('exportar_relatorio/', exportar_relatorio, name='exportar_relatorio'),
+    
+    # --- Portal do Morador ---
+    path('morador/', portal_home, name='morador_home'),
+    path('morador/encomendas/', minhas_encomendas, name='morador_encomendas'),
+    path('morador/solicitacoes/', minhas_solicitacoes, name='morador_solicitacoes'),
+    path('morador/solicitacoes/nova/', nova_solicitacao, name='morador_nova_solicitacao'),
+    path('morador/solicitacoes/<int:id>/', ver_solicitacao, name='morador_ver_solicitacao'),
+    path('morador/avisos/', avisos, name='morador_avisos'),
 ]
 
 # Configuração para arquivos de mídia (Fotos/Uploads) em modo DEBUG
