@@ -59,18 +59,13 @@
     </div>
 </div>
 
-{% if solicitacao.resposta %}
+{% if solicitacao.resposta_admin %}
 <div class="glass-card" style="border-left: 4px solid #10b981;">
     <div class="card-body p-4">
         <h6 class="fw-bold mb-3" style="color: #57534e;">
             <i class="bi bi-building" style="color: var(--primary);"></i> Resposta da Administração
         </h6>
-        <p class="mb-3" style="color: #44403c;">{{ solicitacao.resposta }}</p>
-        {% if solicitacao.data_resposta %}
-            <small class="text-muted">
-                <i class="bi bi-clock"></i> {{ solicitacao.data_resposta|date:"d/m/Y H:i" }}
-            </small>
-        {% endif %}
+        <p class="mb-3" style="color: #44403c;">{{ solicitacao.resposta_admin }}</p>
     </div>
 </div>
 {% else %}

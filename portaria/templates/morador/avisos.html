@@ -4,29 +4,37 @@
 
 {% block content %}
 <div class="mb-4">
-    <h4 class="fw-bold mb-1" style="color: #57534e;">
-        <i class="bi bi-megaphone-fill" style="color: var(--primary);"></i> Avisos do Condomínio
+    <h4 class="fw-bold mb-1 text-white">
+        <i class="bi bi-megaphone-fill"></i> Avisos do Condomínio
     </h4>
-    <p class="text-muted mb-0 small">Fique por dentro das novidades</p>
+    <p class="mb-0 small" style="color: rgba(255,255,255,0.85);">Fique por dentro das novidades</p>
 </div>
 
 <div class="glass-card">
     {% if avisos %}
     <div class="list-group list-group-flush">
         {% for aviso in avisos %}
-        <div class="list-group-item border-0 list-item-animated p-4">
+        <div class="list-group-item border-0 list-item-animated p-4" style="cursor: pointer;" onclick="toggleAviso(this)">
             <div class="d-flex justify-content-between align-items-start mb-2">
                 <h6 class="mb-0 fw-bold" style="color: #44403c;">
                     <i class="bi bi-chat-square-text" style="color: var(--primary);"></i> {{ aviso.titulo }}
                 </h6>
-                <small class="text-muted">{{ aviso.data_publicacao|date:"d/m/Y" }}</small>
+                <div class="d-flex align-items-center gap-2">
+                    <small class="text-muted">{{ aviso.data_publicacao|date:"d/m/Y" }}</small>
+                    <i class="bi bi-chevron-down text-muted toggle-icon" style="transition: transform 0.3s;"></i>
+                </div>
             </div>
-            <p class="mb-0 text-muted">{{ aviso.conteudo }}</p>
-            {% if aviso.criado_por %}
-            <small class="text-muted d-block mt-2">
-                <i class="bi bi-person"></i> {{ aviso.criado_por.first_name|default:aviso.criado_por.username }}
-            </small>
-            {% endif %}
+            <!-- Prévia do conteúdo (sempre visível) -->
+            <p class="mb-0 text-muted aviso-preview">{{ aviso.conteudo|truncatechars:100 }}</p>
+            <!-- Conteúdo completo (inicialmente oculto) -->
+            <div class="aviso-full" style="display: none;">
+                <p class="mb-0 text-muted">{{ aviso.conteudo }}</p>
+                {% if aviso.criado_por %}
+                <small class="text-muted d-block mt-2">
+                    <i class="bi bi-person"></i> {{ aviso.criado_por.first_name|default:aviso.criado_por.username }}
+                </small>
+                {% endif %}
+            </div>
         </div>
         {% endfor %}
     </div>
@@ -65,4 +73,28 @@
     </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleAviso(element) {
+    const preview = element.querySelector('.aviso-preview');
+    const full = element.querySelector('.aviso-full');
+    const icon = element.querySelector('.toggle-icon');
+    
+    if (full.style.display === 'none') {
+        // Expandir
+        preview.style.display = 'none';
+        full.style.display = 'block';
+        icon.style.transform = 'rotate(180deg)';
+        element.style.backgroundColor = 'rgba(58, 137, 201, 0.05)';
+    } else {
+        // Recolher
+        preview.style.display = 'block';
+        full.style.display = 'none';
+        icon.style.transform = 'rotate(0deg)';
+        element.style.backgroundColor = '';
+    }
+}
+</script>
 {% endblock %}

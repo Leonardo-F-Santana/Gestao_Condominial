@@ -1,0 +1,92 @@
+{% extends 'sindico/base_sindico.html' %}
+
+{% block title %}Moradores - {{ condominio.nome }}{% endblock %}
+
+{% block content %}
+<!-- Header da Página -->
+<div class="mb-3 d-flex justify-content-between align-items-center">
+    <div>
+        <h5 class="page-title">👥 Moradores</h5>
+        <p class="page-subtitle">{{ moradores.count }} cadastrados</p>
+    </div>
+    <button class="btn btn-primary btn-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#modalNovoMorador">
+        <i class="bi bi-plus"></i> Novo
+    </button>
+</div>
+
+<!-- Lista de Moradores -->
+<div class="glass-card">
+    <div class="p-3">
+        {% if moradores %}
+            {% for m in moradores %}
+            <div class="list-item">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <strong>{{ m.nome }}</strong>
+                        <div class="text-muted" style="font-size: 0.75rem;">
+                            {% if m.bloco %}Bloco {{ m.bloco }} - {% endif %}Apto {{ m.apartamento }}
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        {% if m.telefone %}
+                        <a href="tel:{{ m.telefone }}" class="btn btn-sm btn-outline-primary rounded-pill px-2 py-1" style="font-size: 0.7rem;">
+                            <i class="bi bi-telephone"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-center py-5">
+                <div style="font-size: 3rem;">👥</div>
+                <p class="text-muted mt-2 mb-0">Nenhum morador cadastrado</p>
+                <p class="text-muted small">Clique em "Novo" para adicionar</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal Novo Morador -->
+<div class="modal fade" id="modalNovoMorador" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">👥 Novo Morador</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Nome Completo *</label>
+                        <input type="text" name="nome" class="form-control" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label fw-semibold">Bloco</label>
+                            <input type="text" name="bloco" class="form-control" placeholder="A, B, C...">
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label fw-semibold">Apartamento *</label>
+                            <input type="text" name="apartamento" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Telefone</label>
+                        <input type="text" name="telefone" class="form-control" placeholder="(00) 00000-0000">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">E-mail</label>
+                        <input type="email" name="email" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Cadastrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

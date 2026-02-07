@@ -1,11 +1,52 @@
 from django.contrib import admin
+from django.contrib.auth.models import User, Group
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin, GroupAdmin as BaseGroupAdmin
 from django.utils.html import format_html
 from import_export import resources
 from unfold.admin import ModelAdmin
 from unfold.contrib.import_export.forms import ExportForm, ImportForm
-from .models import Visitante, Morador, Encomenda, Solicitacao, Aviso
+from .models import Condominio, Sindico, Visitante, Morador, Encomenda, Solicitacao, Aviso
+
+
+# --- CONFIGURAÇÃO DE USUÁRIOS (Django Auth) ---
+
+# Desregistrar o admin padrão
+admin.site.unregister(User)
+admin.site.unregister(Group)
+
+# Registrar com Unfold
+@admin.register(User)
+class UserAdmin(BaseUserAdmin, ModelAdmin):
+    pass
+
+@admin.register(Group)
+class GroupAdmin(BaseGroupAdmin, ModelAdmin):
+    pass
+
+
+# --- CONFIGURAÇÃO DE CONDOMÍNIOS (MULTI-TENANCY) ---
+
+@admin.register(Condominio)
+class CondominioAdmin(ModelAdmin):
+    list_display = ('nome', 'endereco', 'cnpj', 'telefone', 'ativo', 'data_criacao')
+    list_filter = ('ativo',)
+    search_fields = ('nome', 'endereco', 'cnpj')
+    list_editable = ('ativo',)
+
+
+@admin.register(Sindico)
+class SindicoAdmin(ModelAdmin):
+    list_display = ('nome', 'usuario', 'telefone', 'get_condominios')
+    search_fields = ('nome', 'usuario__username')
+    filter_horizontal = ('condominios',)
+
+    def get_condominios(self, obj):
+        return ", ".join([c.nome for c in obj.condominios.all()])
+    get_condominios.short_description = 'Condomínios'
+
 
 # --- CONFIGURAÇÃO DE MORADORES (COM IMPORTAÇÃO) ---
+
 
 # 1. Receita de como ler o Excel
 class MoradorResource(resources.ModelResource):

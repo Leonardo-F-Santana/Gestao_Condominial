@@ -1,7 +1,54 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
+# ==========================================
+# MULTI-TENANCY: Modelos Base
+# ==========================================
+
+class Condominio(models.Model):
+    """Representa um condomínio no sistema multi-tenant"""
+    nome = models.CharField(max_length=100, verbose_name="Nome do Condomínio")
+    endereco = models.CharField(max_length=200, blank=True, verbose_name="Endereço")
+    cnpj = models.CharField(max_length=18, blank=True, verbose_name="CNPJ")
+    telefone = models.CharField(max_length=20, blank=True, verbose_name="Telefone")
+    email = models.EmailField(blank=True, verbose_name="E-mail")
+    logo = models.ImageField(upload_to='condominios/', blank=True, verbose_name="Logo")
+    data_criacao = models.DateTimeField(auto_now_add=True, verbose_name="Data de Cadastro")
+    ativo = models.BooleanField(default=True, verbose_name="Ativo")
+
+    def __str__(self):
+        return self.nome
+
+    class Meta:
+        verbose_name = "Condomínio"
+        verbose_name_plural = "Condomínios"
+        ordering = ['nome']
+
+
+class Sindico(models.Model):
+    """Síndico/Administrador que gerencia um ou mais condomínios"""
+    usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='sindico')
+    nome = models.CharField(max_length=100, verbose_name="Nome Completo")
+    telefone = models.CharField(max_length=20, blank=True, verbose_name="Telefone")
+    condominios = models.ManyToManyField(Condominio, related_name='sindicos', 
+                                          verbose_name="Condomínios Gerenciados")
+
+    def __str__(self):
+        return f"{self.nome} ({self.usuario.username})"
+
+    class Meta:
+        verbose_name = "Síndico"
+        verbose_name_plural = "Síndicos"
+
+
+# ==========================================
+# MODELOS PRINCIPAIS
+# ==========================================
+
 class Morador(models.Model):
+    condominio = models.ForeignKey(Condominio, on_delete=models.CASCADE, 
+                                    null=True, blank=True, verbose_name="Condomínio")
     usuario = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, 
                                     verbose_name="Conta de Acesso", related_name='morador')
     nome = models.CharField(max_length=100, verbose_name="Nome Completo")

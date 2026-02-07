@@ -12,7 +12,30 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-chave-padrao-desenvolvimen
 
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['*']
+# Hosts permitidos (separados por vírgula no .env)
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+
+# ==============================================================================
+# CONFIGURAÇÕES DE SEGURANÇA
+# ==============================================================================
+
+# Proteção contra XSS
+SECURE_BROWSER_XSS_FILTER = True
+
+# Evita que o navegador interprete arquivos incorretamente
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# Proteção contra Clickjacking
+X_FRAME_OPTIONS = 'DENY'
+
+# Em produção, forçar cookies seguros
+if not DEBUG:
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 31536000  # 1 ano
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
 
 
 INSTALLED_APPS = [

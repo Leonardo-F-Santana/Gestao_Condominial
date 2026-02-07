@@ -1,0 +1,123 @@
+{% extends 'sindico/base_sindico.html' %}
+
+{% block title %}Painel - {{ condominio.nome }}{% endblock %}
+
+{% block content %}
+<!-- Header da Página -->
+<div class="mb-3">
+    <h5 class="page-title">🏢 {{ condominio.nome }}</h5>
+    <p class="page-subtitle">Resumo do condomínio</p>
+</div>
+
+<!-- Cards de Estatísticas -->
+<div class="row g-2 mb-4">
+    <div class="col-4">
+        <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-value">{{ stats.moradores }}</div>
+            <div class="stat-label">Moradores</div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="stat-card warning">
+            <div class="stat-icon">📦</div>
+            <div class="stat-value">{{ stats.encomendas_pendentes }}</div>
+            <div class="stat-label">Encomendas</div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="stat-card success">
+            <div class="stat-icon">📋</div>
+            <div class="stat-value">{{ stats.solicitacoes_pendentes }}</div>
+            <div class="stat-label">Solicitações</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-2 mb-4">
+    <div class="col-6">
+        <div class="glass-card p-3 text-center">
+            <div style="font-size: 1.5rem;">🚶</div>
+            <div class="fw-bold" style="color: var(--primary); font-size: 1.3rem;">{{ stats.visitantes_hoje }}</div>
+            <div class="text-muted" style="font-size: 0.7rem;">Visitantes Hoje</div>
+        </div>
+    </div>
+    <div class="col-6">
+        <div class="glass-card p-3 text-center">
+            <div style="font-size: 1.5rem;">🏠</div>
+            <div class="fw-bold" style="color: #10b981; font-size: 1.3rem;">{{ stats.visitantes_no_local }}</div>
+            <div class="text-muted" style="font-size: 0.7rem;">No Condomínio</div>
+        </div>
+    </div>
+</div>
+
+<!-- Últimos Visitantes -->
+<div class="glass-card mb-3">
+    <div class="p-3 pb-2">
+        <h6 class="fw-bold mb-0"><i class="bi bi-person-walking text-primary"></i> Últimos Visitantes</h6>
+    </div>
+    <div class="px-3 pb-3">
+        {% if ultimos_visitantes %}
+            {% for v in ultimos_visitantes %}
+            <div class="list-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>{{ v.nome_completo }}</strong>
+                    <div class="text-muted" style="font-size: 0.75rem;">
+                        {{ v.morador_responsavel|default:"Sem morador" }}
+                    </div>
+                </div>
+                <small class="text-muted">{{ v.horario_chegada|time:"H:i" }}</small>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-center text-muted py-3">Nenhum visitante hoje</div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Últimas Encomendas -->
+<div class="glass-card mb-3">
+    <div class="p-3 pb-2">
+        <h6 class="fw-bold mb-0"><i class="bi bi-box-seam text-warning"></i> Encomendas Pendentes</h6>
+    </div>
+    <div class="px-3 pb-3">
+        {% if ultimas_encomendas %}
+            {% for e in ultimas_encomendas %}
+            <div class="list-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>{{ e.morador.nome|truncatechars:20 }}</strong>
+                    <div class="text-muted" style="font-size: 0.75rem;">{{ e.volume }}</div>
+                </div>
+                <small class="text-muted">{{ e.data_chegada|date:"d/m" }}</small>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-center text-muted py-3">Nenhuma encomenda pendente</div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Últimas Solicitações -->
+<div class="glass-card">
+    <div class="p-3 pb-2">
+        <h6 class="fw-bold mb-0"><i class="bi bi-clipboard-check text-success"></i> Solicitações Recentes</h6>
+    </div>
+    <div class="px-3 pb-3">
+        {% if ultimas_solicitacoes %}
+            {% for s in ultimas_solicitacoes %}
+            <div class="list-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>{{ s.get_tipo_display }}</strong>
+                    <div class="text-muted" style="font-size: 0.75rem;">{{ s.morador.nome|default:"Anônimo"|truncatechars:20 }}</div>
+                </div>
+                <span class="status-badge {% if s.status == 'PENDENTE' %}pendente{% elif s.status == 'CONCLUIDO' %}concluido{% else %}andamento{% endif %}">
+                    {{ s.get_status_display }}
+                </span>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-center text-muted py-3">Nenhuma solicitação</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

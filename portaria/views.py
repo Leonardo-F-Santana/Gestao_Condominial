@@ -8,6 +8,7 @@ from django.utils.timezone import localdate # <--- IMPORTANTE: ISSO CORRIGE O DA
 from django.db.models import Q, Count
 from django.core.paginator import Paginator
 from django.http import HttpResponse
+from django_ratelimit.decorators import ratelimit
 from .models import Visitante, Morador, Encomenda, Solicitacao
 
 # Tenta importar biblioteca de PDF
@@ -40,13 +41,21 @@ def _gerar_pdf(request, template_name, context, filename):
 # 1. AUTENTICAÇÃO
 # ==========================================
 
+@ratelimit(key='ip', rate='5/m', method='POST', block=True)
 def login_view(request):
     if request.user.is_authenticated:
+        # Redireciona baseado no tipo de usuário
+        if hasattr(request.user, 'morador'):
+            return redirect('morador_home')
         return redirect('home')
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
-            login(request, form.get_user())
+            user = form.get_user()
+            login(request, user)
+            # Redireciona morador para portal, staff para portaria
+            if hasattr(user, 'morador'):
+                return redirect('morador_home')
             return redirect('home')
         else:
             messages.error(request, "Usuário ou senha inválidos.")
@@ -95,11 +104,42 @@ def dashboard(request):
     return render(request, 'dashboard.html', context)
 
 # ==========================================
-# 3. HOME & VISITANTES
+# 3. API STATS (Polling AJAX)
+# ==========================================
+
+from django.http import JsonResponse
+
+@login_required
+def api_stats(request):
+    """Retorna estatísticas em JSON para atualização via AJAX."""
+    if not request.user.is_staff:
+        return JsonResponse({'error': 'Não autorizado'}, status=403)
+    
+    visitantes_no_local = Visitante.objects.filter(horario_saida__isnull=True).count()
+    encomendas_pendentes = Encomenda.objects.filter(entregue=False).count()
+    solicitacoes_pendentes = Solicitacao.objects.filter(status='PENDENTE').count()
+    
+    return JsonResponse({
+        'visitantes_no_local': visitantes_no_local,
+        'encomendas_pendentes': encomendas_pendentes,
+        'solicitacoes_pendentes': solicitacoes_pendentes,
+    })
+
+# ==========================================
+# 4. HOME & VISITANTES
 # ==========================================
 
 @login_required
 def home(request):
+    # Se for morador, redireciona para o portal do morador
+    if hasattr(request.user, 'morador'):
+        return redirect('morador_home')
+    
+    # Só staff (porteiros/admin) podem acessar a portaria
+    if not request.user.is_staff:
+        messages.error(request, "Você não tem permissão para acessar a portaria.")
+        return redirect('login')
+    
     if request.method == 'POST' and 'nome_completo' in request.POST:
         registrar_visitante(request)
         return redirect('home')
@@ -121,6 +161,7 @@ def home(request):
     visitantes_no_local_count = Visitante.objects.filter(horario_saida__isnull=True).count() # Só quem está dentro
     
     encomendas_pendentes_count = Encomenda.objects.filter(entregue=False).count()
+    solicitacoes_pendentes_count = Solicitacao.objects.filter(status='PENDENTE').count()
     
     lista_encomendas = Encomenda.objects.filter(entregue=False).select_related('morador').order_by('-data_chegada')
     lista_solicitacoes = Solicitacao.objects.all().select_related('morador').order_by('-data_criacao')[:10]
@@ -131,6 +172,7 @@ def home(request):
         'visitantes_hoje_total': visitantes_hoje_total, # Nova variável
         'visitantes_no_local': visitantes_no_local_count,
         'encomendas_pendentes': encomendas_pendentes_count,
+        'solicitacoes_pendentes': solicitacoes_pendentes_count,
         'lista_encomendas': lista_encomendas,
         'lista_solicitacoes': lista_solicitacoes,
         'todos_moradores': todos_moradores,

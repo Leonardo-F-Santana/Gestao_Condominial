@@ -1,0 +1,122 @@
+{% extends 'sindico/base_sindico.html' %}
+
+{% block title %}{{ condominio.nome }} - Portal do Síndico{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="mb-4">
+    <a href="{% url 'sindico_home' %}" class="text-white text-decoration-none small">
+        <i class="bi bi-arrow-left"></i> Voltar aos Condomínios
+    </a>
+    <h4 class="fw-bold mb-1 text-white mt-2">
+        <span>🏢</span> {{ condominio.nome }}
+    </h4>
+    <p class="mb-0 small" style="color: rgba(255,255,255,0.85);">
+        <i class="bi bi-geo-alt"></i> {{ condominio.endereco|default:"Endereço não informado" }}
+    </p>
+</div>
+
+<!-- Cards de Estatísticas -->
+<div class="row g-3 mb-4">
+    <div class="col-4">
+        <div class="glass-card p-3 text-center">
+            <div style="font-size: 2rem;">👥</div>
+            <div class="fw-bold fs-4" style="color: #6366f1;">{{ stats.total_moradores }}</div>
+            <div class="text-muted small">Moradores</div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="glass-card p-3 text-center">
+            <div style="font-size: 2rem;">📦</div>
+            <div class="fw-bold fs-4" style="color: #f59e0b;">{{ stats.encomendas_pendentes }}</div>
+            <div class="text-muted small">Encomendas</div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="glass-card p-3 text-center">
+            <div style="font-size: 2rem;">📋</div>
+            <div class="fw-bold fs-4" style="color: #10b981;">{{ stats.solicitacoes_pendentes }}</div>
+            <div class="text-muted small">Solicitações</div>
+        </div>
+    </div>
+</div>
+
+<!-- Moradores -->
+<div class="glass-card mb-4">
+    <div class="card-header bg-transparent p-4 pb-0">
+        <h5 class="fw-bold mb-0">
+            <i class="bi bi-people" style="color: var(--primary);"></i> Moradores
+        </h5>
+    </div>
+    <div class="card-body p-4">
+        {% if moradores %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Bloco</th>
+                        <th>Apto</th>
+                        <th>Telefone</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in moradores|slice:":10" %}
+                    <tr>
+                        <td><strong>{{ m.nome }}</strong></td>
+                        <td>{{ m.bloco|default:"-" }}</td>
+                        <td>{{ m.apartamento }}</td>
+                        <td>{{ m.telefone|default:"-" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if moradores.count > 10 %}
+        <p class="text-muted text-center mt-3 mb-0">
+            ... e mais {{ moradores.count|add:"-10" }} moradores
+        </p>
+        {% endif %}
+        {% else %}
+        <div class="text-center py-4">
+            <div style="font-size: 3rem;">👥</div>
+            <p class="text-muted mb-0">Nenhum morador cadastrado ainda.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Solicitações Recentes -->
+<div class="glass-card">
+    <div class="card-header bg-transparent p-4 pb-0">
+        <h5 class="fw-bold mb-0">
+            <i class="bi bi-clipboard-check" style="color: var(--primary);"></i> Solicitações Recentes
+        </h5>
+    </div>
+    <div class="card-body p-4">
+        {% if solicitacoes %}
+        <div class="list-group list-group-flush">
+            {% for s in solicitacoes %}
+            <div class="list-group-item border-0 px-0">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="fw-semibold">{{ s.get_tipo_display }}</span>
+                        <span class="text-muted">- {{ s.morador.nome|default:"Anônimo" }}</span>
+                    </div>
+                    <span class="badge {% if s.status == 'PENDENTE' %}bg-warning{% elif s.status == 'CONCLUIDO' %}bg-success{% else %}bg-secondary{% endif %}">
+                        {{ s.get_status_display }}
+                    </span>
+                </div>
+                <small class="text-muted">{{ s.data_criacao|date:"d/m/Y H:i" }}</small>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+            <div style="font-size: 3rem;">📋</div>
+            <p class="text-muted mb-0">Nenhuma solicitação ainda.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -4,32 +4,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>{% block title %}Portal do Morador - Splash{% endblock %}</title>
+    <title>{% block title %}Portal do Morador{% endblock %}</title>
+    <link rel="icon" href="{% static 'img/logo.ico' %}" type="image/x-icon">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* Cores Splash - Amarelo/Laranja INTENSO */
-            --primary: #f59e0b;
-            --primary-dark: #d97706;
-            --secondary: #ea580c;
-            --accent: #fbbf24;
+            /* 🌊 Paleta Azul Personalizada */
+            --primary: #3A89C9;
+            --primary-dark: #2d6fa3;
+            --primary-light: #9CC4E4;
+            --secondary: #5ba3d9;
+            --accent: #9CC4E4;
             --success: #10b981;
             --warning: #f59e0b;
             --danger: #ef4444;
+            
+            /* Cores de texto para contraste */
+            --text-on-blue: #ffffff;
+            --text-on-blue-muted: rgba(255,255,255,0.85);
         }
 
         * {
-            font-family: 'Inter', system-ui, sans-serif;
+            font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
         }
 
         body {
             min-height: 100vh;
-            /* Fundo INTENSO - Gradiente animado amarelo/laranja */
-            background: linear-gradient(-45deg, #f59e0b, #ea580c, #fbbf24, #fb923c);
+            /* Gradiente com suas cores específicas */
+            background: linear-gradient(-45deg, 
+                #3A89C9,   /* Azul escuro */
+                #5ba3d9,   /* Azul médio */
+                #9CC4E4,   /* Azul claro */
+                #3A89C9    /* Azul escuro */
+            );
             background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
+            animation: gradientBG 20s ease infinite;
             overflow-x: hidden;
         }
 
@@ -44,7 +55,7 @@
             background: rgba(255, 255, 255, 0.95) !important;
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            box-shadow: 0 4px 20px rgba(234, 88, 12, 0.15);
+            box-shadow: 0 4px 20px rgba(14, 165, 233, 0.15);
         }
 
         .navbar-brand {
@@ -55,19 +66,24 @@
             gap: 10px;
         }
 
-        .splash-logo {
-            height: 38px;
+        .brand-logo {
+            height: 40px;
             width: auto;
+            border-radius: 8px;
         }
 
         .brand-text {
-            color: var(--secondary);
+            color: var(--primary-dark);
             font-weight: 800;
-            font-size: 1.2rem;
+            font-size: 1.15rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .nav-link {
-            color: #78716c !important;
+            color: #64748b !important;
             font-weight: 600;
             padding: 0.6rem 1rem !important;
             border-radius: 12px;
@@ -78,7 +94,7 @@
         .nav-link:hover, .nav-link.active {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white !important;
-            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.4);
         }
 
         /* Main Container */
@@ -94,14 +110,14 @@
             backdrop-filter: blur(10px);
             border: none;
             border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(234, 88, 12, 0.1);
+            box-shadow: 0 8px 32px rgba(14, 165, 233, 0.12);
             transition: all 0.3s ease;
             overflow: hidden;
         }
 
         .glass-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 12px 40px rgba(234, 88, 12, 0.2);
+            box-shadow: 0 12px 40px rgba(14, 165, 233, 0.2);
         }
 
         /* Stat Cards */
@@ -118,7 +134,7 @@
             left: 0;
             right: 0;
             height: 4px;
-            background: linear-gradient(90deg, #f59e0b, #ef4444, #ec4899, #8b5cf6, #3b82f6, #10b981, #f59e0b);
+            background: linear-gradient(90deg, #0ea5e9, #06b6d4, #22d3ee, #38bdf8, #0284c7, #0ea5e9);
             background-size: 400% 100%;
             animation: gradientMove 3s ease infinite;
         }
@@ -143,11 +159,11 @@
         .stat-card .number {
             font-size: 2.2rem;
             font-weight: 800;
-            color: var(--secondary);
+            color: var(--primary-dark);
         }
 
         .stat-card .label {
-            color: #78716c;
+            color: #64748b;
             font-weight: 500;
             font-size: 0.9rem;
         }
@@ -165,7 +181,7 @@
 
         .btn-gradient:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.5);
+            box-shadow: 0 8px 25px rgba(14, 165, 233, 0.5);
             color: white;
         }
 
@@ -178,7 +194,7 @@
             background: rgba(255, 255, 255, 0.98);
             backdrop-filter: blur(20px);
             padding: 0.8rem 0.5rem;
-            box-shadow: 0 -4px 20px rgba(234, 88, 12, 0.1);
+            box-shadow: 0 -4px 20px rgba(14, 165, 233, 0.12);
             display: flex;
             justify-content: space-around;
             z-index: 1000;
@@ -188,7 +204,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            color: #a8a29e;
+            color: #94a3b8;
             text-decoration: none;
             padding: 0.5rem 1rem;
             border-radius: 16px;
@@ -207,7 +223,7 @@
         }
 
         .bottom-nav a.active {
-            color: var(--secondary);
+            color: var(--primary);
         }
 
         /* Floating Action Button */
@@ -221,7 +237,13 @@
             align-items: center;
             justify-content: center;
             margin-top: -28px;
-            box-shadow: 0 4px 20px rgba(245, 158, 11, 0.5);
+            box-shadow: 0 4px 20px rgba(14, 165, 233, 0.5);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 4px 20px rgba(14, 165, 233, 0.5); }
+            50% { box-shadow: 0 4px 30px rgba(14, 165, 233, 0.8); }
         }
 
         .bottom-nav .fab-button i {
@@ -232,11 +254,23 @@
             display: none;
         }
 
-        /* Badges */
-        .badge-pending { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
-        .badge-progress { background: linear-gradient(135deg, var(--primary), var(--secondary)); }
-        .badge-done { background: linear-gradient(135deg, #34d399, #10b981); }
-        .badge-cancelled { background: linear-gradient(135deg, #f87171, #ef4444); }
+        /* Badges com cores atualizadas */
+        .badge-pending { 
+            background: linear-gradient(135deg, #fbbf24, #f59e0b); 
+            color: white;
+        }
+        .badge-progress { 
+            background: linear-gradient(135deg, var(--primary), var(--secondary)); 
+            color: white;
+        }
+        .badge-done { 
+            background: linear-gradient(135deg, #34d399, #10b981); 
+            color: white;
+        }
+        .badge-cancelled { 
+            background: linear-gradient(135deg, #f87171, #ef4444); 
+            color: white;
+        }
 
         /* List Items */
         .list-item-animated {
@@ -245,11 +279,11 @@
         }
 
         .list-item-animated:hover {
-            background: #fffbeb;
+            background: #f0f9ff;
             border-left-color: var(--primary);
         }
 
-        /* Animação só para cards principais */
+        /* Card Animation */
         .card-animate {
             animation: slideUp 0.5s ease-out forwards;
             opacity: 0;
@@ -287,6 +321,22 @@
             padding: 2px 6px;
             border-radius: 10px;
             font-weight: 700;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        /* Efeito de ondas no fundo */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
         }
     </style>
 </head>
@@ -294,7 +344,8 @@
     <nav class="navbar navbar-expand-lg navbar-glass sticky-top">
         <div class="container">
             <a class="navbar-brand" href="{% url 'morador_home' %}">
-                <span class="brand-text">🏢 Splash</span>
+                <img src="/img/logo.ico" alt="Logo" class="brand-logo" onerror="this.style.display='none'">
+                <span class="brand-text">🏠 Meu Condomínio</span>
             </a>
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>

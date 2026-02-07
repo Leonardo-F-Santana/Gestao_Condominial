@@ -5,10 +5,10 @@
 {% block content %}
 <!-- Saudação -->
 <div class="mb-4">
-    <h4 class="fw-bold mb-1" style="color: #78716c;" id="saudacao">
-        Olá, {{ morador.nome|truncatewords:1 }}! 👋
+    <h4 class="fw-bold mb-1 text-white" id="saudacao">
+        <span id="emoji-tempo"></span> Olá, {{ morador.nome.split.0 }}!
     </h4>
-    <p class="text-muted mb-0 small">
+    <p class="mb-0 small" style="color: rgba(255,255,255,0.85);">
         <i class="bi bi-geo-alt"></i> {% if morador.bloco %}Bloco {{ morador.bloco }} - {% endif %}Apto {{ morador.apartamento }}
     </p>
 </div>
@@ -111,13 +111,26 @@
 
 {% block scripts %}
 <script>
-    // Saudação dinâmica
+    // Saudação dinâmica com emoji
     const hora = new Date().getHours();
-    const el = document.getElementById('saudacao');
+    const elSaudacao = document.getElementById('saudacao');
+    const elEmoji = document.getElementById('emoji-tempo');
+    
     let msg = 'Olá';
-    if (hora >= 5 && hora < 12) msg = 'Bom dia';
-    else if (hora >= 12 && hora < 18) msg = 'Boa tarde';
-    else msg = 'Boa noite';
-    el.textContent = msg + ', {{ morador.nome|truncatewords:1 }}!';
+    let emoji = '👋';
+    
+    if (hora >= 5 && hora < 12) {
+        msg = 'Bom dia';
+        emoji = '☀️';
+    } else if (hora >= 12 && hora < 18) {
+        msg = 'Boa tarde';
+        emoji = '🌤️';
+    } else {
+        msg = 'Boa noite';
+        emoji = '🌙';
+    }
+    
+    elEmoji.textContent = emoji;
+    elSaudacao.innerHTML = '<span id="emoji-tempo">' + emoji + '</span> ' + msg + ', {{ morador.nome.split.0 }}!';
 </script>
 {% endblock %}

@@ -2,45 +2,48 @@
 {% load filtros %}
 
 {% block content %}
-<div class="container mt-4 mb-5">
+<div class="mb-5">
     
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="text-dark mb-0">Olá, {{ user.username }}!</h2>
-            <small class="text-muted">Painel de Controle</small>
-        </div>
-
-        <div class="d-flex gap-2 align-items-center">
-            {% if user.is_staff %}
-                <a href="{% url 'dashboard' %}" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
-                    📊 <span class="d-none d-md-inline">Dashboard</span>
-                </a>
-                <a href="/admin/" target="_blank" class="btn btn-outline-dark btn-sm d-flex align-items-center gap-1">
-                    ⚙️ <span class="d-none d-md-inline">Admin</span>
-                </a>
-            {% endif %}
-
-            <form action="{% url 'logout' %}" method="post" class="m-0">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-danger btn-sm">Sair 🔒</button>
-            </form>
-        </div>
+    <!-- Saudação -->
+    <div class="mb-4">
+        <h2 class="fw-bold mb-1" style="color: #1e293b;">
+            <span id="saudacao-icon">👋</span> Olá, {{ user.username }}!
+        </h2>
+        <p class="text-muted mb-0">Painel de Controle da Portaria</p>
     </div>
 
-    <div class="row mb-4">
-        <div class="col-md-4 col-lg-3 mb-2">
-            <div class="card bg-success text-white shadow-sm">
-                <div class="card-body p-2 d-flex justify-content-between align-items-center">
-                    <span class="fw-bold small">👥 Visitantes:</span>
-                    <span class="h4 mb-0 fw-bold">{{ visitantes_no_local }}</span>
+    <!-- Cards de Estatísticas Modernos -->
+    <div class="row g-3 mb-4">
+        <div class="col-4 col-md-3">
+            <div class="stat-card bg-success">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-value">{{ visitantes_no_local }}</div>
+                        <div class="stat-label">Visitantes</div>
+                    </div>
+                    <div class="stat-icon">👥</div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4 col-lg-3 mb-2">
-            <div class="card bg-warning text-dark shadow-sm">
-                <div class="card-body p-2 d-flex justify-content-between align-items-center">
-                    <span class="fw-bold small">📦 Pendentes:</span>
-                    <span class="h4 mb-0 fw-bold">{{ encomendas_pendentes }}</span>
+        <div class="col-4 col-md-3">
+            <div class="stat-card bg-warning">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-value">{{ encomendas_pendentes }}</div>
+                        <div class="stat-label">Encomendas</div>
+                    </div>
+                    <div class="stat-icon">📦</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-4 col-md-3">
+            <div class="stat-card bg-info">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-value">{{ solicitacoes_pendentes }}</div>
+                        <div class="stat-label">Solicitações</div>
+                    </div>
+                    <div class="stat-icon">📋</div>
                 </div>
             </div>
         </div>
@@ -430,6 +433,33 @@
         const urlParams = new URLSearchParams(window.location.search);
         const abaAlvo = urlParams.get('aba');
         if (abaAlvo) { const botaoAba = document.getElementById(abaAlvo + '-tab'); if (botaoAba) { new bootstrap.Tab(botaoAba).show(); } }
+        
+        // === POLLING AJAX: Atualiza cards a cada 30 segundos ===
+        function atualizarStats() {
+            fetch('/api/stats/')
+                .then(response => response.json())
+                .then(data => {
+                    // Atualiza os números nos cards
+                    const cards = document.querySelectorAll('.stat-card');
+                    if (cards[0]) cards[0].querySelector('.stat-value').textContent = data.visitantes_no_local;
+                    if (cards[1]) cards[1].querySelector('.stat-value').textContent = data.encomendas_pendentes;
+                    if (cards[2]) cards[2].querySelector('.stat-value').textContent = data.solicitacoes_pendentes;
+                    
+                    // Efeito visual de atualização
+                    cards.forEach(card => {
+                        card.style.transition = 'transform 0.2s';
+                        card.style.transform = 'scale(1.02)';
+                        setTimeout(() => card.style.transform = 'scale(1)', 200);
+                    });
+                })
+                .catch(err => console.log('Erro ao atualizar stats:', err));
+        }
+        
+        // Atualiza a cada 30 segundos
+        setInterval(atualizarStats, 30000);
+        
+        // Indicador visual de polling ativo
+        console.log('✅ Polling AJAX ativo - atualizando a cada 30s');
     });
 </script>
 {% endblock %}

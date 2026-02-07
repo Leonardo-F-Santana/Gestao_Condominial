@@ -4,68 +4,333 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Portaria Digital</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Login - Gestão Condominial</title>
+    <link rel="icon" href="{% static 'img/logo.ico' %}" type="image/x-icon">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        * {
+            font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+        }
+
         body {
-            background-color: #e9ecef;
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 1rem;
+            /* Gradiente azul animado */
+            background: linear-gradient(-45deg, 
+                #3A89C9,
+                #5ba3d9,
+                #9CC4E4,
+                #3A89C9
+            );
+            background-size: 400% 400%;
+            animation: gradientBG 20s ease infinite;
         }
-        .card-login {
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Efeito de ondas no fundo */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .login-container {
             width: 100%;
-            max-width: 400px;
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            max-width: 420px;
+            z-index: 1;
+            animation: slideUp 0.6s ease-out;
         }
-        .card-header {
-            background-color: #0d6efd;
-            color: white;
-            border-radius: 15px 15px 0 0 !important;
-            padding: 20px;
+
+        @keyframes slideUp {
+            from { 
+                opacity: 0; 
+                transform: translateY(30px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+
+        .card-login {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: none;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px rgba(58, 137, 201, 0.25);
+            overflow: hidden;
+        }
+
+        .card-header-custom {
+            background: linear-gradient(135deg, #3A89C9, #5ba3d9);
+            padding: 2.5rem 2rem;
             text-align: center;
+            position: relative;
+        }
+
+        .card-header-custom::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 50%;
+        }
+
+        .logo-container {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .logo-container img {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+        }
+
+        .logo-container .logo-fallback {
+            font-size: 2.5rem;
+        }
+
+        .card-header-custom h3 {
+            color: white;
+            font-weight: 800;
+            margin-bottom: 0.25rem;
+            font-size: 1.5rem;
+        }
+
+        .card-header-custom p {
+            color: rgba(255,255,255,0.85);
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        .card-body {
+            padding: 2.5rem 2rem 2rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .input-group-custom {
+            position: relative;
+        }
+
+        .input-group-custom .form-control {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 0.9rem 1rem 0.9rem 3rem;
+            font-size: 1rem;
+            transition: all 0.25s ease;
+        }
+
+        .input-group-custom .form-control:focus {
+            border-color: #3A89C9;
+            box-shadow: 0 0 0 4px rgba(58, 137, 201, 0.15);
+        }
+
+        .input-group-custom .input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 1.1rem;
+            z-index: 3;
+        }
+
+        .input-group-custom .toggle-password {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            cursor: pointer;
+            z-index: 3;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        .input-group-custom .toggle-password:hover {
+            color: #3A89C9;
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, #3A89C9, #5ba3d9);
+            border: none;
+            border-radius: 12px;
+            padding: 1rem;
+            font-weight: 700;
+            font-size: 1rem;
+            color: white;
+            transition: all 0.25s ease;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(58, 137, 201, 0.4);
+            color: white;
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .alert-custom {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+        }
+
+        .card-footer-custom {
+            background: #f9fafb;
+            border-top: 1px solid #f3f4f6;
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .card-footer-custom small {
+            color: #9ca3af;
+        }
+
+        /* Floating animation for logo */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .logo-container {
+            animation: float 3s ease-in-out infinite;
         }
     </style>
 </head>
 <body>
 
-    <div class="card card-login">
-        <div class="card-header">
-            <h3 class="mb-0">🔐 Acesso Restrito</h3>
-            <small>Sistema de Portaria</small>
-        </div>
-        <div class="card-body p-4">
-            
-            <form method="post">
-                {% csrf_token %}
-                
+    <div class="login-container">
+        <div class="card card-login">
+            <div class="card-header-custom">
+                <div class="logo-container">
+                    <img src="/img/logo.ico" alt="Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <span class="logo-fallback" style="display: none;">🏢</span>
+                </div>
+                <h3>Gestão Condominial</h3>
+                <p>Acesse sua conta</p>
+            </div>
+
+            <div class="card-body">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-custom mb-3">
+                            <i class="bi bi-exclamation-circle me-2"></i>{{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
                 {% if form.errors %}
-                    <div class="alert alert-danger d-flex align-items-center" role="alert">
-                        ⚠️ Usuário ou senha incorretos.
+                    <div class="alert alert-custom mb-3">
+                        <i class="bi bi-exclamation-circle me-2"></i>Usuário ou senha incorretos.
                     </div>
                 {% endif %}
 
-                <div class="mb-3">
-                    <label for="id_username" class="form-label fw-bold">Usuário</label>
-                    <input type="text" name="username" class="form-control form-control-lg" placeholder="Digite seu usuário..." required autofocus id="id_username">
-                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="id_username" class="form-label">
+                            <i class="bi bi-person me-1"></i> Usuário
+                        </label>
+                        <div class="input-group-custom">
+                            <i class="bi bi-person input-icon"></i>
+                            <input type="text" 
+                                   name="username" 
+                                   class="form-control" 
+                                   placeholder="Digite seu usuário" 
+                                   required 
+                                   autofocus 
+                                   id="id_username">
+                        </div>
+                    </div>
 
-                <div class="mb-4">
-                    <label for="id_password" class="form-label fw-bold">Senha</label>
-                    <input type="password" name="password" class="form-control form-control-lg" placeholder="Digite sua senha..." required id="id_password">
-                </div>
+                    <div class="mb-4">
+                        <label for="id_password" class="form-label">
+                            <i class="bi bi-lock me-1"></i> Senha
+                        </label>
+                        <div class="input-group-custom">
+                            <i class="bi bi-lock input-icon"></i>
+                            <input type="password" 
+                                   name="password" 
+                                   class="form-control" 
+                                   placeholder="Digite sua senha" 
+                                   required 
+                                   id="id_password">
+                            <button type="button" class="toggle-password" onclick="togglePassword()">
+                                <i class="bi bi-eye" id="toggleIcon"></i>
+                            </button>
+                        </div>
+                    </div>
 
-                <button type="submit" class="btn btn-primary w-100 btn-lg">Entrar no Sistema</button>
-            </form>
+                    <button type="submit" class="btn btn-login w-100">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Entrar
+                    </button>
+                </form>
+            </div>
 
-        </div>
-        <div class="card-footer text-center py-3 bg-light text-muted" style="border-radius: 0 0 15px 15px;">
-            <small>&copy; 2026 Gestão Condominial</small>
+            <div class="card-footer-custom">
+                <small>&copy; 2026 Gestão Condominial - Todos os direitos reservados</small>
+            </div>
         </div>
     </div>
 
+    <script>
+        function togglePassword() {
+            const passwordInput = document.getElementById('id_password');
+            const toggleIcon = document.getElementById('toggleIcon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('bi-eye');
+                toggleIcon.classList.add('bi-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('bi-eye-slash');
+                toggleIcon.classList.add('bi-eye');
+            }
+        }
+    </script>
 </body>
 </html>
