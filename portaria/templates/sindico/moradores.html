@@ -1,89 +1,187 @@
 {% extends 'sindico/base_sindico.html' %}
 
-{% block title %}Moradores - {{ condominio.nome }}{% endblock %}
+{% block title %}Moradores — {{ condominio.nome }}{% endblock %}
 
 {% block content %}
-<!-- Header da Página -->
-<div class="mb-3 d-flex justify-content-between align-items-center">
+<div class="page-header d-flex justify-content-between align-items-center">
     <div>
-        <h5 class="page-title">👥 Moradores</h5>
+        <h1 class="page-title">Moradores</h1>
         <p class="page-subtitle">{{ moradores.count }} cadastrados</p>
     </div>
-    <button class="btn btn-primary btn-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#modalNovoMorador">
-        <i class="bi bi-plus"></i> Novo
+    <button class="btn-exec btn-exec-sm" data-bs-toggle="modal" data-bs-target="#modalNovo">
+        <i class="bi bi-plus-lg"></i> Novo
     </button>
 </div>
 
-<!-- Lista de Moradores -->
-<div class="glass-card">
-    <div class="p-3">
-        {% if moradores %}
-            {% for m in moradores %}
-            <div class="list-item">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <strong>{{ m.nome }}</strong>
-                        <div class="text-muted" style="font-size: 0.75rem;">
-                            {% if m.bloco %}Bloco {{ m.bloco }} - {% endif %}Apto {{ m.apartamento }}
-                        </div>
-                    </div>
-                    <div class="text-end">
-                        {% if m.telefone %}
-                        <a href="tel:{{ m.telefone }}" class="btn btn-sm btn-outline-primary rounded-pill px-2 py-1" style="font-size: 0.7rem;">
-                            <i class="bi bi-telephone"></i>
-                        </a>
-                        {% endif %}
-                    </div>
+<!-- Link de Convite -->
+<div class="card-section" style="margin-bottom: 0.8rem;">
+    <div class="card-section-body" style="padding: 0.8rem 1rem;">
+        <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+            <div style="flex: 1; min-width: 0;">
+                <div style="font-size: 0.72rem; font-weight: 700; color: var(--navy); margin-bottom: 0.2rem;">
+                    <i class="bi bi-link-45deg"></i> LINK DE CADASTRO
+                </div>
+                <div id="linkConvite" style="font-size: 0.7rem; color: var(--slate-500); word-break: break-all;">
+                    {{ request.scheme }}://{{ request.get_host }}/cadastro/{{ condominio.codigo_convite }}/
                 </div>
             </div>
-            {% endfor %}
-        {% else %}
-            <div class="text-center py-5">
-                <div style="font-size: 3rem;">👥</div>
-                <p class="text-muted mt-2 mb-0">Nenhum morador cadastrado</p>
-                <p class="text-muted small">Clique em "Novo" para adicionar</p>
+            <div class="d-flex gap-1">
+                <button class="btn-exec btn-exec-sm" onclick="copiarLink()" style="font-size: 0.72rem;" title="Copiar link">
+                    <i class="bi bi-clipboard" id="iconCopy"></i> Copiar
+                </button>
+                <a href="https://wa.me/?text=Cadastre-se%20no%20app%20do%20condomínio%20{{ condominio.nome|urlencode }}:%20{{ request.scheme }}://{{ request.get_host }}/cadastro/{{ condominio.codigo_convite }}/" 
+                   class="btn-exec btn-exec-sm" style="font-size: 0.72rem; background: #25D366; text-decoration: none;" target="_blank" title="Enviar por WhatsApp">
+                    <i class="bi bi-whatsapp"></i>
+                </a>
             </div>
-        {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function copiarLink() {
+    const link = document.getElementById('linkConvite').innerText.trim();
+    navigator.clipboard.writeText(link).then(() => {
+        const icon = document.getElementById('iconCopy');
+        icon.className = 'bi bi-check-lg';
+        setTimeout(() => { icon.className = 'bi bi-clipboard'; }, 2000);
+    });
+}
+</script>
+<div class="card-section">
+    <div class="card-section-body">
+        {% for m in moradores %}
+        <div class="list-row">
+            <div class="flex-grow-1">
+                <div class="list-row-name">{{ m.nome }}</div>
+                <div class="list-row-sub">
+                    {% if m.bloco %}Bl. {{ m.bloco }} · {% endif %}Apto {{ m.apartamento }}
+                    {% if m.telefone %} · {{ m.telefone }}{% endif %}
+                </div>
+                {% if m.usuario %}
+                <div class="list-row-sub" style="color: var(--green);">
+                    <i class="bi bi-check-circle-fill"></i> Acesso: {{ m.usuario.username }}
+                </div>
+                {% else %}
+                <div class="list-row-sub" style="color: var(--slate-500);">
+                    <i class="bi bi-x-circle"></i> Sem acesso ao app
+                </div>
+                {% endif %}
+            </div>
+            <div class="d-flex gap-1">
+                <button class="btn-exec btn-exec-sm" style="background: var(--navy-light);" data-bs-toggle="modal" data-bs-target="#modalSenha{{ m.id }}" title="Resetar senha">
+                    <i class="bi bi-key"></i>
+                </button>
+                {% if m.telefone %}
+                <a href="tel:{{ m.telefone }}" class="btn-exec btn-exec-sm" style="background: var(--green);">
+                    <i class="bi bi-telephone"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Modal Reset Senha -->
+        <div class="modal fade" id="modalSenha{{ m.id }}" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered modal-sm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" style="font-size: 0.85rem;">
+                            {% if m.usuario %}Resetar Senha{% else %}Criar Acesso{% endif %}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form method="post" action="{% url 'sindico_resetar_senha' m.id %}">
+                        {% csrf_token %}
+                        <div class="modal-body">
+                            <p style="font-size: 0.78rem; color: var(--slate-500);">
+                                <strong>{{ m.nome }}</strong><br>
+                                {% if m.bloco %}Bl. {{ m.bloco }} · {% endif %}Apto {{ m.apartamento }}
+                            </p>
+                            {% if not m.usuario %}
+                            <div class="mb-3">
+                                <label class="form-label">Usuário (login)</label>
+                                <input type="text" name="username" class="form-control" placeholder="Ex: joao.silva" required>
+                            </div>
+                            {% else %}
+                            <p style="font-size: 0.72rem; color: var(--green);">
+                                <i class="bi bi-person"></i> Login: <strong>{{ m.usuario.username }}</strong>
+                            </p>
+                            {% endif %}
+                            <div class="mb-2">
+                                <label class="form-label">Nova Senha</label>
+                                <input type="text" name="nova_senha" class="form-control" placeholder="Mínimo 6 caracteres" required>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn-exec-outline" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn-exec">Salvar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <div class="empty-state-icon"><i class="bi bi-people"></i></div>
+            <div class="empty-state-text">Nenhum morador cadastrado</div>
+        </div>
+        {% endfor %}
     </div>
 </div>
 
 <!-- Modal Novo Morador -->
-<div class="modal fade" id="modalNovoMorador" tabindex="-1">
+<div class="modal fade" id="modalNovo" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title fw-bold">👥 Novo Morador</h5>
+                <h5 class="modal-title">Cadastrar Morador</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="post">
                 {% csrf_token %}
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Nome Completo *</label>
+                        <label class="form-label">Nome Completo *</label>
                         <input type="text" name="nome" class="form-control" required>
                     </div>
                     <div class="row">
-                        <div class="col-6 mb-3">
-                            <label class="form-label fw-semibold">Bloco</label>
-                            <input type="text" name="bloco" class="form-control" placeholder="A, B, C...">
+                        <div class="col-5 mb-3">
+                            <label class="form-label">Bloco</label>
+                            <input type="text" name="bloco" class="form-control" placeholder="A, B...">
                         </div>
-                        <div class="col-6 mb-3">
-                            <label class="form-label fw-semibold">Apartamento *</label>
+                        <div class="col-7 mb-3">
+                            <label class="form-label">Apartamento *</label>
                             <input type="text" name="apartamento" class="form-control" required>
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Telefone</label>
+                        <label class="form-label">Telefone</label>
                         <input type="text" name="telefone" class="form-control" placeholder="(00) 00000-0000">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">E-mail</label>
+                        <label class="form-label">E-mail</label>
                         <input type="email" name="email" class="form-control">
                     </div>
+                    
+                    <hr>
+                    <p class="form-label mb-2" style="color: var(--navy); font-weight: 700;">
+                        <i class="bi bi-key"></i> Acesso ao App (opcional)
+                    </p>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Usuário</label>
+                            <input type="text" name="username" class="form-control" placeholder="login">
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Senha</label>
+                            <input type="text" name="password" class="form-control" placeholder="senha123">
+                        </div>
+                    </div>
+                    <small class="text-muted">Se preenchido, o morador poderá acessar o app pelo celular.</small>
                 </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Cadastrar</button>
+                <div class="modal-footer">
+                    <button type="button" class="btn-exec-outline" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn-exec">Cadastrar</button>
                 </div>
             </form>
         </div>

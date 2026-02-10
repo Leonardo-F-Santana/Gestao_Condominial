@@ -47,15 +47,19 @@ def login_view(request):
         # Redireciona baseado no tipo de usuário
         if hasattr(request.user, 'morador'):
             return redirect('morador_home')
+        if hasattr(request.user, 'sindico'):
+            return redirect('sindico_home')
         return redirect('home')
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            # Redireciona morador para portal, staff para portaria
+            # Redireciona baseado no perfil
             if hasattr(user, 'morador'):
                 return redirect('morador_home')
+            if hasattr(user, 'sindico'):
+                return redirect('sindico_home')
             return redirect('home')
         else:
             messages.error(request, "Usuário ou senha inválidos.")
@@ -66,6 +70,91 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return redirect('login')
+
+
+@login_required
+def alterar_senha(request):
+    """Permite ao usuário logado alterar sua própria senha"""
+    if request.method == 'POST':
+        nova_senha = request.POST.get('nova_senha', '')
+        confirmar_senha = request.POST.get('confirmar_senha', '')
+        
+        if len(nova_senha) < 6:
+            messages.error(request, "A nova senha deve ter pelo menos 6 caracteres.")
+        elif nova_senha != confirmar_senha:
+            messages.error(request, "As senhas não coincidem.")
+        else:
+            request.user.set_password(nova_senha)
+            request.user.save()
+            login(request, request.user)
+            messages.success(request, "Senha alterada com sucesso!")
+            
+            if hasattr(request.user, 'morador'):
+                return redirect('morador_home')
+            if hasattr(request.user, 'sindico'):
+                return redirect('sindico_home')
+            return redirect('home')
+    
+    return render(request, 'alterar_senha.html')
+
+
+def cadastro_morador(request, codigo_convite):
+    """Página pública de autocadastro de morador via link de convite"""
+    from .models import Condominio, Morador
+    from django.contrib.auth.models import User as UserModel
+    
+    condominio = get_object_or_404(Condominio, codigo_convite=codigo_convite, ativo=True)
+    form_data = {}
+    
+    if request.method == 'POST':
+        nome = request.POST.get('nome', '').strip()
+        bloco = request.POST.get('bloco', '').strip()
+        apartamento = request.POST.get('apartamento', '').strip()
+        telefone = request.POST.get('telefone', '').strip()
+        email = request.POST.get('email', '').strip()
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
+        password2 = request.POST.get('password2', '')
+        
+        form_data = {
+            'nome': nome, 'bloco': bloco, 'apartamento': apartamento,
+            'telefone': telefone, 'email': email, 'username': username
+        }
+        
+        # Validações
+        if not nome or not apartamento or not username or not password:
+            messages.error(request, "Preencha todos os campos obrigatórios.")
+        elif len(password) < 6:
+            messages.error(request, "A senha deve ter pelo menos 6 caracteres.")
+        elif password != password2:
+            messages.error(request, "As senhas não coincidem.")
+        elif UserModel.objects.filter(username=username).exists():
+            messages.error(request, f"O usuário '{username}' já está em uso. Escolha outro.")
+        elif Morador.objects.filter(condominio=condominio, bloco=bloco, apartamento=apartamento).exists():
+            messages.error(request, f"Já existe um morador cadastrado no Bloco {bloco} Apto {apartamento}.")
+        else:
+            user_obj = UserModel.objects.create_user(
+                username=username,
+                password=password,
+                first_name=nome.split()[0] if nome else '',
+                email=email
+            )
+            Morador.objects.create(
+                condominio=condominio,
+                nome=nome,
+                bloco=bloco,
+                apartamento=apartamento,
+                telefone=telefone,
+                email=email,
+                usuario=user_obj
+            )
+            messages.success(request, f"Conta criada com sucesso! Faça login com '{username}'.")
+            return redirect('login')
+    
+    return render(request, 'cadastro_morador.html', {
+        'condominio': condominio,
+        'form_data': form_data
+    })
 
 # ==========================================
 # 2. DASHBOARD (CORRIGIDO AQUI)

@@ -1,99 +1,96 @@
 {% extends 'sindico/base_sindico.html' %}
 
-{% block title %}Solicitações - {{ condominio.nome }}{% endblock %}
+{% block title %}Solicitações — {{ condominio.nome }}{% endblock %}
 
 {% block content %}
-<!-- Header da Página -->
-<div class="mb-3">
-    <h5 class="page-title">📋 Solicitações</h5>
+<div class="page-header">
+    <h1 class="page-title">Solicitações</h1>
     <p class="page-subtitle">{{ solicitacoes.count }} registradas</p>
 </div>
 
-<!-- Lista de Solicitações -->
-<div class="glass-card">
-    <div class="p-3">
-        {% if solicitacoes %}
-            {% for s in solicitacoes %}
-            <div class="list-item" data-bs-toggle="modal" data-bs-target="#modal{{ s.id }}">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <div class="d-flex align-items-center gap-2">
-                            <strong>{{ s.get_tipo_display }}</strong>
-                            <span class="status-badge {% if s.status == 'PENDENTE' %}pendente{% elif s.status == 'CONCLUIDO' %}concluido{% else %}andamento{% endif %}">
-                                {{ s.get_status_display }}
-                            </span>
-                        </div>
-                        <div class="text-muted" style="font-size: 0.75rem;">
-                            {{ s.morador.nome|default:"Anônimo" }}
-                        </div>
-                        <div class="text-muted mt-1" style="font-size: 0.75rem;">
-                            {{ s.descricao|truncatechars:50 }}
-                        </div>
-                    </div>
-                    <small class="text-muted">{{ s.data_criacao|date:"d/m" }}</small>
+<!-- Lista -->
+<div class="card-section">
+    <div class="card-section-body">
+        {% for s in solicitacoes %}
+        <div class="list-row" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#modal{{ s.id }}">
+            <div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="list-row-name">{{ s.get_tipo_display }}</span>
+                    <span class="badge-status {% if s.status == 'PENDENTE' %}badge-pendente{% elif s.status == 'CONCLUIDO' %}badge-concluido{% elif s.status == 'EM_ANDAMENTO' %}badge-andamento{% else %}badge-cancelado{% endif %}">
+                        {{ s.get_status_display }}
+                    </span>
                 </div>
+                <div class="list-row-sub">{{ s.morador.nome|default:"Anônimo" }} · {{ s.data_criacao|date:"d/m/Y H:i" }}</div>
+                <div class="list-row-sub">{{ s.descricao|truncatechars:60 }}</div>
             </div>
+            <i class="bi bi-chevron-right" style="color: var(--slate-300);"></i>
+        </div>
 
-            <!-- Modal Detalhe/Resposta -->
-            <div class="modal fade" id="modal{{ s.id }}" tabindex="-1">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title fw-bold">{{ s.get_tipo_display }}</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <!-- Modal Detalhe -->
+        <div class="modal fade" id="modal{{ s.id }}" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">{{ s.get_tipo_display }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--slate-500);">Solicitante</label>
+                            <div class="fw-semibold" style="font-size: 0.9rem;">{{ s.morador.nome|default:"Anônimo" }}</div>
                         </div>
-                        <div class="modal-body">
-                            <div class="mb-3">
-                                <small class="text-muted">Morador</small>
-                                <div class="fw-semibold">{{ s.morador.nome|default:"Anônimo" }}</div>
-                            </div>
-                            <div class="mb-3">
-                                <small class="text-muted">Data</small>
-                                <div class="fw-semibold">{{ s.data_criacao|date:"d/m/Y H:i" }}</div>
-                            </div>
-                            <div class="mb-3">
-                                <small class="text-muted">Descrição</small>
-                                <div class="p-2 bg-light rounded">{{ s.descricao }}</div>
-                            </div>
-                            
-                            {% if s.arquivo %}
-                            <div class="mb-3">
-                                <a href="{{ s.arquivo.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
-                                    <i class="bi bi-paperclip"></i> Ver Anexo
-                                </a>
-                            </div>
-                            {% endif %}
+                        <div class="mb-3">
+                            <label class="form-label" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--slate-500);">Data</label>
+                            <div style="font-size: 0.85rem;">{{ s.data_criacao|date:"d/m/Y H:i" }}</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--slate-500);">Descrição</label>
+                            <div style="font-size: 0.85rem; background: var(--slate-100); padding: 0.7rem; border-radius: 8px;">{{ s.descricao }}</div>
+                        </div>
+                        
+                        {% if s.arquivo %}
+                        <div class="mb-3">
+                            <a href="{{ s.arquivo.url }}" target="_blank" class="btn-exec btn-exec-sm" style="background: var(--blue);">
+                                <i class="bi bi-paperclip"></i> Ver Anexo
+                            </a>
+                        </div>
+                        {% endif %}
 
-                            <form method="post" action="{% url 'sindico_responder_solicitacao' s.id %}">
-                                {% csrf_token %}
-                                <div class="mb-3">
-                                    <label class="form-label fw-semibold">Status</label>
-                                    <select name="status" class="form-select">
-                                        <option value="PENDENTE" {% if s.status == 'PENDENTE' %}selected{% endif %}>🟡 Pendente</option>
-                                        <option value="EM_ANDAMENTO" {% if s.status == 'EM_ANDAMENTO' %}selected{% endif %}>🔵 Em Andamento</option>
-                                        <option value="CONCLUIDO" {% if s.status == 'CONCLUIDO' %}selected{% endif %}>🟢 Concluído</option>
-                                        <option value="CANCELADO" {% if s.status == 'CANCELADO' %}selected{% endif %}>🔴 Cancelado</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label fw-semibold">Resposta da Administração</label>
-                                    <textarea name="resposta" class="form-control" rows="3">{{ s.resposta_admin }}</textarea>
-                                </div>
-                                <div class="d-grid">
-                                    <button type="submit" class="btn btn-primary">Salvar Resposta</button>
-                                </div>
-                            </form>
+                        {% if s.resposta_admin %}
+                        <div class="mb-3">
+                            <label class="form-label" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--slate-500);">Resposta Atual</label>
+                            <div style="font-size: 0.85rem; background: #d1fae5; padding: 0.7rem; border-radius: 8px; border-left: 3px solid var(--green);">{{ s.resposta_admin }}</div>
                         </div>
+                        {% endif %}
+
+                        <hr>
+                        <form method="post" action="{% url 'sindico_responder_solicitacao' s.id %}">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label class="form-label">Alterar Status</label>
+                                <select name="status" class="form-select">
+                                    <option value="PENDENTE" {% if s.status == 'PENDENTE' %}selected{% endif %}>Pendente</option>
+                                    <option value="EM_ANDAMENTO" {% if s.status == 'EM_ANDAMENTO' %}selected{% endif %}>Em Andamento</option>
+                                    <option value="CONCLUIDO" {% if s.status == 'CONCLUIDO' %}selected{% endif %}>Concluído</option>
+                                    <option value="CANCELADO" {% if s.status == 'CANCELADO' %}selected{% endif %}>Cancelado</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Resposta</label>
+                                <textarea name="resposta" class="form-control" rows="3" placeholder="Escreva uma resposta ao morador...">{{ s.resposta_admin }}</textarea>
+                            </div>
+                            <button type="submit" class="btn-exec w-100">Salvar Resposta</button>
+                        </form>
                     </div>
                 </div>
             </div>
-            {% endfor %}
-        {% else %}
-            <div class="text-center py-5">
-                <div style="font-size: 3rem;">📋</div>
-                <p class="text-muted mt-2 mb-0">Nenhuma solicitação registrada</p>
-            </div>
-        {% endif %}
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <div class="empty-state-icon"><i class="bi bi-clipboard"></i></div>
+            <div class="empty-state-text">Nenhuma solicitação registrada</div>
+        </div>
+        {% endfor %}
     </div>
 </div>
 {% endblock %}

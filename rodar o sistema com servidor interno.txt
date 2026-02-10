@@ -1,0 +1,53 @@
+💻 No PC (Windows)
+1. Abrir o Terminal
+No VS Code, abra o terminal (Ctrl + ') ou use o PowerShell.
+
+2. Navegar até a pasta do projeto
+powershell
+cd C:\Users\disci\Desktop\gestao_condominio
+3. Ativar o ambiente virtual
+powershell
+.\venv\Scripts\activate
+Você vai ver 
+(venv)
+ aparecer no início da linha.
+
+4. Rodar o servidor
+powershell
+python manage.py runserver 0.0.0.0:8000
+⚠️ O 0.0.0.0 é essencial para acessar pelo celular! Se usar só python manage.py runserver, só funciona no PC.
+
+5. Acessar no navegador do PC
+Abra o Chrome e acesse:
+
+Portaria: http://localhost:8000/
+Portal do Síndico: http://localhost:8000/sindico/
+Portal do Morador: http://localhost:8000/morador/
+Admin: http://localhost:8000/admin/
+📱 No Celular
+1. Descubra o IP do seu PC
+No terminal do PC, rode:
+
+powershell
+ipconfig
+Procure por "Endereço IPv4" na seção do Wi-Fi. Será algo como 192.168.1.XXX
+
+2. PC e celular no mesmo Wi-Fi
+Ambos precisam estar conectados na mesma rede Wi-Fi.
+
+3. Acesse pelo navegador do celular
+No Chrome do celular, digite:
+
+http://192.168.1.XXX:8000/sindico/
+(troque 192.168.1.XXX pelo IP do seu PC)
+
+4. Se não funcionar — Libere o Firewall
+O Windows pode bloquear a conexão. Para liberar:
+
+Abra o Windows Defender Firewall (pesquise no menu Iniciar)
+Clique em "Configurações avançadas"
+Clique em "Regras de Entrada" → "Nova Regra..."
+Selecione Porta → Próximo
+Selecione TCP → Portas locais: 8000 → Próximo
+Permitir a conexão → Próximo → marque todas → Próximo
+Nome: Django Dev Server → Concluir

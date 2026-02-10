@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.contrib import messages
 from django.utils import timezone
 from .models import Condominio, Sindico, Morador, Visitante, Encomenda, Solicitacao, Aviso
@@ -21,16 +22,15 @@ def get_condominio_ativo(request):
     return None
 
 
-def sindico_required(view_func):
-    """Decorator que verifica se é síndico e tem condomínio ativo"""
-    def wrapper(request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return redirect('login')
-        if not is_sindico(request.user):
-            messages.error(request, "Você não tem permissão de síndico.")
-            return redirect('home')
-        return view_func(request, *args, **kwargs)
-    return wrapper
+def sindico_context(request, extra=None, active_page=''):
+    """Contexto base para todas as views do síndico"""
+    ctx = {
+        'condominio': get_condominio_ativo(request),
+        'active_page': active_page,
+    }
+    if extra:
+        ctx.update(extra)
+    return ctx
 
 
 # ==========================================
@@ -39,7 +39,7 @@ def sindico_required(view_func):
 
 @login_required
 def portal_sindico_home(request):
-    """Página inicial do Portal do Síndico - lista de condomínios"""
+    """Lista de condomínios"""
     if not is_sindico(request.user):
         messages.error(request, "Você não tem permissão de síndico.")
         return redirect('home')
@@ -47,7 +47,6 @@ def portal_sindico_home(request):
     sindico = request.user.sindico
     condominios = sindico.condominios.filter(ativo=True)
     
-    # Estatísticas por condomínio
     condominios_stats = []
     for cond in condominios:
         stats = {
@@ -62,16 +61,15 @@ def portal_sindico_home(request):
         }
         condominios_stats.append(stats)
     
-    context = {
+    return render(request, 'sindico/portal_home.html', {
         'sindico': sindico,
         'condominios_stats': condominios_stats,
-    }
-    return render(request, 'sindico/portal_home.html', context)
+    })
 
 
 @login_required
 def selecionar_condominio(request, condominio_id):
-    """Seleciona um condomínio e salva na sessão"""
+    """Seleciona condomínio e salva na sessão"""
     if not is_sindico(request.user):
         return redirect('home')
     
@@ -79,11 +77,10 @@ def selecionar_condominio(request, condominio_id):
     condominio = get_object_or_404(Condominio, id=condominio_id)
     
     if condominio not in sindico.condominios.all():
-        messages.error(request, "Você não tem acesso a este condomínio.")
+        messages.error(request, "Sem acesso a este condomínio.")
         return redirect('sindico_home')
     
     request.session['condominio_ativo_id'] = condominio.id
-    messages.success(request, f"Condomínio '{condominio.nome}' selecionado!")
     return redirect('sindico_painel')
 
 
@@ -91,152 +88,196 @@ def selecionar_condominio(request, condominio_id):
 def criar_condominio(request):
     """Criar novo condomínio"""
     if not is_sindico(request.user):
-        messages.error(request, "Você não tem permissão de síndico.")
         return redirect('home')
     
     if request.method == 'POST':
         nome = request.POST.get('nome', '').strip()
-        endereco = request.POST.get('endereco', '').strip()
-        cnpj = request.POST.get('cnpj', '').strip()
-        telefone = request.POST.get('telefone', '').strip()
-        email = request.POST.get('email', '').strip()
-        
         if not nome:
-            messages.error(request, "O nome do condomínio é obrigatório.")
+            messages.error(request, "Nome é obrigatório.")
             return redirect('sindico_criar_condominio')
         
-        condominio = Condominio.objects.create(
+        cond = Condominio.objects.create(
             nome=nome,
-            endereco=endereco,
-            cnpj=cnpj,
-            telefone=telefone,
-            email=email
+            endereco=request.POST.get('endereco', '').strip(),
+            cnpj=request.POST.get('cnpj', '').strip(),
+            telefone=request.POST.get('telefone', '').strip(),
+            email=request.POST.get('email', '').strip()
         )
-        
-        sindico = request.user.sindico
-        sindico.condominios.add(condominio)
-        
-        # Selecionar automaticamente
-        request.session['condominio_ativo_id'] = condominio.id
-        
-        messages.success(request, f"Condomínio '{nome}' criado com sucesso!")
+        request.user.sindico.condominios.add(cond)
+        request.session['condominio_ativo_id'] = cond.id
+        messages.success(request, f"Condomínio '{nome}' criado!")
         return redirect('sindico_painel')
     
     return render(request, 'sindico/criar_condominio.html')
 
 
 # ==========================================
-# PAINEL PRINCIPAL
+# PAINEL
 # ==========================================
 
 @login_required
-@sindico_required
 def painel_sindico(request):
-    """Dashboard principal do condomínio selecionado"""
+    """Dashboard do condomínio selecionado"""
+    if not is_sindico(request.user):
+        return redirect('home')
+    
     condominio = get_condominio_ativo(request)
     if not condominio:
-        messages.warning(request, "Selecione um condomínio primeiro.")
         return redirect('sindico_home')
     
-    # Verificar acesso
     sindico = request.user.sindico
     if condominio not in sindico.condominios.all():
         request.session.pop('condominio_ativo_id', None)
         return redirect('sindico_home')
     
-    # Estatísticas
-    moradores_count = Morador.objects.filter(condominio=condominio).count()
-    visitantes_hoje = Visitante.objects.filter(
-        morador_responsavel__condominio=condominio,
-        horario_chegada__date=timezone.now().date()
-    ).count()
-    visitantes_no_local = Visitante.objects.filter(
-        morador_responsavel__condominio=condominio,
-        horario_saida__isnull=True
-    ).count()
-    encomendas_pendentes = Encomenda.objects.filter(
-        morador__condominio=condominio, entregue=False
-    ).count()
-    solicitacoes_pendentes = Solicitacao.objects.filter(
-        morador__condominio=condominio, status='PENDENTE'
-    ).count()
-    
-    # Últimas atividades
-    ultimos_visitantes = Visitante.objects.filter(
-        morador_responsavel__condominio=condominio
-    ).order_by('-horario_chegada')[:5]
-    ultimas_encomendas = Encomenda.objects.filter(
-        morador__condominio=condominio
-    ).order_by('-data_chegada')[:5]
-    ultimas_solicitacoes = Solicitacao.objects.filter(
-        morador__condominio=condominio
-    ).order_by('-data_criacao')[:5]
-    
-    context = {
-        'condominio': condominio,
-        'stats': {
-            'moradores': moradores_count,
-            'visitantes_hoje': visitantes_hoje,
-            'visitantes_no_local': visitantes_no_local,
-            'encomendas_pendentes': encomendas_pendentes,
-            'solicitacoes_pendentes': solicitacoes_pendentes,
-        },
-        'ultimos_visitantes': ultimos_visitantes,
-        'ultimas_encomendas': ultimas_encomendas,
-        'ultimas_solicitacoes': ultimas_solicitacoes,
+    stats = {
+        'moradores': Morador.objects.filter(condominio=condominio).count(),
+        'visitantes_hoje': Visitante.objects.filter(
+            morador_responsavel__condominio=condominio,
+            horario_chegada__date=timezone.now().date()
+        ).count(),
+        'visitantes_no_local': Visitante.objects.filter(
+            morador_responsavel__condominio=condominio,
+            horario_saida__isnull=True
+        ).count(),
+        'encomendas_pendentes': Encomenda.objects.filter(
+            morador__condominio=condominio, entregue=False
+        ).count(),
+        'solicitacoes_pendentes': Solicitacao.objects.filter(
+            morador__condominio=condominio, status='PENDENTE'
+        ).count(),
     }
-    return render(request, 'sindico/painel.html', context)
+    
+    ctx = sindico_context(request, {
+        'stats': stats,
+        'ultimos_visitantes': Visitante.objects.filter(
+            morador_responsavel__condominio=condominio
+        ).order_by('-horario_chegada')[:5],
+        'ultimas_encomendas': Encomenda.objects.filter(
+            morador__condominio=condominio, entregue=False
+        ).order_by('-data_chegada')[:5],
+        'ultimas_solicitacoes': Solicitacao.objects.filter(
+            morador__condominio=condominio
+        ).order_by('-data_criacao')[:5],
+    }, active_page='painel')
+    
+    return render(request, 'sindico/painel.html', ctx)
 
 
 # ==========================================
-# GESTÃO DE MORADORES
+# MORADORES
 # ==========================================
 
 @login_required
-@sindico_required
 def moradores_sindico(request):
-    """Lista de moradores do condomínio"""
+    """Gestão de moradores com criação de usuário"""
+    if not is_sindico(request.user):
+        return redirect('home')
+    
     condominio = get_condominio_ativo(request)
     if not condominio:
         return redirect('sindico_home')
     
-    moradores = Morador.objects.filter(condominio=condominio).order_by('bloco', 'apartamento')
-    
-    # Cadastrar novo morador
     if request.method == 'POST':
         nome = request.POST.get('nome', '').strip()
-        bloco = request.POST.get('bloco', '').strip()
         apartamento = request.POST.get('apartamento', '').strip()
+        bloco = request.POST.get('bloco', '').strip()
         telefone = request.POST.get('telefone', '').strip()
         email = request.POST.get('email', '').strip()
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '').strip()
         
         if nome and apartamento:
+            user_obj = None
+            if username and password:
+                if User.objects.filter(username=username).exists():
+                    messages.error(request, f"Usuário '{username}' já existe.")
+                    return redirect('sindico_moradores')
+                user_obj = User.objects.create_user(
+                    username=username,
+                    password=password,
+                    first_name=nome.split()[0] if nome else '',
+                    email=email
+                )
+            
             Morador.objects.create(
                 condominio=condominio,
                 nome=nome,
                 bloco=bloco,
                 apartamento=apartamento,
                 telefone=telefone,
-                email=email
+                email=email,
+                usuario=user_obj
             )
             messages.success(request, f"Morador '{nome}' cadastrado!")
+            if user_obj:
+                messages.info(request, f"Login criado: {username}")
             return redirect('sindico_moradores')
     
-    context = {
-        'condominio': condominio,
-        'moradores': moradores,
-    }
-    return render(request, 'sindico/moradores.html', context)
+    moradores = Morador.objects.filter(condominio=condominio).order_by('bloco', 'apartamento')
+    ctx = sindico_context(request, {'moradores': moradores}, active_page='moradores')
+    return render(request, 'sindico/moradores.html', ctx)
 
 
 # ==========================================
-# GESTÃO DE VISITANTES
+# RESET DE SENHA (pelo síndico)
 # ==========================================
 
 @login_required
-@sindico_required
+def resetar_senha_morador(request, morador_id):
+    """Síndico reseta a senha de um morador"""
+    if not is_sindico(request.user) or request.method != 'POST':
+        return redirect('home')
+    
+    condominio = get_condominio_ativo(request)
+    if not condominio:
+        return redirect('sindico_home')
+    
+    morador = get_object_or_404(Morador, id=morador_id, condominio=condominio)
+    
+    nova_senha = request.POST.get('nova_senha', '').strip()
+    
+    if not nova_senha or len(nova_senha) < 6:
+        messages.error(request, "A senha deve ter pelo menos 6 caracteres.")
+        return redirect('sindico_moradores')
+    
+    if morador.usuario:
+        morador.usuario.set_password(nova_senha)
+        morador.usuario.save()
+        messages.success(request, f"Senha de '{morador.nome}' alterada com sucesso!")
+    else:
+        # Cria um usuário para o morador se não tiver
+        username = request.POST.get('username', '').strip()
+        if not username:
+            username = f"morador_{morador.id}"
+        
+        if User.objects.filter(username=username).exists():
+            messages.error(request, f"Usuário '{username}' já existe.")
+            return redirect('sindico_moradores')
+        
+        user_obj = User.objects.create_user(
+            username=username,
+            password=nova_senha,
+            first_name=morador.nome.split()[0] if morador.nome else '',
+            email=morador.email or ''
+        )
+        morador.usuario = user_obj
+        morador.save()
+        messages.success(request, f"Conta criada para '{morador.nome}' com login: {username}")
+    
+    return redirect('sindico_moradores')
+
+
+# ==========================================
+# VISITANTES
+# ==========================================
+
+@login_required
 def visitantes_sindico(request):
-    """Controle de visitantes do condomínio"""
+    """Controle de visitantes"""
+    if not is_sindico(request.user):
+        return redirect('home')
+    
     condominio = get_condominio_ativo(request)
     if not condominio:
         return redirect('sindico_home')
@@ -247,7 +288,6 @@ def visitantes_sindico(request):
         horario_saida__isnull=True
     ).order_by('-horario_chegada')
     
-    # Registrar entrada
     if request.method == 'POST' and 'registrar_entrada' in request.POST:
         nome = request.POST.get('nome', '').strip()
         morador_id = request.POST.get('morador_id')
@@ -264,18 +304,15 @@ def visitantes_sindico(request):
             messages.success(request, f"Entrada de '{nome}' registrada!")
             return redirect('sindico_visitantes')
     
-    context = {
-        'condominio': condominio,
+    ctx = sindico_context(request, {
         'moradores': moradores,
         'visitantes_no_local': visitantes_no_local,
-    }
-    return render(request, 'sindico/visitantes.html', context)
+    }, active_page='visitantes')
+    return render(request, 'sindico/visitantes.html', ctx)
 
 
 @login_required
-@sindico_required
 def registrar_saida_sindico(request, visitante_id):
-    """Registrar saída de visitante"""
     visitante = get_object_or_404(Visitante, id=visitante_id)
     visitante.horario_saida = timezone.now()
     visitante.save()
@@ -284,13 +321,15 @@ def registrar_saida_sindico(request, visitante_id):
 
 
 # ==========================================
-# GESTÃO DE ENCOMENDAS
+# ENCOMENDAS
 # ==========================================
 
 @login_required
-@sindico_required
 def encomendas_sindico(request):
-    """Gestão de encomendas do condomínio"""
+    """Gestão de encomendas"""
+    if not is_sindico(request.user):
+        return redirect('home')
+    
     condominio = get_condominio_ativo(request)
     if not condominio:
         return redirect('sindico_home')
@@ -300,51 +339,46 @@ def encomendas_sindico(request):
         morador__condominio=condominio, entregue=False
     ).order_by('-data_chegada')
     
-    # Registrar encomenda
     if request.method == 'POST' and 'registrar_encomenda' in request.POST:
         morador_id = request.POST.get('morador_id')
         volume = request.POST.get('volume', '').strip()
-        
         if morador_id and volume:
             morador = Morador.objects.get(id=morador_id)
             Encomenda.objects.create(
-                morador=morador,
-                volume=volume,
-                porteiro_cadastro=request.user
+                morador=morador, volume=volume, porteiro_cadastro=request.user
             )
-            messages.success(request, f"Encomenda registrada para '{morador.nome}'!")
+            messages.success(request, f"Encomenda para '{morador.nome}' registrada!")
             return redirect('sindico_encomendas')
     
-    context = {
-        'condominio': condominio,
+    ctx = sindico_context(request, {
         'moradores': moradores,
         'encomendas_pendentes': encomendas_pendentes,
-    }
-    return render(request, 'sindico/encomendas.html', context)
+    }, active_page='encomendas')
+    return render(request, 'sindico/encomendas.html', ctx)
 
 
 @login_required
-@sindico_required
 def entregar_encomenda_sindico(request, encomenda_id):
-    """Marcar encomenda como entregue"""
     encomenda = get_object_or_404(Encomenda, id=encomenda_id)
     encomenda.entregue = True
     encomenda.data_entrega = timezone.now()
     encomenda.porteiro_entrega = request.user
     encomenda.quem_retirou = request.POST.get('quem_retirou', 'Morador')
     encomenda.save()
-    messages.success(request, "Encomenda marcada como entregue!")
+    messages.success(request, "Encomenda entregue!")
     return redirect('sindico_encomendas')
 
 
 # ==========================================
-# GESTÃO DE SOLICITAÇÕES
+# SOLICITAÇÕES
 # ==========================================
 
 @login_required
-@sindico_required
 def solicitacoes_sindico(request):
-    """Gestão de solicitações do condomínio"""
+    """Gestão de solicitações"""
+    if not is_sindico(request.user):
+        return redirect('home')
+    
     condominio = get_condominio_ativo(request)
     if not condominio:
         return redirect('sindico_home')
@@ -353,33 +387,108 @@ def solicitacoes_sindico(request):
         morador__condominio=condominio
     ).order_by('-data_criacao')
     
-    context = {
-        'condominio': condominio,
-        'solicitacoes': solicitacoes,
-    }
-    return render(request, 'sindico/solicitacoes.html', context)
+    ctx = sindico_context(request, {'solicitacoes': solicitacoes}, active_page='solicitacoes')
+    return render(request, 'sindico/solicitacoes.html', ctx)
 
 
 @login_required
-@sindico_required
 def responder_solicitacao_sindico(request, solicitacao_id):
-    """Responder/atualizar solicitação"""
     solicitacao = get_object_or_404(Solicitacao, id=solicitacao_id)
-    
     if request.method == 'POST':
-        resposta = request.POST.get('resposta', '').strip()
-        status = request.POST.get('status', solicitacao.status)
-        
-        solicitacao.resposta_admin = resposta
-        solicitacao.status = status
+        solicitacao.resposta_admin = request.POST.get('resposta', '').strip()
+        solicitacao.status = request.POST.get('status', solicitacao.status)
         solicitacao.save()
-        
         messages.success(request, "Solicitação atualizada!")
-    
     return redirect('sindico_solicitacoes')
 
 
-# Manter compatibilidade com a antiga view
+# ==========================================
+# AVISOS
+# ==========================================
+
+@login_required
+def avisos_sindico(request):
+    """Lista de avisos do condomínio"""
+    if not is_sindico(request.user):
+        return redirect('home')
+    
+    condominio = get_condominio_ativo(request)
+    if not condominio:
+        return redirect('sindico_home')
+    
+    avisos = Aviso.objects.filter(condominio=condominio).order_by('-data_publicacao')
+    ctx = sindico_context(request, {'avisos': avisos}, active_page='avisos')
+    return render(request, 'sindico/avisos.html', ctx)
+
+
+@login_required
+def criar_aviso_sindico(request):
+    """Criar novo aviso com upload de imagem"""
+    if not is_sindico(request.user):
+        return redirect('home')
+    
+    condominio = get_condominio_ativo(request)
+    if not condominio:
+        return redirect('sindico_home')
+    
+    if request.method == 'POST':
+        titulo = request.POST.get('titulo', '').strip()
+        conteudo = request.POST.get('conteudo', '').strip()
+        data_exp = request.POST.get('data_expiracao', '').strip()
+        imagem = request.FILES.get('imagem')
+        
+        if titulo and conteudo:
+            aviso = Aviso.objects.create(
+                condominio=condominio,
+                titulo=titulo,
+                conteudo=conteudo,
+                criado_por=request.user,
+                data_expiracao=data_exp if data_exp else None
+            )
+            if imagem:
+                aviso.imagem = imagem
+                aviso.save()
+            messages.success(request, f"Aviso '{titulo}' publicado!")
+    
+    return redirect('sindico_avisos')
+
+
+@login_required
+def editar_aviso_sindico(request, aviso_id):
+    """Editar aviso existente"""
+    aviso = get_object_or_404(Aviso, id=aviso_id)
+    
+    if request.method == 'POST':
+        aviso.titulo = request.POST.get('titulo', aviso.titulo).strip()
+        aviso.conteudo = request.POST.get('conteudo', aviso.conteudo).strip()
+        data_exp = request.POST.get('data_expiracao', '').strip()
+        aviso.data_expiracao = data_exp if data_exp else None
+        aviso.ativo = request.POST.get('ativo', '1') == '1'
+        
+        imagem = request.FILES.get('imagem')
+        if imagem:
+            aviso.imagem = imagem
+        
+        aviso.save()
+        messages.success(request, "Aviso atualizado!")
+    
+    return redirect('sindico_avisos')
+
+
+@login_required
+def excluir_aviso_sindico(request, aviso_id):
+    """Excluir aviso"""
+    aviso = get_object_or_404(Aviso, id=aviso_id)
+    if request.method == 'POST':
+        aviso.delete()
+        messages.success(request, "Aviso excluído!")
+    return redirect('sindico_avisos')
+
+
+# ==========================================
+# COMPATIBILIDADE
+# ==========================================
+
 def dashboard_condominio(request, condominio_id):
     """Redireciona para o novo fluxo"""
     if request.user.is_authenticated and is_sindico(request.user):

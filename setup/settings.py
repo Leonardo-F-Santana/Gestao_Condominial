@@ -13,7 +13,15 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-chave-padrao-desenvolvimen
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 # Hosts permitidos (separados por vírgula no .env)
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,*').split(',')
+
+# Origens confiáveis para CSRF (necessário para acesso via IP na rede local)
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    'http://192.168.1.49:8000',
+    'http://192.168.*:8000',
+]
 
 # ==============================================================================
 # CONFIGURAÇÕES DE SEGURANÇA

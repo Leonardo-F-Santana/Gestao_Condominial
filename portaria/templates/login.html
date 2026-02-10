@@ -308,10 +308,36 @@
                         <i class="bi bi-box-arrow-in-right me-2"></i>Entrar
                     </button>
                 </form>
+
+                <div class="text-center mt-3">
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#modalEsqueci" style="color: #3A89C9; font-size: 0.85rem; text-decoration: none; font-weight: 600;">
+                        <i class="bi bi-key"></i> Esqueceu a senha?
+                    </a>
+                </div>
             </div>
 
             <div class="card-footer-custom">
                 <small>&copy; 2026 Gestão Condominial - Todos os direitos reservados</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Esqueceu a Senha -->
+    <div class="modal fade" id="modalEsqueci" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px; border: none;">
+                <div class="modal-body text-center" style="padding: 2rem;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">🔑</div>
+                    <h5 style="font-weight: 700; color: #1f2937;">Esqueceu sua senha?</h5>
+                    <p style="color: #6b7280; font-size: 0.9rem; margin: 1rem 0;">
+                        Entre em contato com o <strong>síndico</strong> ou <strong>administração</strong> do seu condomínio para redefinir sua senha.
+                    </p>
+                    <hr>
+                    <p style="color: #9ca3af; font-size: 0.78rem;">
+                        <i class="bi bi-info-circle"></i> O síndico pode resetar sua senha pelo painel de gestão na seção <strong>Moradores</strong>.
+                    </p>
+                    <button type="button" class="btn btn-login w-100 mt-2" data-bs-dismiss="modal">Entendi</button>
+                </div>
             </div>
         </div>
     </div>

@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+import uuid
 
 
 # ==========================================
@@ -14,6 +15,7 @@ class Condominio(models.Model):
     telefone = models.CharField(max_length=20, blank=True, verbose_name="Telefone")
     email = models.EmailField(blank=True, verbose_name="E-mail")
     logo = models.ImageField(upload_to='condominios/', blank=True, verbose_name="Logo")
+    codigo_convite = models.UUIDField(default=uuid.uuid4, unique=True, verbose_name="Código de Convite")
     data_criacao = models.DateTimeField(auto_now_add=True, verbose_name="Data de Cadastro")
     ativo = models.BooleanField(default=True, verbose_name="Ativo")
 
@@ -131,9 +133,13 @@ class Solicitacao(models.Model):
 
 class Aviso(models.Model):
     """Avisos e comunicados do condomínio para os moradores"""
+    condominio = models.ForeignKey(Condominio, on_delete=models.CASCADE, null=True, blank=True,
+                                    verbose_name="Condomínio", related_name='avisos')
     titulo = models.CharField(max_length=200, verbose_name="Título")
     conteudo = models.TextField(verbose_name="Conteúdo")
+    imagem = models.ImageField(upload_to='avisos/%Y/%m/', blank=True, verbose_name="Imagem")
     data_publicacao = models.DateTimeField(auto_now_add=True, verbose_name="Data de Publicação")
+    data_expiracao = models.DateField(null=True, blank=True, verbose_name="Data de Expiração")
     ativo = models.BooleanField(default=True, verbose_name="Ativo")
     criado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, verbose_name="Publicado por")
 

@@ -1,66 +1,56 @@
 {% extends 'sindico/base_sindico.html' %}
 
-{% block title %}Encomendas - {{ condominio.nome }}{% endblock %}
+{% block title %}Encomendas — {{ condominio.nome }}{% endblock %}
 
 {% block content %}
-<!-- Header da Página -->
-<div class="mb-3 d-flex justify-content-between align-items-center">
+<div class="page-header d-flex justify-content-between align-items-center">
     <div>
-        <h5 class="page-title">📦 Encomendas</h5>
-        <p class="page-subtitle">{{ encomendas_pendentes.count }} pendentes</p>
+        <h1 class="page-title">Encomendas</h1>
+        <p class="page-subtitle">{{ encomendas_pendentes.count }} aguardando</p>
     </div>
-    <button class="btn btn-primary btn-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#modalNovaEncomenda">
-        <i class="bi bi-plus"></i> Nova
+    <button class="btn-exec btn-exec-sm" data-bs-toggle="modal" data-bs-target="#modalNova">
+        <i class="bi bi-plus-lg"></i> Nova
     </button>
 </div>
 
-<!-- Encomendas Pendentes -->
-<div class="glass-card">
-    <div class="p-3 pb-2">
-        <h6 class="fw-bold mb-0"><i class="bi bi-box-seam text-warning"></i> Aguardando Retirada</h6>
+<!-- Pendentes -->
+<div class="card-section">
+    <div class="card-section-header">
+        <span class="card-section-title"><i class="bi bi-clock" style="color: var(--amber);"></i> Aguardando Retirada</span>
     </div>
-    <div class="px-3 pb-3">
-        {% if encomendas_pendentes %}
-            {% for e in encomendas_pendentes %}
-            <div class="list-item">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <strong>{{ e.morador.nome }}</strong>
-                        <div class="text-muted" style="font-size: 0.75rem;">
-                            {% if e.morador.bloco %}Bloco {{ e.morador.bloco }} - {% endif %}Apto {{ e.morador.apartamento }}
-                        </div>
-                        <div class="mt-1">
-                            <span class="badge bg-warning text-dark">{{ e.volume }}</span>
-                        </div>
-                        <div class="text-muted" style="font-size: 0.7rem;">
-                            Chegou: {{ e.data_chegada|date:"d/m H:i" }}
-                        </div>
-                    </div>
-                    <form method="post" action="{% url 'sindico_entregar_encomenda' e.id %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="quem_retirou" value="Morador">
-                        <button type="submit" class="btn btn-sm btn-success rounded-pill px-3">
-                            <i class="bi bi-check2"></i> Entregar
-                        </button>
-                    </form>
+    <div class="card-section-body">
+        {% for e in encomendas_pendentes %}
+        <div class="list-row">
+            <div>
+                <div class="list-row-name">{{ e.morador.nome }}</div>
+                <div class="list-row-sub">
+                    {% if e.morador.bloco %}Bl. {{ e.morador.bloco }} · {% endif %}Apto {{ e.morador.apartamento }}
                 </div>
+                <div class="list-row-sub">{{ e.volume }} · {{ e.data_chegada|date:"d/m H:i" }}</div>
             </div>
-            {% endfor %}
-        {% else %}
-            <div class="text-center py-4">
-                <div style="font-size: 2.5rem;">📦</div>
-                <p class="text-muted mt-2 mb-0">Nenhuma encomenda pendente</p>
-            </div>
-        {% endif %}
+            <form method="post" action="{% url 'sindico_entregar_encomenda' e.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="quem_retirou" value="Morador">
+                <button type="submit" class="btn-success-exec">
+                    <i class="bi bi-check2"></i> Entregar
+                </button>
+            </form>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <div class="empty-state-icon"><i class="bi bi-box-seam"></i></div>
+            <div class="empty-state-text">Nenhuma encomenda pendente</div>
+        </div>
+        {% endfor %}
     </div>
 </div>
 
-<!-- Modal Nova Encomenda -->
-<div class="modal fade" id="modalNovaEncomenda" tabindex="-1">
+<!-- Modal Nova -->
+<div class="modal fade" id="modalNova" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title fw-bold">📦 Nova Encomenda</h5>
+                <h5 class="modal-title">Registrar Encomenda</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="post">
@@ -68,22 +58,22 @@
                 <input type="hidden" name="registrar_encomenda" value="1">
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Morador *</label>
+                        <label class="form-label">Destinatário *</label>
                         <select name="morador_id" class="form-select" required>
-                            <option value="">-- Selecione o destinatário --</option>
+                            <option value="">Selecione o morador</option>
                             {% for m in moradores %}
-                            <option value="{{ m.id }}">{% if m.bloco %}{{ m.bloco }}-{% endif %}{{ m.apartamento }} - {{ m.nome }}</option>
+                            <option value="{{ m.id }}">{% if m.bloco %}{{ m.bloco }}-{% endif %}{{ m.apartamento }} · {{ m.nome }}</option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Descrição do Volume *</label>
-                        <input type="text" name="volume" class="form-control" placeholder="Ex: Caixa grande, envelope, etc." required>
+                        <label class="form-label">Descrição do Volume *</label>
+                        <input type="text" name="volume" class="form-control" placeholder="Caixa grande, envelope..." required>
                     </div>
                 </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Registrar</button>
+                <div class="modal-footer">
+                    <button type="button" class="btn-exec-outline" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn-exec">Registrar</button>
                 </div>
             </form>
         </div>

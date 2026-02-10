@@ -1,0 +1,154 @@
+{% extends 'sindico/base_sindico.html' %}
+
+{% block title %}Avisos — {{ condominio.nome }}{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="page-title">Avisos</h1>
+        <p class="page-subtitle">Comunicados do condomínio</p>
+    </div>
+    <button class="btn-exec btn-exec-sm" data-bs-toggle="modal" data-bs-target="#modalNovo">
+        <i class="bi bi-plus-lg"></i> Criar
+    </button>
+</div>
+
+<!-- Lista de Avisos -->
+{% for aviso in avisos %}
+<div class="card-section aviso-card mb-3">
+    <div class="card-section-body p-3">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+                <h6 class="fw-bold mb-1" style="color: var(--navy); font-size: 0.9rem;">{{ aviso.titulo }}</h6>
+                <div class="list-row-sub">{{ aviso.data_publicacao|date:"d/m/Y H:i" }}</div>
+            </div>
+            <div class="d-flex gap-1">
+                {% if aviso.ativo %}
+                <span class="badge-status badge-concluido">Ativo</span>
+                {% else %}
+                <span class="badge-status badge-cancelado">Inativo</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <p style="font-size: 0.82rem; color: var(--slate-700); margin-bottom: 0.5rem;">{{ aviso.conteudo|truncatechars:150 }}</p>
+        
+        {% if aviso.imagem %}
+        <img src="{{ aviso.imagem.url }}" alt="{{ aviso.titulo }}" style="width: 100%; border-radius: 8px; margin-bottom: 0.5rem;">
+        {% endif %}
+        
+        {% if aviso.data_expiracao %}
+        <div class="list-row-sub"><i class="bi bi-calendar-x"></i> Expira em {{ aviso.data_expiracao|date:"d/m/Y" }}</div>
+        {% endif %}
+
+        <div class="d-flex gap-2 mt-2">
+            <button class="btn-exec btn-exec-sm" style="background: var(--blue);" data-bs-toggle="modal" data-bs-target="#modalEditar{{ aviso.id }}">
+                <i class="bi bi-pencil"></i> Editar
+            </button>
+            <form method="post" action="{% url 'sindico_excluir_aviso' aviso.id %}" onsubmit="return confirm('Excluir este aviso?')">
+                {% csrf_token %}
+                <button type="submit" class="btn-danger-exec">
+                    <i class="bi bi-trash"></i> Excluir
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar -->
+<div class="modal fade" id="modalEditar{{ aviso.id }}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Aviso</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'sindico_editar_aviso' aviso.id %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Título *</label>
+                        <input type="text" name="titulo" class="form-control" value="{{ aviso.titulo }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Conteúdo *</label>
+                        <textarea name="conteudo" class="form-control" rows="4" required>{{ aviso.conteudo }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Imagem</label>
+                        {% if aviso.imagem %}
+                        <div class="mb-2">
+                            <img src="{{ aviso.imagem.url }}" style="width: 80px; border-radius: 6px;">
+                            <small class="text-muted d-block">Selecione nova imagem para substituir</small>
+                        </div>
+                        {% endif %}
+                        <input type="file" name="imagem" class="form-control" accept="image/*">
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Data Expiração</label>
+                            <input type="date" name="data_expiracao" class="form-control" value="{{ aviso.data_expiracao|date:'Y-m-d' }}">
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Status</label>
+                            <select name="ativo" class="form-select">
+                                <option value="1" {% if aviso.ativo %}selected{% endif %}>Ativo</option>
+                                <option value="0" {% if not aviso.ativo %}selected{% endif %}>Inativo</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-exec-outline" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn-exec">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% empty %}
+<div class="card-section">
+    <div class="empty-state">
+        <div class="empty-state-icon"><i class="bi bi-megaphone"></i></div>
+        <div class="empty-state-text">Nenhum aviso publicado</div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Modal Novo Aviso -->
+<div class="modal fade" id="modalNovo" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Novo Aviso</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'sindico_criar_aviso' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Título *</label>
+                        <input type="text" name="titulo" class="form-control" placeholder="Ex: Manutenção na piscina" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Conteúdo *</label>
+                        <textarea name="conteudo" class="form-control" rows="4" placeholder="Descreva o aviso..." required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Imagem (opcional)</label>
+                        <input type="file" name="imagem" class="form-control" accept="image/*">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Data de Expiração (opcional)</label>
+                        <input type="date" name="data_expiracao" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-exec-outline" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn-exec">Publicar Aviso</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

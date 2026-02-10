@@ -1,79 +1,141 @@
-{% extends 'sindico/base_sindico.html' %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Novo Condomínio — Portal do Síndico</title>
+    <link rel="icon" href="/img/logo.ico" type="image/x-icon">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --navy: #0f172a;
+            --navy-light: #1e293b;
+            --slate-500: #64748b;
+            --slate-700: #334155;
+            --bg: #f8fafc;
+        }
 
-{% block title %}Novo Condomínio - Portal do Síndico{% endblock %}
+        * { font-family: 'Inter', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
 
-{% block content %}
-<!-- Header -->
-<div class="mb-4">
-    <a href="{% url 'sindico_home' %}" class="text-white text-decoration-none small">
-        <i class="bi bi-arrow-left"></i> Voltar
-    </a>
-    <h4 class="fw-bold mb-1 text-white mt-2">
-        <span>➕</span> Novo Condomínio
-    </h4>
-    <p class="mb-0 small" style="color: rgba(255,255,255,0.85);">
-        Adicione um novo condomínio à sua gestão
-    </p>
-</div>
+        body { min-height: 100vh; background: var(--bg); }
 
-<!-- Formulário -->
-<div class="row justify-content-center">
-    <div class="col-lg-6">
-        <div class="glass-card p-4">
-            <form method="post">
-                {% csrf_token %}
-                
-                <div class="mb-3">
-                    <label class="form-label fw-bold">
-                        <i class="bi bi-building"></i> Nome do Condomínio *
-                    </label>
-                    <input type="text" name="nome" class="form-control form-control-lg" 
-                           placeholder="Ex: Residencial Jardim das Flores" required autofocus>
-                </div>
-                
-                <div class="mb-3">
-                    <label class="form-label fw-bold">
-                        <i class="bi bi-geo-alt"></i> Endereço
-                    </label>
-                    <input type="text" name="endereco" class="form-control" 
-                           placeholder="Ex: Rua das Palmeiras, 123 - Centro">
-                </div>
-                
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold">
-                            <i class="bi bi-card-text"></i> CNPJ
-                        </label>
-                        <input type="text" name="cnpj" class="form-control" 
-                               placeholder="00.000.000/0001-00">
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold">
-                            <i class="bi bi-telephone"></i> Telefone
-                        </label>
-                        <input type="text" name="telefone" class="form-control" 
-                               placeholder="(00) 00000-0000">
-                    </div>
-                </div>
-                
-                <div class="mb-4">
-                    <label class="form-label fw-bold">
-                        <i class="bi bi-envelope"></i> E-mail
-                    </label>
-                    <input type="email" name="email" class="form-control" 
-                           placeholder="contato@condominio.com.br">
-                </div>
-                
-                <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-primary btn-lg">
-                        <i class="bi bi-plus-circle"></i> Criar Condomínio
-                    </button>
-                    <a href="{% url 'sindico_home' %}" class="btn btn-outline-secondary">
-                        Cancelar
-                    </a>
-                </div>
-            </form>
+        .topbar {
+            background: var(--navy);
+            padding: 0.7rem 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .main-container {
+            padding: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: var(--navy);
+            letter-spacing: -0.5px;
+        }
+
+        .form-section {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 1.2rem;
+        }
+
+        .form-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--slate-700);
+        }
+
+        .form-control {
+            border-radius: 8px;
+            border: 1.5px solid #e2e8f0;
+            font-size: 0.85rem;
+        }
+
+        .form-control:focus {
+            border-color: var(--navy);
+            box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
+        }
+
+        .btn-exec {
+            background: var(--navy);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            padding: 0.6rem 1.2rem;
+        }
+
+        .btn-exec-outline {
+            background: transparent;
+            color: var(--navy);
+            border: 1.5px solid var(--navy);
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            padding: 0.6rem 1.2rem;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <div class="d-flex align-items-center gap-2" style="max-width: 600px; margin: 0 auto;">
+            <a href="{% url 'sindico_home' %}" style="color: white; font-size: 1.1rem;"><i class="bi bi-arrow-left"></i></a>
+            <span style="color: white; font-weight: 700; font-size: 0.95rem;">Novo Condomínio</span>
         </div>
-    </div>
-</div>
-{% endblock %}
+    </header>
+
+    <main class="main-container">
+        <div class="mb-3">
+            <h1 class="page-title">Cadastrar Condomínio</h1>
+            <p style="font-size: 0.78rem; color: var(--slate-500);">Preencha os dados básicos</p>
+        </div>
+
+        <form method="post" class="form-section">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">Nome do Condomínio *</label>
+                <input type="text" name="nome" class="form-control" placeholder="Ex: Residencial Solar" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Endereço</label>
+                <input type="text" name="endereco" class="form-control" placeholder="Rua, número, bairro">
+            </div>
+            <div class="row">
+                <div class="col-6 mb-3">
+                    <label class="form-label">CNPJ</label>
+                    <input type="text" name="cnpj" class="form-control" placeholder="00.000.000/0001-00">
+                </div>
+                <div class="col-6 mb-3">
+                    <label class="form-label">Telefone</label>
+                    <input type="text" name="telefone" class="form-control" placeholder="(00) 0000-0000">
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">E-mail</label>
+                <input type="email" name="email" class="form-control" placeholder="contato@condominio.com">
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <a href="{% url 'sindico_home' %}" class="btn-exec-outline flex-grow-1 text-center">Cancelar</a>
+                <button type="submit" class="btn-exec flex-grow-1">Criar</button>
+            </div>
+        </form>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

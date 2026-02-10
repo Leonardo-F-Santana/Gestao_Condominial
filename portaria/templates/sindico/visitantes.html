@@ -1,63 +1,56 @@
 {% extends 'sindico/base_sindico.html' %}
 
-{% block title %}Visitantes - {{ condominio.nome }}{% endblock %}
+{% block title %}Visitantes — {{ condominio.nome }}{% endblock %}
 
 {% block content %}
-<!-- Header da Página -->
-<div class="mb-3 d-flex justify-content-between align-items-center">
+<div class="page-header d-flex justify-content-between align-items-center">
     <div>
-        <h5 class="page-title">🚶 Visitantes</h5>
+        <h1 class="page-title">Visitantes</h1>
         <p class="page-subtitle">{{ visitantes_no_local.count }} no condomínio</p>
     </div>
-    <button class="btn btn-primary btn-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#modalNovaEntrada">
-        <i class="bi bi-plus"></i> Entrada
+    <button class="btn-exec btn-exec-sm" data-bs-toggle="modal" data-bs-target="#modalEntrada">
+        <i class="bi bi-plus-lg"></i> Entrada
     </button>
 </div>
 
-<!-- Visitantes no Local -->
-<div class="glass-card mb-3">
-    <div class="p-3 pb-2">
-        <h6 class="fw-bold mb-0"><i class="bi bi-geo-alt text-success"></i> No Condomínio Agora</h6>
+<!-- No Local -->
+<div class="card-section">
+    <div class="card-section-header">
+        <span class="card-section-title"><i class="bi bi-geo-alt-fill" style="color: var(--green);"></i> No Condomínio</span>
     </div>
-    <div class="px-3 pb-3">
-        {% if visitantes_no_local %}
-            {% for v in visitantes_no_local %}
-            <div class="list-item">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <strong>{{ v.nome_completo }}</strong>
-                        <div class="text-muted" style="font-size: 0.75rem;">
-                            {{ v.morador_responsavel|default:"Visitante geral" }}
-                            {% if v.placa_veiculo %}• {{ v.placa_veiculo }}{% endif %}
-                        </div>
-                        <div class="text-muted" style="font-size: 0.7rem;">
-                            Entrada: {{ v.horario_chegada|time:"H:i" }}
-                        </div>
-                    </div>
-                    <form method="post" action="{% url 'sindico_registrar_saida' v.id %}" class="d-inline">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
-                            <i class="bi bi-box-arrow-right"></i> Saída
-                        </button>
-                    </form>
+    <div class="card-section-body">
+        {% for v in visitantes_no_local %}
+        <div class="list-row">
+            <div>
+                <div class="list-row-name">{{ v.nome_completo }}</div>
+                <div class="list-row-sub">
+                    {{ v.morador_responsavel|default:"Visitante geral" }}
+                    {% if v.placa_veiculo %} · {{ v.placa_veiculo }}{% endif %}
+                    · Entrada: {{ v.horario_chegada|time:"H:i" }}
                 </div>
             </div>
-            {% endfor %}
-        {% else %}
-            <div class="text-center py-4">
-                <div style="font-size: 2.5rem;">🏠</div>
-                <p class="text-muted mt-2 mb-0">Nenhum visitante no momento</p>
-            </div>
-        {% endif %}
+            <form method="post" action="{% url 'sindico_registrar_saida' v.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn-danger-exec">
+                    <i class="bi bi-box-arrow-right"></i> Saída
+                </button>
+            </form>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <div class="empty-state-icon"><i class="bi bi-person-badge"></i></div>
+            <div class="empty-state-text">Nenhum visitante no momento</div>
+        </div>
+        {% endfor %}
     </div>
 </div>
 
-<!-- Modal Nova Entrada -->
-<div class="modal fade" id="modalNovaEntrada" tabindex="-1">
+<!-- Modal Entrada -->
+<div class="modal fade" id="modalEntrada" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title fw-bold">🚶 Registrar Entrada</h5>
+                <h5 class="modal-title">Registrar Entrada</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="post">
@@ -65,26 +58,26 @@
                 <input type="hidden" name="registrar_entrada" value="1">
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Nome do Visitante *</label>
-                        <input type="text" name="nome" class="form-control" required autofocus>
+                        <label class="form-label">Nome do Visitante *</label>
+                        <input type="text" name="nome" class="form-control" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Morador Responsável</label>
+                        <label class="form-label">Morador Responsável</label>
                         <select name="morador_id" class="form-select">
-                            <option value="">-- Selecione --</option>
+                            <option value="">Selecione</option>
                             {% for m in moradores %}
-                            <option value="{{ m.id }}">{% if m.bloco %}{{ m.bloco }}-{% endif %}{{ m.apartamento }} - {{ m.nome }}</option>
+                            <option value="{{ m.id }}">{% if m.bloco %}{{ m.bloco }}-{% endif %}{{ m.apartamento }} · {{ m.nome }}</option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Placa do Veículo</label>
+                        <label class="form-label">Placa do Veículo</label>
                         <input type="text" name="placa" class="form-control" placeholder="ABC-1234">
                     </div>
                 </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Registrar Entrada</button>
+                <div class="modal-footer">
+                    <button type="button" class="btn-exec-outline" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn-exec">Registrar</button>
                 </div>
             </form>
         </div>

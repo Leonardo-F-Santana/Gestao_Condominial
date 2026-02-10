@@ -20,7 +20,9 @@ from portaria.views import (
     exportar_relatorio_solicitacoes,
     historico_encomendas,
     historico_solicitacoes,
-    api_stats
+    api_stats,
+    alterar_senha,
+    cadastro_morador
 )
 
 # Views do Portal do Morador
@@ -46,6 +48,11 @@ from portaria.views_sindico import (
     entregar_encomenda_sindico,
     solicitacoes_sindico,
     responder_solicitacao_sindico,
+    avisos_sindico,
+    criar_aviso_sindico,
+    editar_aviso_sindico,
+    excluir_aviso_sindico,
+    resetar_senha_morador,
     dashboard_condominio
 )
 
@@ -56,6 +63,8 @@ urlpatterns = [
     path('', home, name='home'),
     path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
+    path('alterar-senha/', alterar_senha, name='alterar_senha'),
+    path('cadastro/<uuid:codigo_convite>/', cadastro_morador, name='cadastro_morador'),
     
     # --- Ações de Visitantes ---
     path('registrar_visitante/', registrar_visitante, name='registrar_visitante'),
@@ -92,12 +101,17 @@ urlpatterns = [
     path('sindico/novo-condominio/', criar_condominio, name='sindico_criar_condominio'),
     path('sindico/painel/', painel_sindico, name='sindico_painel'),
     path('sindico/moradores/', moradores_sindico, name='sindico_moradores'),
+    path('sindico/moradores/<int:morador_id>/resetar-senha/', resetar_senha_morador, name='sindico_resetar_senha'),
     path('sindico/visitantes/', visitantes_sindico, name='sindico_visitantes'),
     path('sindico/visitantes/saida/<int:visitante_id>/', registrar_saida_sindico, name='sindico_registrar_saida'),
     path('sindico/encomendas/', encomendas_sindico, name='sindico_encomendas'),
     path('sindico/encomendas/entregar/<int:encomenda_id>/', entregar_encomenda_sindico, name='sindico_entregar_encomenda'),
     path('sindico/solicitacoes/', solicitacoes_sindico, name='sindico_solicitacoes'),
     path('sindico/solicitacoes/responder/<int:solicitacao_id>/', responder_solicitacao_sindico, name='sindico_responder_solicitacao'),
+    path('sindico/avisos/', avisos_sindico, name='sindico_avisos'),
+    path('sindico/avisos/novo/', criar_aviso_sindico, name='sindico_criar_aviso'),
+    path('sindico/avisos/<int:aviso_id>/editar/', editar_aviso_sindico, name='sindico_editar_aviso'),
+    path('sindico/avisos/<int:aviso_id>/excluir/', excluir_aviso_sindico, name='sindico_excluir_aviso'),
     # Compatibilidade com rota antiga
     path('sindico/condominio/<int:condominio_id>/', dashboard_condominio, name='sindico_dashboard'),
 ]
