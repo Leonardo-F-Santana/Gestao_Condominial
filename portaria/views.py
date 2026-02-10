@@ -8,6 +8,7 @@ from django.utils.timezone import localdate # <--- IMPORTANTE: ISSO CORRIGE O DA
 from django.db.models import Q, Count
 from django.core.paginator import Paginator
 from django.http import HttpResponse
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django_ratelimit.decorators import ratelimit
 from .models import Visitante, Morador, Encomenda, Solicitacao
 
@@ -98,6 +99,7 @@ def alterar_senha(request):
     return render(request, 'alterar_senha.html')
 
 
+@ensure_csrf_cookie
 def cadastro_morador(request, codigo_convite):
     """Página pública de autocadastro de morador via link de convite"""
     from .models import Condominio, Morador

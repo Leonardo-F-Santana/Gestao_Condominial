@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.utils import timezone
-from .models import Condominio, Sindico, Morador, Visitante, Encomenda, Solicitacao, Aviso
+from .models import Condominio, Sindico, Morador, Visitante, Encomenda, Solicitacao, Aviso, Notificacao
 
 
 def is_sindico(user):
@@ -383,6 +383,11 @@ def solicitacoes_sindico(request):
     if not condominio:
         return redirect('sindico_home')
     
+    # Marcar notificações de solicitações como lidas
+    Notificacao.objects.filter(
+        usuario=request.user, tipo='solicitacao', lida=False
+    ).update(lida=True)
+    
     solicitacoes = Solicitacao.objects.filter(
         morador__condominio=condominio
     ).order_by('-data_criacao')
@@ -398,6 +403,16 @@ def responder_solicitacao_sindico(request, solicitacao_id):
         solicitacao.resposta_admin = request.POST.get('resposta', '').strip()
         solicitacao.status = request.POST.get('status', solicitacao.status)
         solicitacao.save()
+        
+        # Notificar o morador sobre a resposta
+        if solicitacao.morador and solicitacao.morador.usuario:
+            Notificacao.objects.create(
+                usuario=solicitacao.morador.usuario,
+                tipo='resposta_solicitacao',
+                mensagem=f'Sua solicitação #{solicitacao.id} foi respondida',
+                link=f'/morador/solicitacoes/{solicitacao.id}/'
+            )
+        
         messages.success(request, "Solicitação atualizada!")
     return redirect('sindico_solicitacoes')
 
@@ -448,6 +463,19 @@ def criar_aviso_sindico(request):
             if imagem:
                 aviso.imagem = imagem
                 aviso.save()
+            
+            # Notificar todos os moradores do condomínio
+            moradores = Morador.objects.filter(condominio=condominio, usuario__isnull=False)
+            notificacoes = [
+                Notificacao(
+                    usuario=m.usuario,
+                    tipo='aviso',
+                    mensagem=f'Novo aviso: {titulo[:80]}',
+                    link='/morador/avisos/'
+                ) for m in moradores
+            ]
+            Notificacao.objects.bulk_create(notificacoes)
+            
             messages.success(request, f"Aviso '{titulo}' publicado!")
     
     return redirect('sindico_avisos')

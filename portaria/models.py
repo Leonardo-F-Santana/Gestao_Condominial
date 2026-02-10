@@ -150,3 +150,27 @@ class Aviso(models.Model):
         verbose_name = "Aviso"
         verbose_name_plural = "Avisos"
         ordering = ['-data_publicacao']
+
+
+class Notificacao(models.Model):
+    """Notificações para moradores e síndicos"""
+    TIPO_CHOICES = [
+        ('aviso', '📢 Novo Aviso'),
+        ('solicitacao', '📋 Nova Solicitação'),
+        ('resposta_solicitacao', '💬 Resposta de Solicitação'),
+    ]
+
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notificacoes')
+    tipo = models.CharField(max_length=30, choices=TIPO_CHOICES)
+    mensagem = models.CharField(max_length=200)
+    link = models.CharField(max_length=200, blank=True)
+    lida = models.BooleanField(default=False)
+    data_criacao = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.get_tipo_display()} → {self.usuario.username}"
+
+    class Meta:
+        verbose_name = "Notificação"
+        verbose_name_plural = "Notificações"
+        ordering = ['-data_criacao']

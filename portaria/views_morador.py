@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
-from .models import Morador, Encomenda, Solicitacao, Aviso
+from .models import Morador, Encomenda, Solicitacao, Aviso, Notificacao, Sindico
 
 
 def get_morador_from_user(user):
@@ -89,6 +89,11 @@ def minhas_solicitacoes(request):
     """Lista de solicitações do morador"""
     morador = request.morador
     
+    # Marcar notificações de respostas como lidas
+    Notificacao.objects.filter(
+        usuario=request.user, tipo='resposta_solicitacao', lida=False
+    ).update(lida=True)
+    
     solicitacoes_list = Solicitacao.objects.filter(
         morador=morador
     ).order_by('-data_criacao')
@@ -133,6 +138,20 @@ def nova_solicitacao(request):
                 criado_por=request.user,
                 arquivo=arquivo if arquivo else ''
             )
+            
+            # Notificar síndicos do condomínio
+            if morador.condominio:
+                sindicos = Sindico.objects.filter(condominios=morador.condominio)
+                notificacoes = [
+                    Notificacao(
+                        usuario=s.usuario,
+                        tipo='solicitacao',
+                        mensagem=f'Nova solicitação #{solicitacao.id} de {morador.nome[:30]}',
+                        link='/sindico/solicitacoes/'
+                    ) for s in sindicos
+                ]
+                Notificacao.objects.bulk_create(notificacoes)
+            
             messages.success(request, f"Solicitação #{solicitacao.id} criada com sucesso!")
             return redirect('morador_solicitacoes')
         else:
@@ -162,6 +181,11 @@ def ver_solicitacao(request, id):
 def avisos(request):
     """Lista de avisos do condomínio"""
     morador = request.morador
+    
+    # Marcar notificações de avisos como lidas
+    Notificacao.objects.filter(
+        usuario=request.user, tipo='aviso', lida=False
+    ).update(lida=True)
     
     avisos_list = Aviso.objects.filter(ativo=True).order_by('-data_publicacao')
     

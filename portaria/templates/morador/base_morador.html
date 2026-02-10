@@ -365,11 +365,13 @@
                     <li class="nav-item">
                         <a class="nav-link {% if 'solicitac' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'morador_solicitacoes' %}">
                             <i class="bi bi-clipboard2-check-fill"></i> Solicitações
+                            {% if notif_solicitacoes %}<span class="badge bg-danger rounded-pill ms-1">{{ notif_solicitacoes }}</span>{% endif %}
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if 'aviso' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'morador_avisos' %}">
                             <i class="bi bi-megaphone-fill"></i> Avisos
+                            {% if notif_avisos %}<span class="badge bg-danger rounded-pill ms-1">{{ notif_avisos }}</span>{% endif %}
                         </a>
                     </li>
                 </ul>
@@ -417,10 +419,12 @@
         </a>
         <a href="{% url 'morador_solicitacoes' %}" class="{% if 'solicitac' in request.resolver_match.url_name %}active{% endif %}">
             <i class="bi bi-clipboard2{% if 'solicitac' in request.resolver_match.url_name %}-check-fill{% else %}-check{% endif %}"></i>
+            {% if notif_solicitacoes %}<span class="notification-badge">{{ notif_solicitacoes }}</span>{% endif %}
             <span>Pedidos</span>
         </a>
         <a href="{% url 'morador_avisos' %}" class="{% if 'aviso' in request.resolver_match.url_name %}active{% endif %}">
             <i class="bi bi-megaphone{% if 'aviso' in request.resolver_match.url_name %}-fill{% endif %}"></i>
+            {% if notif_avisos %}<span class="notification-badge">{{ notif_avisos }}</span>{% endif %}
             <span>Avisos</span>
         </a>
     </div>

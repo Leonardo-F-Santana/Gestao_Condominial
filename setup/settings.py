@@ -16,12 +16,18 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,*').split(',')
 
 # Origens confiáveis para CSRF (necessário para acesso via IP na rede local)
+# Configurável via .env: CSRF_TRUSTED_ORIGINS=http://192.168.1.49:8000,http://192.168.1.50:8000
+_csrf_origins_env = os.getenv('CSRF_TRUSTED_ORIGINS', '')
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8000',
     'http://127.0.0.1:8000',
     'http://192.168.1.49:8000',
-    'http://192.168.*:8000',
-]
+] + [o.strip() for o in _csrf_origins_env.split(',') if o.strip()]
+
+# Cookies compatíveis com iOS WebKit (Chrome no iPhone usa WebKit)
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_HTTPONLY = False
 
 # ==============================================================================
 # CONFIGURAÇÕES DE SEGURANÇA
@@ -86,6 +92,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'portaria.context_processors.notificacoes',
             ],
         },
     },
