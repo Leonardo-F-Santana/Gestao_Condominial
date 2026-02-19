@@ -65,6 +65,12 @@ class Morador(models.Model):
             return f"{self.bloco} - {self.apartamento} - {self.nome}"
         return f"{self.apartamento} - {self.nome}"
 
+    class Meta:
+        verbose_name = "Morador"
+        verbose_name_plural = "Moradores"
+        ordering = ['bloco', 'apartamento']
+
+
 class Visitante(models.Model):
     nome_completo = models.CharField(max_length=100, verbose_name="Nome Completo")
     cpf = models.CharField(max_length=14, verbose_name="CPF", blank=True, null=True)

@@ -145,79 +145,159 @@ LOGIN_URL = 'login'
 LOGOUT_REDIRECT_URL = 'login'
 
 # ==============================================================================
-# CONFIGURAÇÕES DO JAZZMIN (Visual do Admin)
+# CONFIGURAÇÕES DO UNFOLD (Visual do Admin)
 # ==============================================================================
-JAZZMIN_SETTINGS = {
-    "site_title": "Portaria Inteligente",
-    "site_header": "Gestão Condominial",
-    "site_brand": "Condomínio Admin",
-    "welcome_sign": "Bem-vindo ao Painel de Controle",
-    "copyright": "Portaria Inteligente Ltda",
-    
-    "show_sidebar": True,
-    "navigation_expanded": True,
-    
-    "icons": {
-        "auth": "fas fa-users-cog",
-        "auth.user": "fas fa-user",
-        "auth.Group": "fas fa-users",
-        "portaria.Visitante": "fas fa-user-clock",
-        "portaria.Encomenda": "fas fa-box-open",
-        "portaria.Morador": "fas fa-home",
-        "portaria.Solicitacao": "fas fa-clipboard-list",
-    },
-    
-    "order_with_respect_to": [
-        "portaria", 
-        "portaria.Solicitacao", 
-        "portaria.Encomenda", 
-        "portaria.Visitante", 
-        "portaria.Morador", 
-        "auth"
-    ],
+from django.urls import reverse_lazy
 
-    "custom_links": {
-        "portaria": [{
-            "name": "💻 Abrir Sistema da Portaria", 
-            "url": "home", 
-            "icon": "fas fa-laptop-house",
-        }]
+UNFOLD = {
+    "SITE_TITLE": "Painel de Administração",
+    "SITE_HEADER": "Gestão Condominial",
+    "SITE_SUBHEADER": "Painel de Administração",
+    "SITE_URL": "/",
+    "SITE_SYMBOL": "apartment",
+    "SHOW_HISTORY": True,
+    "SHOW_VIEW_ON_SITE": False,
+    "SHOW_BACK_BUTTON": True,
+    "BORDER_RADIUS": "8px",
+    "COLORS": {
+        "base": {
+            "50": "250 250 252",
+            "100": "241 245 249",
+            "200": "226 232 240",
+            "300": "203 213 225",
+            "400": "148 163 184",
+            "500": "100 116 139",
+            "600": "71 85 105",
+            "700": "51 65 85",
+            "800": "30 41 59",
+            "900": "15 23 42",
+            "950": "2 6 23",
+        },
+        "primary": {
+            "50": "239 246 255",
+            "100": "219 234 254",
+            "200": "191 219 254",
+            "300": "147 197 253",
+            "400": "96 165 250",
+            "500": "59 130 246",
+            "600": "37 99 235",
+            "700": "29 78 216",
+            "800": "30 64 175",
+            "900": "30 58 138",
+            "950": "23 37 84",
+        },
     },
-    
-    "topmenu_links": [
-        {"name": "Ir para Portaria", "url": "home", "permissions": ["auth.view_user"]},
-        {"model": "auth.User"},
-    ],
-}
-
-JAZZMIN_UI_TWEAKS = {
-    "navbar_small_text": False,
-    "footer_small_text": False,
-    "body_small_text": False,
-    "brand_small_text": False,
-    "brand_colour": "navbar-primary",
-    "accent": "accent-primary",
-    "navbar": "navbar-dark navbar-primary",
-    "no_navbar_border": False,
-    "navbar_fixed": False,
-    "layout_boxed": False,
-    "footer_fixed": False,
-    "sidebar_fixed": True,
-    "sidebar": "sidebar-dark-primary",
-    "sidebar_nav_small_text": False,
-    "sidebar_disable_expand": False,
-    "sidebar_nav_child_indent": False,
-    "sidebar_nav_compact_style": False,
-    "sidebar_nav_legacy_style": False,
-    "sidebar_nav_flat_style": False,
-    "theme": "flatly", 
-    "dark_mode_theme": None,
-    "button_classes": {
-        "primary": "btn-primary",
-        "secondary": "btn-secondary",
-        "info": "btn-info",
-        "warning": "btn-warning",
-        "danger": "btn-danger",
-        "success": "btn-success"
-    }
+    "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": False,
+        "navigation": [
+            {
+                "title": "Painel",
+                "separator": True,
+                "collapsible": False,
+                "items": [
+                    {
+                        "title": "Dashboard",
+                        "icon": "dashboard",
+                        "link": reverse_lazy("admin:index"),
+                    },
+                ],
+            },
+            {
+                "title": "Condomínios",
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": "Condomínios",
+                        "icon": "apartment",
+                        "link": reverse_lazy("admin:portaria_condominio_changelist"),
+                    },
+                    {
+                        "title": "Síndicos",
+                        "icon": "admin_panel_settings",
+                        "link": reverse_lazy("admin:portaria_sindico_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "Moradores & Visitantes",
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": "Moradores",
+                        "icon": "groups",
+                        "link": reverse_lazy("admin:portaria_morador_changelist"),
+                    },
+                    {
+                        "title": "Visitantes",
+                        "icon": "badge",
+                        "link": reverse_lazy("admin:portaria_visitante_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "Operações",
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": "Encomendas",
+                        "icon": "package_2",
+                        "link": reverse_lazy("admin:portaria_encomenda_changelist"),
+                    },
+                    {
+                        "title": "Solicitações",
+                        "icon": "assignment",
+                        "link": reverse_lazy("admin:portaria_solicitacao_changelist"),
+                    },
+                    {
+                        "title": "Avisos",
+                        "icon": "campaign",
+                        "link": reverse_lazy("admin:portaria_aviso_changelist"),
+                    },
+                    {
+                        "title": "Notificações",
+                        "icon": "notifications",
+                        "link": reverse_lazy("admin:portaria_notificacao_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "Acesso",
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": "Usuários",
+                        "icon": "person",
+                        "link": reverse_lazy("admin:auth_user_changelist"),
+                    },
+                    {
+                        "title": "Grupos",
+                        "icon": "group",
+                        "link": reverse_lazy("admin:auth_group_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "Links Rápidos",
+                "separator": True,
+                "collapsible": False,
+                "items": [
+                    {
+                        "title": "Portal do Síndico",
+                        "icon": "open_in_new",
+                        "link": "/sindico/",
+                    },
+                    {
+                        "title": "Portaria",
+                        "icon": "open_in_new",
+                        "link": "/",
+                    },
+                ],
+            },
+        ],
+    },
 }

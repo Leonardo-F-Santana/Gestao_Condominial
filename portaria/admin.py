@@ -149,3 +149,12 @@ class AvisoAdmin(ModelAdmin):
                 ) for m in moradores
             ]
             Notificacao.objects.bulk_create(notificacoes)
+
+
+@admin.register(Notificacao)
+class NotificacaoAdmin(ModelAdmin):
+    list_display = ('tipo', 'usuario', 'mensagem', 'lida', 'data_criacao')
+    list_filter = ('tipo', 'lida')
+    search_fields = ('mensagem', 'usuario__username')
+    readonly_fields = ('data_criacao',)
+    list_editable = ('lida',)
