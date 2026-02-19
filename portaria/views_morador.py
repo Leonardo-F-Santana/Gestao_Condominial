@@ -182,12 +182,10 @@ def avisos(request):
     """Lista de avisos do condomínio"""
     morador = request.morador
     
-    # Marcar notificações de avisos como lidas
-    Notificacao.objects.filter(
-        usuario=request.user, tipo='aviso', lida=False
-    ).update(lida=True)
-    
-    avisos_list = Aviso.objects.filter(ativo=True).order_by('-data_publicacao')
+    # Filtrar avisos pelo condomínio do morador
+    avisos_list = Aviso.objects.filter(
+        ativo=True, condominio=morador.condominio
+    ).order_by('-data_publicacao')
     
     paginator = Paginator(avisos_list, 10)
     page_number = request.GET.get('page')
@@ -197,4 +195,13 @@ def avisos(request):
         'morador': morador,
         'avisos': avisos,
     }
-    return render(request, 'morador/avisos.html', context)
+    
+    response = render(request, 'morador/avisos.html', context)
+    
+    # Marcar notificações como lidas APÓS renderizar a página
+    # para que o badge apareça na primeira visita
+    Notificacao.objects.filter(
+        usuario=request.user, tipo='aviso', lida=False
+    ).update(lida=True)
+    
+    return response

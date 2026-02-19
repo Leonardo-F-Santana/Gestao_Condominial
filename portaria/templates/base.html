@@ -274,14 +274,12 @@
         <div class="container">
             <a class="navbar-brand" href="{% url 'home' %}">
                 <img src="/img/logo.ico" alt="Logo" class="brand-logo" onerror="this.style.display='none'">
-                <span class="brand-text">🏢 Portaria Splash Residence Club</span>
+                <span class="brand-text">Portaria Splash Residence Club</span>
             </a>
             
             <div class="d-flex align-items-center gap-2">
                 {% if user.is_staff %}
-                    <a href="{% url 'dashboard' %}" class="quick-action d-none d-md-flex">
-                        <i class="bi bi-bar-chart-fill"></i> Dashboard
-                    </a>
+
                     <a href="/admin/" target="_blank" class="quick-action d-none d-md-flex">
                         <i class="bi bi-gear-fill"></i> Admin
                     </a>

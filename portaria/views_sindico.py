@@ -451,6 +451,7 @@ def criar_aviso_sindico(request):
         conteudo = request.POST.get('conteudo', '').strip()
         data_exp = request.POST.get('data_expiracao', '').strip()
         imagem = request.FILES.get('imagem')
+        arquivo = request.FILES.get('arquivo')
         
         if titulo and conteudo:
             aviso = Aviso.objects.create(
@@ -462,6 +463,9 @@ def criar_aviso_sindico(request):
             )
             if imagem:
                 aviso.imagem = imagem
+            if arquivo:
+                aviso.arquivo = arquivo
+            if imagem or arquivo:
                 aviso.save()
             
             # Notificar todos os moradores do condomínio
@@ -496,6 +500,10 @@ def editar_aviso_sindico(request, aviso_id):
         imagem = request.FILES.get('imagem')
         if imagem:
             aviso.imagem = imagem
+        
+        arquivo = request.FILES.get('arquivo')
+        if arquivo:
+            aviso.arquivo = arquivo
         
         aviso.save()
         messages.success(request, "Aviso atualizado!")

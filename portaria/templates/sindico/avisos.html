@@ -37,6 +37,14 @@
         <img src="{{ aviso.imagem.url }}" alt="{{ aviso.titulo }}" style="width: 100%; border-radius: 8px; margin-bottom: 0.5rem;">
         {% endif %}
         
+        {% if aviso.arquivo %}
+        <div class="mb-2">
+            <a href="{{ aviso.arquivo.url }}" target="_blank" download class="btn-exec btn-exec-sm" style="font-size: 0.78rem;">
+                <i class="bi bi-paperclip"></i> {{ aviso.arquivo.name|cut:"avisos/anexos/" }}
+            </a>
+        </div>
+        {% endif %}
+        
         {% if aviso.data_expiracao %}
         <div class="list-row-sub"><i class="bi bi-calendar-x"></i> Expira em {{ aviso.data_expiracao|date:"d/m/Y" }}</div>
         {% endif %}
@@ -83,6 +91,16 @@
                         </div>
                         {% endif %}
                         <input type="file" name="imagem" class="form-control" accept="image/*">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Arquivo Anexo</label>
+                        {% if aviso.arquivo %}
+                        <div class="mb-2">
+                            <a href="{{ aviso.arquivo.url }}" target="_blank" class="text-primary"><i class="bi bi-paperclip"></i> {{ aviso.arquivo.name|cut:"avisos/anexos/" }}</a>
+                            <small class="text-muted d-block">Selecione novo arquivo para substituir</small>
+                        </div>
+                        {% endif %}
+                        <input type="file" name="arquivo" class="form-control">
                     </div>
                     <div class="row">
                         <div class="col-6 mb-3">
@@ -137,6 +155,10 @@
                     <div class="mb-3">
                         <label class="form-label">Imagem (opcional)</label>
                         <input type="file" name="imagem" class="form-control" accept="image/*">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Arquivo Anexo (opcional)</label>
+                        <input type="file" name="arquivo" class="form-control">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Data de Expiração (opcional)</label>

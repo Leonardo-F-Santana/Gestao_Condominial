@@ -5,7 +5,7 @@ from django.utils.html import format_html
 from import_export import resources
 from unfold.admin import ModelAdmin
 from unfold.contrib.import_export.forms import ExportForm, ImportForm
-from .models import Condominio, Sindico, Visitante, Morador, Encomenda, Solicitacao, Aviso
+from .models import Condominio, Sindico, Visitante, Morador, Encomenda, Solicitacao, Aviso, Notificacao
 
 
 # --- CONFIGURAÇÃO DE USUÁRIOS (Django Auth) ---
@@ -134,3 +134,18 @@ class AvisoAdmin(ModelAdmin):
         if not change:
             obj.criado_por = request.user
         super().save_model(request, obj, form, change)
+        
+        # Criar notificações para todos os moradores do condomínio (apenas ao criar)
+        if not change and obj.condominio:
+            moradores = Morador.objects.filter(
+                condominio=obj.condominio, usuario__isnull=False
+            )
+            notificacoes = [
+                Notificacao(
+                    usuario=m.usuario,
+                    tipo='aviso',
+                    mensagem=f'Novo aviso: {obj.titulo[:80]}',
+                    link='/morador/avisos/'
+                ) for m in moradores
+            ]
+            Notificacao.objects.bulk_create(notificacoes)

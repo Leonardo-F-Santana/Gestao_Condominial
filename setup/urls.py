@@ -14,7 +14,7 @@ from portaria.views import (
     marcar_notificado, 
     registrar_solicitacao, 
     registrar_saida, 
-    dashboard, 
+
     exportar_relatorio, 
     exportar_relatorio_encomendas, 
     exportar_relatorio_solicitacoes,
@@ -83,7 +83,7 @@ urlpatterns = [
     path('exportar_relatorio_solicitacoes/', exportar_relatorio_solicitacoes, name='exportar_relatorio_solicitacoes'),
     
     # --- Gestão e Relatórios Gerais ---
-    path('dashboard/', dashboard, name='dashboard'),
+
     path('api/stats/', api_stats, name='api_stats'),
     path('exportar_relatorio/', exportar_relatorio, name='exportar_relatorio'),
     

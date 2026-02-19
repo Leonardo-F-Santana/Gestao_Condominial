@@ -158,41 +158,6 @@ def cadastro_morador(request, codigo_convite):
         'form_data': form_data
     })
 
-# ==========================================
-# 2. DASHBOARD (CORRIGIDO AQUI)
-# ==========================================
-
-@login_required
-@user_passes_test(lambda u: u.is_staff)
-def dashboard(request):
-    hoje = localdate() # <--- USA A DATA LOCAL CORRETA
-    
-    # Filtra usando __date=hoje para garantir precisão
-    total_visitantes_hoje = Visitante.objects.filter(horario_chegada__date=hoje).count()
-    encomendas_pendentes = Encomenda.objects.filter(entregue=False).count()
-    encomendas_entregues = Encomenda.objects.filter(entregue=True).count()
-    solicitacoes_pendentes = Solicitacao.objects.filter(status='PENDENTE').count()
-
-    tipos_solicitacao = Solicitacao.objects.values('tipo').annotate(total=Count('tipo'))
-    labels_pizza = [item['tipo'] for item in tipos_solicitacao]
-    data_pizza = [item['total'] for item in tipos_solicitacao]
-
-    status_counts = Solicitacao.objects.values('status').annotate(total=Count('status'))
-    labels_status = [item['status'] for item in status_counts]
-    data_status = [item['total'] for item in status_counts]
-
-    context = {
-        'total_visitantes_hoje': total_visitantes_hoje,
-        'encomendas_pendentes': encomendas_pendentes,
-        'solicitacoes_pendentes': solicitacoes_pendentes,
-        'entregues': encomendas_entregues,
-        'pendentes': encomendas_pendentes,
-        'labels_pizza': labels_pizza,
-        'data_pizza': data_pizza,
-        'labels_status': labels_status,
-        'data_status': data_status,
-    }
-    return render(request, 'dashboard.html', context)
 
 # ==========================================
 # 3. API STATS (Polling AJAX)

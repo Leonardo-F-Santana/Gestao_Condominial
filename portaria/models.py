@@ -138,6 +138,7 @@ class Aviso(models.Model):
     titulo = models.CharField(max_length=200, verbose_name="Título")
     conteudo = models.TextField(verbose_name="Conteúdo")
     imagem = models.ImageField(upload_to='avisos/%Y/%m/', blank=True, verbose_name="Imagem")
+    arquivo = models.FileField(upload_to='avisos/anexos/%Y/%m/', blank=True, verbose_name="Arquivo Anexo")
     data_publicacao = models.DateTimeField(auto_now_add=True, verbose_name="Data de Publicação")
     data_expiracao = models.DateField(null=True, blank=True, verbose_name="Data de Expiração")
     ativo = models.BooleanField(default=True, verbose_name="Ativo")
