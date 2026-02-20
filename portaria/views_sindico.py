@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.utils import timezone
-from .models import Condominio, Sindico, Morador, Visitante, Encomenda, Solicitacao, Aviso, Notificacao
+from .models import Condominio, Sindico, Morador, Visitante, Encomenda, Solicitacao, Aviso, Notificacao, AreaComum, Reserva
 
 
 def is_sindico(user):
@@ -531,3 +531,188 @@ def dashboard_condominio(request, condominio_id):
         request.session['condominio_ativo_id'] = condominio_id
         return redirect('sindico_painel')
     return redirect('sindico_home')
+
+
+# ==========================================
+# ÁREAS COMUNS
+# ==========================================
+
+@login_required
+def areas_comuns_sindico(request):
+    """CRUD de áreas comuns"""
+    if not is_sindico(request.user):
+        return redirect('home')
+
+    condominio = get_condominio_ativo(request)
+    if not condominio:
+        return redirect('sindico_home')
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'criar':
+            nome = request.POST.get('nome', '').strip()
+            descricao = request.POST.get('descricao', '')
+            capacidade = request.POST.get('capacidade', 0)
+            horario_abertura = request.POST.get('horario_abertura', '08:00')
+            horario_fechamento = request.POST.get('horario_fechamento', '22:00')
+            imagem = request.FILES.get('imagem')
+
+            if nome:
+                area = AreaComum.objects.create(
+                    condominio=condominio,
+                    nome=nome,
+                    descricao=descricao,
+                    capacidade=int(capacidade) if capacidade else 0,
+                    horario_abertura=horario_abertura,
+                    horario_fechamento=horario_fechamento,
+                )
+                if imagem:
+                    area.imagem = imagem
+                    area.save()
+                messages.success(request, f'Área "{nome}" cadastrada com sucesso!')
+            else:
+                messages.error(request, 'Informe o nome da área.')
+
+        elif action == 'editar':
+            area_id = request.POST.get('area_id')
+            area = get_object_or_404(AreaComum, id=area_id, condominio=condominio)
+            area.nome = request.POST.get('nome', area.nome)
+            area.descricao = request.POST.get('descricao', area.descricao)
+            area.capacidade = int(request.POST.get('capacidade', area.capacidade) or 0)
+            area.horario_abertura = request.POST.get('horario_abertura', area.horario_abertura)
+            area.horario_fechamento = request.POST.get('horario_fechamento', area.horario_fechamento)
+            area.ativo = request.POST.get('ativo') == 'on'
+            if request.FILES.get('imagem'):
+                area.imagem = request.FILES['imagem']
+            area.save()
+            messages.success(request, f'Área "{area.nome}" atualizada!')
+
+        return redirect('sindico_areas_comuns')
+
+    areas = AreaComum.objects.filter(condominio=condominio)
+    context = sindico_context(request, {
+        'areas': areas,
+    }, active_page='reservas')
+    return render(request, 'sindico/areas_comuns.html', context)
+
+
+@login_required
+def excluir_area_sindico(request, area_id):
+    """Excluir área comum"""
+    condominio = get_condominio_ativo(request)
+    if not condominio:
+        return redirect('sindico_home')
+    area = get_object_or_404(AreaComum, id=area_id, condominio=condominio)
+    nome = area.nome
+    area.delete()
+    messages.success(request, f'Área "{nome}" excluída!')
+    return redirect('sindico_areas_comuns')
+
+
+# ==========================================
+# RESERVAS (SÍNDICO)
+# ==========================================
+
+@login_required
+def reservas_sindico(request):
+    """Listagem de reservas com filtros"""
+    if not is_sindico(request.user):
+        return redirect('home')
+
+    condominio = get_condominio_ativo(request)
+    if not condominio:
+        return redirect('sindico_home')
+
+    # Marcar notificações de reserva como lidas
+    Notificacao.objects.filter(
+        usuario=request.user, tipo='reserva', lida=False
+    ).update(lida=True)
+
+    # Criar área comum direto da tela de reservas
+    if request.method == 'POST' and request.POST.get('action') == 'criar_area':
+        nome = request.POST.get('nome', '').strip()
+        descricao = request.POST.get('descricao', '')
+        capacidade = request.POST.get('capacidade', 0)
+        horario_abertura = request.POST.get('horario_abertura', '08:00')
+        horario_fechamento = request.POST.get('horario_fechamento', '22:00')
+        imagem = request.FILES.get('imagem')
+
+        if nome:
+            area = AreaComum.objects.create(
+                condominio=condominio,
+                nome=nome,
+                descricao=descricao,
+                capacidade=int(capacidade) if capacidade else 0,
+                horario_abertura=horario_abertura,
+                horario_fechamento=horario_fechamento,
+            )
+            if imagem:
+                area.imagem = imagem
+                area.save()
+            messages.success(request, f'Área "{nome}" cadastrada com sucesso!')
+        else:
+            messages.error(request, 'Informe o nome da área.')
+        return redirect('sindico_reservas')
+
+    reservas_list = Reserva.objects.filter(
+        area__condominio=condominio
+    ).select_related('area', 'morador')
+
+    # Filtros
+    status = request.GET.get('status')
+    if status:
+        reservas_list = reservas_list.filter(status=status)
+
+    context = sindico_context(request, {
+        'reservas': reservas_list,
+        'status_filtro': status,
+    }, active_page='reservas')
+    return render(request, 'sindico/reservas.html', context)
+
+
+@login_required
+def aprovar_reserva_sindico(request, reserva_id):
+    """Aprovar uma reserva"""
+    condominio = get_condominio_ativo(request)
+    if not condominio:
+        return redirect('sindico_home')
+    reserva = get_object_or_404(Reserva, id=reserva_id, area__condominio=condominio)
+    reserva.status = 'APROVADA'
+    reserva.save()
+
+    # Notificar morador
+    if reserva.morador.usuario:
+        Notificacao.objects.create(
+            usuario=reserva.morador.usuario,
+            tipo='reserva',
+            mensagem=f'Sua reserva de {reserva.area.nome} para {reserva.data.strftime("%d/%m")} foi aprovada! ✅',
+            link='/morador/reservas/'
+        )
+
+    messages.success(request, 'Reserva aprovada!')
+    return redirect('sindico_reservas')
+
+
+@login_required
+def recusar_reserva_sindico(request, reserva_id):
+    """Recusar uma reserva"""
+    condominio = get_condominio_ativo(request)
+    if not condominio:
+        return redirect('sindico_home')
+    reserva = get_object_or_404(Reserva, id=reserva_id, area__condominio=condominio)
+    reserva.status = 'RECUSADA'
+    reserva.motivo_recusa = request.POST.get('motivo', '')
+    reserva.save()
+
+    # Notificar morador
+    if reserva.morador.usuario:
+        Notificacao.objects.create(
+            usuario=reserva.morador.usuario,
+            tipo='reserva',
+            mensagem=f'Sua reserva de {reserva.area.nome} para {reserva.data.strftime("%d/%m")} foi recusada.',
+            link='/morador/reservas/'
+        )
+
+    messages.success(request, 'Reserva recusada.')
+    return redirect('sindico_reservas')

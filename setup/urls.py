@@ -32,7 +32,11 @@ from portaria.views_morador import (
     minhas_solicitacoes,
     nova_solicitacao,
     ver_solicitacao,
-    avisos
+    avisos,
+    areas_disponiveis,
+    fazer_reserva,
+    minhas_reservas,
+    cancelar_reserva
 )
 
 # Views do Portal do Síndico
@@ -53,7 +57,12 @@ from portaria.views_sindico import (
     editar_aviso_sindico,
     excluir_aviso_sindico,
     resetar_senha_morador,
-    dashboard_condominio
+    dashboard_condominio,
+    areas_comuns_sindico,
+    excluir_area_sindico,
+    reservas_sindico,
+    aprovar_reserva_sindico,
+    recusar_reserva_sindico
 )
 
 urlpatterns = [
@@ -94,6 +103,10 @@ urlpatterns = [
     path('morador/solicitacoes/nova/', nova_solicitacao, name='morador_nova_solicitacao'),
     path('morador/solicitacoes/<int:id>/', ver_solicitacao, name='morador_ver_solicitacao'),
     path('morador/avisos/', avisos, name='morador_avisos'),
+    path('morador/reservas/', minhas_reservas, name='morador_reservas'),
+    path('morador/reservas/areas/', areas_disponiveis, name='morador_areas_disponiveis'),
+    path('morador/reservas/nova/<int:area_id>/', fazer_reserva, name='morador_fazer_reserva'),
+    path('morador/reservas/<int:reserva_id>/cancelar/', cancelar_reserva, name='morador_cancelar_reserva'),
     
     # --- Portal do Síndico ---
     path('sindico/', portal_sindico_home, name='sindico_home'),
@@ -112,6 +125,12 @@ urlpatterns = [
     path('sindico/avisos/novo/', criar_aviso_sindico, name='sindico_criar_aviso'),
     path('sindico/avisos/<int:aviso_id>/editar/', editar_aviso_sindico, name='sindico_editar_aviso'),
     path('sindico/avisos/<int:aviso_id>/excluir/', excluir_aviso_sindico, name='sindico_excluir_aviso'),
+    # Compatibilidade com rota antiga
+    path('sindico/areas-comuns/', areas_comuns_sindico, name='sindico_areas_comuns'),
+    path('sindico/areas-comuns/<int:area_id>/excluir/', excluir_area_sindico, name='sindico_excluir_area'),
+    path('sindico/reservas/', reservas_sindico, name='sindico_reservas'),
+    path('sindico/reservas/<int:reserva_id>/aprovar/', aprovar_reserva_sindico, name='sindico_aprovar_reserva'),
+    path('sindico/reservas/<int:reserva_id>/recusar/', recusar_reserva_sindico, name='sindico_recusar_reserva'),
     # Compatibilidade com rota antiga
     path('sindico/condominio/<int:condominio_id>/', dashboard_condominio, name='sindico_dashboard'),
 ]

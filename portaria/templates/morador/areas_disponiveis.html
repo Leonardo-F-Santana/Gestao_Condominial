@@ -1,0 +1,53 @@
+{% extends 'morador/base_morador.html' %}
+
+{% block title %}Áreas Disponíveis - Portal do Morador{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0" style="color: #57534e;">
+        <i class="bi bi-building" style="color: var(--primary);"></i> Áreas Disponíveis
+    </h4>
+    <a href="{% url 'morador_reservas' %}" class="btn btn-light btn-sm rounded-pill px-3 shadow-sm">
+        <i class="bi bi-calendar-check"></i> Minhas Reservas
+    </a>
+</div>
+
+<div class="glass-card">
+    {% if areas %}
+    <div class="list-group list-group-flush">
+        {% for area in areas %}
+        <a href="{% url 'morador_fazer_reserva' area.id %}" class="list-group-item list-group-item-action border-0 list-item-animated p-4">
+            <div class="d-flex justify-content-between align-items-start">
+                <div style="flex: 1;">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="fw-bold" style="color: #44403c; font-size: 1rem;">{{ area.nome }}</span>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2 mb-1">
+                        <span class="badge bg-light text-dark rounded-pill fw-semibold">
+                            <i class="bi bi-people-fill"></i> {{ area.capacidade }} pessoas
+                        </span>
+                        <span class="badge bg-light text-dark rounded-pill fw-semibold">
+                            <i class="bi bi-clock"></i> {{ area.horario_abertura|time:"H:i" }} – {{ area.horario_fechamento|time:"H:i" }}
+                        </span>
+                    </div>
+                    {% if area.descricao %}
+                    <p class="mb-0 text-muted small mt-1" style="max-width: 260px;">{{ area.descricao|truncatechars:80 }}</p>
+                    {% endif %}
+                </div>
+                <div class="text-end ms-2">
+                    <span class="badge badge-done rounded-pill px-3">Disponível</span>
+                    <br><i class="bi bi-chevron-right text-muted mt-2" style="font-size: 1.2rem;"></i>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card-body text-center py-5">
+        <div class="mb-3" style="font-size: 4rem;">🏢</div>
+        <h5 class="text-muted fw-bold">Nenhuma área disponível</h5>
+        <p class="text-muted small mb-0">O síndico ainda não cadastrou espaços reserváveis.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

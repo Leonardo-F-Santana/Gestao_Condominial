@@ -1,0 +1,177 @@
+{% extends 'morador/base_morador.html' %}
+
+{% block title %}Minhas Reservas - Portal do Morador{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0" style="color: #57534e;">
+        <i class="bi bi-calendar-check-fill" style="color: var(--primary);"></i> Minhas Reservas
+    </h4>
+    <a href="{% url 'morador_areas_disponiveis' %}" class="btn btn-light btn-sm rounded-pill px-3 shadow-sm">
+        <i class="bi bi-plus-lg"></i> Nova
+    </a>
+</div>
+
+<!-- Filtros -->
+<div class="glass-card mb-4">
+    <div class="card-body p-3">
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{% url 'morador_reservas' %}" class="btn btn-sm rounded-pill {% if not status_filtro %}btn-gradient{% else %}btn-light{% endif %} px-3">
+                Todas
+            </a>
+            <a href="?status=PENDENTE" class="btn btn-sm rounded-pill {% if status_filtro == 'PENDENTE' %}btn-gradient{% else %}btn-light{% endif %} px-3">
+                🟡 Pendentes
+            </a>
+            <a href="?status=APROVADA" class="btn btn-sm rounded-pill {% if status_filtro == 'APROVADA' %}btn-gradient{% else %}btn-light{% endif %} px-3">
+                🟢 Aprovadas
+            </a>
+            <a href="?status=CANCELADA" class="btn btn-sm rounded-pill {% if status_filtro == 'CANCELADA' %}btn-gradient{% else %}btn-light{% endif %} px-3">
+                ⚫ Canceladas
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Lista de Reservas -->
+<div class="glass-card">
+    {% if reservas %}
+    <div class="list-group list-group-flush">
+        {% for r in reservas %}
+        <div class="list-group-item border-0 list-item-animated p-4" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#modalRes{{ r.id }}">
+            <div class="d-flex justify-content-between align-items-start">
+                <div style="flex: 1;">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-light text-dark me-2 rounded-pill fw-semibold">
+                            <i class="bi bi-building"></i> {{ r.area.nome }}
+                        </span>
+                        <small class="text-muted">{{ r.data|date:"d/m/Y" }}</small>
+                    </div>
+                    <p class="mb-0 text-muted small">
+                        <i class="bi bi-clock"></i> {{ r.horario_inicio|time:"H:i" }} – {{ r.horario_fim|time:"H:i" }}
+                    </p>
+                </div>
+                <div class="text-end ms-2">
+                    {% if r.status == 'PENDENTE' %}
+                        <span class="badge badge-pending rounded-pill px-3">Pendente</span>
+                    {% elif r.status == 'APROVADA' %}
+                        <span class="badge badge-done rounded-pill px-3">Aprovada</span>
+                    {% elif r.status == 'RECUSADA' %}
+                        <span class="badge badge-cancelled rounded-pill px-3">Recusada</span>
+                    {% else %}
+                        <span class="badge bg-secondary rounded-pill px-3">Cancelada</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Detalhe -->
+        <div class="modal fade" id="modalRes{{ r.id }}" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content" style="border-radius: 20px; border: none;">
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title fw-bold">
+                            <i class="bi bi-calendar-check" style="color: var(--primary);"></i> {{ r.area.nome }}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row g-3 mb-3">
+                            <div class="col-4">
+                                <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">DATA</label>
+                                <div class="fw-semibold">{{ r.data|date:"d/m/Y" }}</div>
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">INÍCIO</label>
+                                <div class="fw-semibold">{{ r.horario_inicio|time:"H:i" }}</div>
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">FIM</label>
+                                <div class="fw-semibold">{{ r.horario_fim|time:"H:i" }}</div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">STATUS</label>
+                            <div>
+                                {% if r.status == 'PENDENTE' %}
+                                    <span class="badge badge-pending rounded-pill px-3">Pendente</span>
+                                {% elif r.status == 'APROVADA' %}
+                                    <span class="badge badge-done rounded-pill px-3">Aprovada</span>
+                                {% elif r.status == 'RECUSADA' %}
+                                    <span class="badge badge-cancelled rounded-pill px-3">Recusada</span>
+                                {% else %}
+                                    <span class="badge bg-secondary rounded-pill px-3">Cancelada</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if r.observacoes %}
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">OBSERVAÇÕES</label>
+                            <div class="p-3 rounded-3" style="background: #f8fafc; font-size: 0.9rem;">{{ r.observacoes }}</div>
+                        </div>
+                        {% endif %}
+                        {% if r.motivo_recusa %}
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">MOTIVO DA RECUSA</label>
+                            <div class="p-3 rounded-3" style="background: #fef2f2; border-left: 3px solid var(--danger); font-size: 0.9rem;">{{ r.motivo_recusa }}</div>
+                        </div>
+                        {% endif %}
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">SOLICITADO EM</label>
+                            <div class="small">{{ r.data_criacao|date:"d/m/Y H:i" }}</div>
+                        </div>
+
+                        {% if r.status == 'PENDENTE' %}
+                        <hr>
+                        <form method="post" action="{% url 'morador_cancelar_reserva' r.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn w-100 rounded-pill fw-bold" style="background: linear-gradient(135deg, #f87171, #ef4444); color: white;"
+                                    onclick="return confirm('Tem certeza que deseja cancelar esta reserva?')">
+                                <i class="bi bi-x-circle me-2"></i> Cancelar Reserva
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if reservas.has_other_pages %}
+    <div class="card-footer bg-transparent text-center border-0 p-4">
+        <nav>
+            <ul class="pagination pagination-sm mb-0 justify-content-center">
+                {% if reservas.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link rounded-pill" href="?page={{ reservas.previous_page_number }}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                {% endif %}
+                <li class="page-item active">
+                    <span class="page-link rounded-pill border-0" style="background: var(--primary);">{{ reservas.number }}</span>
+                </li>
+                {% if reservas.has_next %}
+                    <li class="page-item">
+                        <a class="page-link rounded-pill" href="?page={{ reservas.next_page_number }}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="card-body text-center py-5">
+        <div class="mb-3" style="font-size: 4rem;">📅</div>
+        <h5 class="text-muted fw-bold">Nenhuma reserva</h5>
+        <p class="text-muted small mb-3">Você ainda não fez nenhuma reserva de área comum.</p>
+        <a href="{% url 'morador_areas_disponiveis' %}" class="btn btn-gradient">
+            <i class="bi bi-plus-circle me-2"></i> Fazer Reserva
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

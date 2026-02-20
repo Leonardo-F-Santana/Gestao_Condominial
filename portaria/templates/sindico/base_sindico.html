@@ -493,6 +493,11 @@
             <i class="bi bi-megaphone"></i>
             <span>Avisos</span>
         </a>
+        <a href="{% url 'sindico_reservas' %}" class="nav-item {% if active_page == 'reservas' %}active{% endif %}">
+            <i class="bi bi-calendar-check"></i>
+            {% if notif_reservas %}<span class="notification-badge">{{ notif_reservas }}</span>{% endif %}
+            <span>Reservas</span>
+        </a>
     </nav>
     {% endif %}
 

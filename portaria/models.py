@@ -165,6 +165,7 @@ class Notificacao(models.Model):
         ('aviso', '📢 Novo Aviso'),
         ('solicitacao', '📋 Nova Solicitação'),
         ('resposta_solicitacao', '💬 Resposta de Solicitação'),
+        ('reserva', '📅 Reserva de Espaço'),
     ]
 
     usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notificacoes')
@@ -181,3 +182,59 @@ class Notificacao(models.Model):
         verbose_name = "Notificação"
         verbose_name_plural = "Notificações"
         ordering = ['-data_criacao']
+
+
+# ==========================================
+# ÁREAS COMUNS E RESERVAS
+# ==========================================
+
+class AreaComum(models.Model):
+    """Espaços reserváveis do condomínio"""
+    condominio = models.ForeignKey(Condominio, on_delete=models.CASCADE,
+                                    related_name='areas_comuns', verbose_name="Condomínio")
+    nome = models.CharField(max_length=100, verbose_name="Nome do Espaço")
+    descricao = models.TextField(blank=True, verbose_name="Descrição / Regras de Uso")
+    imagem = models.ImageField(upload_to='areas_comuns/', blank=True, verbose_name="Foto do Espaço")
+    capacidade = models.PositiveIntegerField(default=0, verbose_name="Capacidade (pessoas)")
+    horario_abertura = models.TimeField(default='08:00', verbose_name="Horário de Abertura")
+    horario_fechamento = models.TimeField(default='22:00', verbose_name="Horário de Fechamento")
+    ativo = models.BooleanField(default=True, verbose_name="Disponível para Reservas")
+
+    def __str__(self):
+        return f"{self.nome} — {self.condominio.nome}"
+
+    class Meta:
+        verbose_name = "Área Comum"
+        verbose_name_plural = "Áreas Comuns"
+        ordering = ['nome']
+
+
+class Reserva(models.Model):
+    """Reservas de áreas comuns pelos moradores"""
+    STATUS_CHOICES = [
+        ('PENDENTE', '🟡 Pendente'),
+        ('APROVADA', '🟢 Aprovada'),
+        ('RECUSADA', '🔴 Recusada'),
+        ('CANCELADA', '⚫ Cancelada'),
+    ]
+
+    area = models.ForeignKey(AreaComum, on_delete=models.CASCADE,
+                              related_name='reservas', verbose_name="Área Comum")
+    morador = models.ForeignKey(Morador, on_delete=models.CASCADE,
+                                 related_name='reservas', verbose_name="Morador")
+    data = models.DateField(verbose_name="Data da Reserva")
+    horario_inicio = models.TimeField(verbose_name="Horário de Início")
+    horario_fim = models.TimeField(verbose_name="Horário de Término")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDENTE',
+                               verbose_name="Status")
+    observacoes = models.TextField(blank=True, verbose_name="Observações")
+    motivo_recusa = models.TextField(blank=True, verbose_name="Motivo da Recusa")
+    data_criacao = models.DateTimeField(auto_now_add=True, verbose_name="Data do Pedido")
+
+    def __str__(self):
+        return f"{self.area.nome} — {self.data} ({self.get_status_display()})"
+
+    class Meta:
+        verbose_name = "Reserva"
+        verbose_name_plural = "Reservas"
+        ordering = ['-data', '-horario_inicio']

@@ -1,0 +1,162 @@
+{% extends 'sindico/base_sindico.html' %}
+
+{% block title %}Áreas Comuns — {{ condominio.nome }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Áreas Comuns</h1>
+    <p class="page-subtitle">{{ areas.count }} espaço{{ areas.count|pluralize:"s" }} cadastrado{{ areas.count|pluralize:"s" }}</p>
+</div>
+
+<!-- Botão Adicionar -->
+<div class="mb-4">
+    <button class="btn-exec" data-bs-toggle="modal" data-bs-target="#modalCriar">
+        <i class="bi bi-plus-lg"></i> Nova Área
+    </button>
+    <a href="{% url 'sindico_reservas' %}" class="btn-exec" style="background: var(--blue); margin-left: 0.5rem;">
+        <i class="bi bi-calendar-check"></i> Ver Reservas
+    </a>
+</div>
+
+<!-- Lista de Áreas -->
+<div class="card-section">
+    <div class="card-section-body">
+        {% for area in areas %}
+        <div class="list-row" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#modalEditar{{ area.id }}">
+            <div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="list-row-name">{{ area.nome }}</span>
+                    {% if area.ativo %}
+                    <span class="badge-status badge-concluido">Ativo</span>
+                    {% else %}
+                    <span class="badge-status badge-cancelado">Inativo</span>
+                    {% endif %}
+                </div>
+                <div class="list-row-sub">
+                    <i class="bi bi-people"></i> {{ area.capacidade }} pessoas ·
+                    <i class="bi bi-clock"></i> {{ area.horario_abertura|time:"H:i" }} – {{ area.horario_fechamento|time:"H:i" }}
+                </div>
+                {% if area.descricao %}
+                <div class="list-row-sub">{{ area.descricao|truncatechars:80 }}</div>
+                {% endif %}
+            </div>
+            <i class="bi bi-chevron-right" style="color: var(--slate-300);"></i>
+        </div>
+
+        <!-- Modal Editar -->
+        <div class="modal fade" id="modalEditar{{ area.id }}" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Editar {{ area.nome }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="editar">
+                        <input type="hidden" name="area_id" value="{{ area.id }}">
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Nome</label>
+                                <input type="text" name="nome" class="form-control" value="{{ area.nome }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Descrição / Regras</label>
+                                <textarea name="descricao" class="form-control" rows="3">{{ area.descricao }}</textarea>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-4">
+                                    <label class="form-label">Capacidade</label>
+                                    <input type="number" name="capacidade" class="form-control" value="{{ area.capacidade }}">
+                                </div>
+                                <div class="col-4">
+                                    <label class="form-label">Abertura</label>
+                                    <input type="time" name="horario_abertura" class="form-control" value="{{ area.horario_abertura|time:'H:i' }}">
+                                </div>
+                                <div class="col-4">
+                                    <label class="form-label">Fechamento</label>
+                                    <input type="time" name="horario_fechamento" class="form-control" value="{{ area.horario_fechamento|time:'H:i' }}">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Imagem</label>
+                                <input type="file" name="imagem" class="form-control" accept="image/*">
+                                {% if area.imagem %}
+                                <small class="text-muted">Imagem atual: {{ area.imagem.name }}</small>
+                                {% endif %}
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" name="ativo" id="ativo{{ area.id }}" {% if area.ativo %}checked{% endif %}>
+                                <label class="form-check-label" for="ativo{{ area.id }}">Disponível para reservas</label>
+                            </div>
+                        </div>
+                        <div class="modal-footer d-flex gap-2">
+                            <button type="submit" class="btn-exec flex-grow-1">Salvar</button>
+                            <a href="{% url 'sindico_excluir_area' area.id %}" class="btn-exec" style="background: var(--red);"
+                               onclick="return confirm('Excluir esta área?')">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <div class="empty-state-icon"><i class="bi bi-building"></i></div>
+            <div class="empty-state-text">Nenhuma área comum cadastrada</div>
+            <div class="empty-state-text" style="font-size: 0.8rem; color: var(--slate-400);">
+                Cadastre áreas como churrasqueira, salão de festas, piscina...
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modal Criar -->
+<div class="modal fade" id="modalCriar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nova Área Comum</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="criar">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nome *</label>
+                        <input type="text" name="nome" class="form-control" placeholder="Ex: Churrasqueira" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Descrição / Regras</label>
+                        <textarea name="descricao" class="form-control" rows="3" placeholder="Regras de uso, observações..."></textarea>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-4">
+                            <label class="form-label">Capacidade</label>
+                            <input type="number" name="capacidade" class="form-control" value="0">
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label">Abertura</label>
+                            <input type="time" name="horario_abertura" class="form-control" value="08:00">
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label">Fechamento</label>
+                            <input type="time" name="horario_fechamento" class="form-control" value="22:00">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Imagem</label>
+                        <input type="file" name="imagem" class="form-control" accept="image/*">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn-exec w-100">Cadastrar Área</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

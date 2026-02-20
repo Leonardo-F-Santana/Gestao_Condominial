@@ -1,0 +1,191 @@
+{% extends 'sindico/base_sindico.html' %}
+
+{% block title %}Reservas — {{ condominio.nome }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Reservas</h1>
+    <p class="page-subtitle">Gerenciar reservas de áreas comuns</p>
+</div>
+
+<!-- Ações -->
+<div class="mb-4 d-flex gap-2 flex-wrap">
+    <a href="{% url 'sindico_areas_comuns' %}" class="btn-exec" style="background: var(--slate-600);">
+        <i class="bi bi-building"></i> Áreas Comuns
+    </a>
+    <button class="btn-exec" style="background: var(--green);" data-bs-toggle="modal" data-bs-target="#modalNovaArea">
+        <i class="bi bi-plus-lg"></i> Nova Área
+    </button>
+</div>
+
+<!-- Filtros -->
+<div class="mb-3 d-flex gap-2 flex-wrap">
+    <a href="{% url 'sindico_reservas' %}" class="btn-exec btn-exec-sm"
+       style="{% if not status_filtro %}background: var(--navy);{% else %}background: var(--slate-400);{% endif %}">
+        Todas
+    </a>
+    <a href="?status=PENDENTE" class="btn-exec btn-exec-sm"
+       style="{% if status_filtro == 'PENDENTE' %}background: var(--orange);{% else %}background: var(--slate-400);{% endif %}">
+        🟡 Pendentes
+    </a>
+    <a href="?status=APROVADA" class="btn-exec btn-exec-sm"
+       style="{% if status_filtro == 'APROVADA' %}background: var(--green);{% else %}background: var(--slate-400);{% endif %}">
+        🟢 Aprovadas
+    </a>
+    <a href="?status=RECUSADA" class="btn-exec btn-exec-sm"
+       style="{% if status_filtro == 'RECUSADA' %}background: var(--red);{% else %}background: var(--slate-400);{% endif %}">
+        🔴 Recusadas
+    </a>
+</div>
+
+<!-- Lista -->
+<div class="card-section">
+    <div class="card-section-body">
+        {% for r in reservas %}
+        <div class="list-row" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#modalRes{{ r.id }}">
+            <div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="list-row-name">{{ r.area.nome }}</span>
+                    <span class="badge-status {% if r.status == 'PENDENTE' %}badge-pendente{% elif r.status == 'APROVADA' %}badge-concluido{% elif r.status == 'RECUSADA' %}badge-cancelado{% else %}badge-cancelado{% endif %}">
+                        {{ r.get_status_display }}
+                    </span>
+                </div>
+                <div class="list-row-sub">
+                    {{ r.morador.nome }} · {{ r.data|date:"d/m/Y" }} · {{ r.horario_inicio|time:"H:i" }}–{{ r.horario_fim|time:"H:i" }}
+                </div>
+                {% if r.observacoes %}
+                <div class="list-row-sub">{{ r.observacoes|truncatechars:50 }}</div>
+                {% endif %}
+            </div>
+            <i class="bi bi-chevron-right" style="color: var(--slate-300);"></i>
+        </div>
+
+        <!-- Modal Detalhe -->
+        <div class="modal fade" id="modalRes{{ r.id }}" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Reserva · {{ r.area.nome }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--slate-500);">Morador</label>
+                            <div class="fw-semibold" style="font-size: 0.9rem;">{{ r.morador.nome }}</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-4">
+                                <label class="form-label" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--slate-500);">Data</label>
+                                <div style="font-size: 0.85rem;">{{ r.data|date:"d/m/Y" }}</div>
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--slate-500);">Início</label>
+                                <div style="font-size: 0.85rem;">{{ r.horario_inicio|time:"H:i" }}</div>
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--slate-500);">Fim</label>
+                                <div style="font-size: 0.85rem;">{{ r.horario_fim|time:"H:i" }}</div>
+                            </div>
+                        </div>
+                        {% if r.observacoes %}
+                        <div class="mb-3">
+                            <label class="form-label" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--slate-500);">Observações</label>
+                            <div style="font-size: 0.85rem; background: var(--slate-100); padding: 0.7rem; border-radius: 8px;">{{ r.observacoes }}</div>
+                        </div>
+                        {% endif %}
+                        <div class="mb-3">
+                            <label class="form-label" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--slate-500);">Solicitado em</label>
+                            <div style="font-size: 0.85rem;">{{ r.data_criacao|date:"d/m/Y H:i" }}</div>
+                        </div>
+                        {% if r.motivo_recusa %}
+                        <div class="mb-3">
+                            <label class="form-label" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--slate-500);">Motivo da Recusa</label>
+                            <div style="font-size: 0.85rem; background: #fee2e2; padding: 0.7rem; border-radius: 8px; border-left: 3px solid var(--red);">{{ r.motivo_recusa }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if r.status == 'PENDENTE' %}
+                        <hr>
+                        <div class="d-flex gap-2">
+                            <form method="post" action="{% url 'sindico_aprovar_reserva' r.id %}" class="flex-grow-1">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-exec w-100" style="background: var(--green);">
+                                    <i class="bi bi-check-lg"></i> Aprovar
+                                </button>
+                            </form>
+                            <button class="btn-exec" style="background: var(--red);" data-bs-toggle="collapse" data-bs-target="#recusa{{ r.id }}">
+                                <i class="bi bi-x-lg"></i> Recusar
+                            </button>
+                        </div>
+                        <div class="collapse mt-2" id="recusa{{ r.id }}">
+                            <form method="post" action="{% url 'sindico_recusar_reserva' r.id %}">
+                                {% csrf_token %}
+                                <div class="mb-2">
+                                    <textarea name="motivo" class="form-control" rows="2" placeholder="Motivo da recusa (opcional)"></textarea>
+                                </div>
+                                <button type="submit" class="btn-exec w-100" style="background: var(--red);">Confirmar Recusa</button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <div class="empty-state-icon"><i class="bi bi-calendar-x"></i></div>
+            <div class="empty-state-text">Nenhuma reserva encontrada</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modal Nova Área -->
+<div class="modal fade" id="modalNovaArea" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-building"></i> Nova Área Comum</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="criar_area">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nome *</label>
+                        <input type="text" name="nome" class="form-control" placeholder="Ex: Churrasqueira, Salão de Festas, Piscina..." required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Descrição / Regras</label>
+                        <textarea name="descricao" class="form-control" rows="3" placeholder="Regras de uso, observações..."></textarea>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-4">
+                            <label class="form-label">Capacidade</label>
+                            <input type="number" name="capacidade" class="form-control" value="0" min="0">
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label">Abertura</label>
+                            <input type="time" name="horario_abertura" class="form-control" value="08:00">
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label">Fechamento</label>
+                            <input type="time" name="horario_fechamento" class="form-control" value="22:00">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Imagem</label>
+                        <input type="file" name="imagem" class="form-control" accept="image/*">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn-exec w-100" style="background: var(--green);">
+                        <i class="bi bi-check-lg"></i> Cadastrar Área
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

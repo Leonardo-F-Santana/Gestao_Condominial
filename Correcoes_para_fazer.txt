@@ -1,2 +1,0 @@
-Nas permissões na pagina de admin da portaria, Em vez de frases como "Can add visitante", você pode usar descrições curtas e diretas em português, acompanhadas de um botão de ativar/desativar (on/off). Assim, fica mais intuitivo para o administrador.
- posso sugestionar algo?, voce poderia colocar essa lista com descrições curtas e diretas em português com botão de ativar e desativar (on/off), o que acha?

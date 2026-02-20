@@ -5,7 +5,8 @@ from django.utils.html import format_html
 from import_export import resources
 from unfold.admin import ModelAdmin
 from unfold.contrib.import_export.forms import ExportForm, ImportForm
-from .models import Condominio, Sindico, Visitante, Morador, Encomenda, Solicitacao, Aviso, Notificacao
+from .models import Condominio, Sindico, Visitante, Morador, Encomenda, Solicitacao, Aviso, Notificacao, AreaComum, Reserva
+from .forms import CustomUserChangeForm
 
 
 # --- CONFIGURAÇÃO DE USUÁRIOS (Django Auth) ---
@@ -17,7 +18,8 @@ admin.site.unregister(Group)
 # Registrar com Unfold
 @admin.register(User)
 class UserAdmin(BaseUserAdmin, ModelAdmin):
-    pass
+    form = CustomUserChangeForm
+    filter_horizontal = ('groups',)
 
 @admin.register(Group)
 class GroupAdmin(BaseGroupAdmin, ModelAdmin):
@@ -158,3 +160,34 @@ class NotificacaoAdmin(ModelAdmin):
     search_fields = ('mensagem', 'usuario__username')
     readonly_fields = ('data_criacao',)
     list_editable = ('lida',)
+
+
+@admin.register(AreaComum)
+class AreaComumAdmin(ModelAdmin):
+    list_display = ('nome', 'condominio', 'capacidade', 'horario_abertura', 'horario_fechamento', 'ativo')
+    list_filter = ('condominio', 'ativo')
+    search_fields = ('nome',)
+    list_editable = ('ativo',)
+
+
+@admin.register(Reserva)
+class ReservaAdmin(ModelAdmin):
+    list_display = ('area', 'morador', 'data', 'horario_inicio', 'horario_fim', 'get_status_html')
+    list_filter = ('status', 'data', 'area')
+    search_fields = ('area__nome', 'morador__nome')
+    readonly_fields = ('data_criacao',)
+
+    def get_status_html(self, obj):
+        cores = {
+            'PENDENTE': 'orange',
+            'APROVADA': 'green',
+            'RECUSADA': 'red',
+            'CANCELADA': 'gray',
+        }
+        cor = cores.get(obj.status, 'black')
+        return format_html(
+            '<span style="color: {}; font-weight: bold;">{}</span>',
+            cor,
+            obj.get_status_display()
+        )
+    get_status_html.short_description = 'Status'

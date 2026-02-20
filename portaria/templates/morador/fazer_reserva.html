@@ -1,0 +1,132 @@
+{% extends 'morador/base_morador.html' %}
+
+{% block title %}Reservar {{ area.nome }} - Portal do Morador{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0" style="color: #57534e;">
+        <i class="bi bi-calendar-plus" style="color: var(--primary);"></i> {{ area.nome }}
+    </h4>
+    <a href="{% url 'morador_areas_disponiveis' %}" class="btn btn-light btn-sm rounded-pill px-3 shadow-sm">
+        <i class="bi bi-arrow-left"></i> Voltar
+    </a>
+</div>
+
+<!-- Info da Área -->
+<div class="glass-card mb-4 card-animate">
+    <div class="card-body p-4">
+        <div class="d-flex flex-wrap gap-2 mb-2">
+            <span class="badge bg-light text-dark rounded-pill fw-semibold">
+                <i class="bi bi-people-fill"></i> {{ area.capacidade }} pessoas
+            </span>
+            <span class="badge bg-light text-dark rounded-pill fw-semibold">
+                <i class="bi bi-clock"></i> {{ area.horario_abertura|time:"H:i" }} – {{ area.horario_fechamento|time:"H:i" }}
+            </span>
+        </div>
+        {% if area.descricao %}
+        <p class="text-muted small mb-0 mt-2">
+            <i class="bi bi-info-circle"></i> {{ area.descricao }}
+        </p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Formulário de Reserva -->
+<div class="glass-card mb-4 card-animate delay-1">
+    <div class="card-body p-4">
+        <h6 class="fw-bold mb-3" style="color: var(--primary);">
+            <i class="bi bi-calendar-plus"></i> Solicitar Reserva
+        </h6>
+        <form method="post" id="formReserva">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label fw-semibold small text-muted">Data *</label>
+                <input type="date" name="data" id="inputData" class="form-control rounded-pill" required>
+                <small id="dataFeedback" class="text-danger" style="display: none;">
+                    <i class="bi bi-exclamation-circle"></i> Esta data já está reservada. Escolha outra.
+                </small>
+                <small id="dataOk" class="text-success" style="display: none;">
+                    <i class="bi bi-check-circle"></i> Data disponível!
+                </small>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold small text-muted">Observações</label>
+                <textarea name="observacoes" class="form-control" rows="2" style="border-radius: 14px;" placeholder="Informações adicionais (opcional)"></textarea>
+            </div>
+            <button type="submit" id="btnSubmit" class="btn btn-gradient w-100">
+                <i class="bi bi-calendar-check me-2"></i> Solicitar Reserva
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Datas já reservadas -->
+{% if reservas_existentes %}
+<div class="glass-card card-animate delay-2">
+    <div class="card-body p-3">
+        <h6 class="fw-bold mb-3 px-1" style="color: #57534e;">
+            <i class="bi bi-lock-fill" style="color: var(--danger);"></i> Datas Ocupadas
+        </h6>
+        <div class="list-group list-group-flush">
+            {% for r in reservas_existentes %}
+            <div class="list-group-item border-0 list-item-animated py-3 px-2">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="fw-semibold" style="color: #44403c;">{{ r.data|date:"d/m/Y" }}</span>
+                        <br><small class="text-muted">{{ r.horario_inicio|time:"H:i" }} – {{ r.horario_fim|time:"H:i" }}</small>
+                    </div>
+                    {% if r.status == 'PENDENTE' %}
+                        <span class="badge badge-pending rounded-pill px-3">Pendente</span>
+                    {% else %}
+                        <span class="badge badge-done rounded-pill px-3">Aprovada</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    const datasOcupadas = {{ datas_bloqueadas_json|safe }};
+
+    const inputData = document.getElementById('inputData');
+    const feedback = document.getElementById('dataFeedback');
+    const dataOk = document.getElementById('dataOk');
+    const btnSubmit = document.getElementById('btnSubmit');
+
+    // Data mínima = hoje
+    const hoje = new Date();
+    const hojeStr = hoje.toISOString().split('T')[0];
+    inputData.setAttribute('min', hojeStr);
+
+    inputData.addEventListener('change', function() {
+        const sel = this.value;
+        if (datasOcupadas.includes(sel)) {
+            feedback.style.display = 'block';
+            dataOk.style.display = 'none';
+            btnSubmit.disabled = true;
+            btnSubmit.style.opacity = '0.5';
+            this.style.borderColor = 'var(--danger)';
+        } else if (sel) {
+            feedback.style.display = 'none';
+            dataOk.style.display = 'block';
+            btnSubmit.disabled = false;
+            btnSubmit.style.opacity = '1';
+            this.style.borderColor = 'var(--success)';
+        }
+    });
+
+    document.getElementById('formReserva').addEventListener('submit', function(e) {
+        if (datasOcupadas.includes(inputData.value)) {
+            e.preventDefault();
+            alert('Esta data já está reservada!');
+        }
+    });
+})();
+</script>
+{% endblock %}
