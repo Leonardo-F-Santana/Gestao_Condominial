@@ -8,9 +8,14 @@
         <h1 class="page-title">Moradores</h1>
         <p class="page-subtitle">{{ moradores.count }} cadastrados</p>
     </div>
-    <button class="btn-exec btn-exec-sm" data-bs-toggle="modal" data-bs-target="#modalNovo">
-        <i class="bi bi-plus-lg"></i> Novo
-    </button>
+    <div class="d-flex gap-1">
+        <button class="btn-exec btn-exec-sm" data-bs-toggle="modal" data-bs-target="#modalImportar" style="background: var(--navy-light);">
+            <i class="bi bi-upload"></i> Importar
+        </button>
+        <button class="btn-exec btn-exec-sm" data-bs-toggle="modal" data-bs-target="#modalNovo">
+            <i class="bi bi-plus-lg"></i> Novo
+        </button>
+    </div>
 </div>
 
 <!-- Link de Convite -->
@@ -182,6 +187,47 @@ function copiarLink() {
                 <div class="modal-footer">
                     <button type="button" class="btn-exec-outline" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn-exec">Cadastrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Importar Moradores -->
+<div class="modal fade" id="modalImportar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-upload"></i> Importar Moradores</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="importar">
+                <div class="modal-body">
+                    <div class="alert alert-info py-2" style="font-size: 0.78rem; border-radius: 10px;">
+                        <i class="bi bi-info-circle me-1"></i>
+                        <strong>Formato do arquivo:</strong><br>
+                        A primeira linha deve ser o cabeçalho. As colunas devem seguir esta ordem:
+                        <div class="mt-1" style="font-family: monospace; font-size: 0.72rem;">
+                            Nome | Apartamento | Bloco | Telefone | Email
+                        </div>
+                        <div class="mt-1">
+                            <small>* Nome e Apartamento são obrigatórios. Demais colunas são opcionais.</small>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Selecionar Arquivo</label>
+                        <input type="file" name="arquivo" class="form-control" 
+                               accept=".xlsx,.xls,.csv" required>
+                        <small class="text-muted">Formatos aceitos: .xlsx, .xls, .csv</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-exec-outline" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn-exec">
+                        <i class="bi bi-upload me-1"></i>Importar
+                    </button>
                 </div>
             </form>
         </div>

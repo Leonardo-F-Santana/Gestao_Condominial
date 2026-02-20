@@ -38,10 +38,10 @@
     <div class="list-group list-group-flush">
         {% for r in reservas %}
         <div class="list-group-item border-0 list-item-animated p-4" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#modalRes{{ r.id }}">
-            <div class="d-flex justify-content-between align-items-start">
-                <div style="flex: 1;">
-                    <div class="d-flex align-items-center mb-2">
-                        <span class="badge bg-light text-dark me-2 rounded-pill fw-semibold">
+            <div class="d-flex justify-content-between align-items-center">
+                <div style="flex: 1; min-width: 0;">
+                    <div class="d-flex align-items-center mb-1 flex-wrap gap-1">
+                        <span class="badge bg-light text-dark rounded-pill fw-semibold" style="white-space: nowrap;">
                             <i class="bi bi-building"></i> {{ r.area.nome }}
                         </span>
                         <small class="text-muted">{{ r.data|date:"d/m/Y" }}</small>
@@ -50,7 +50,7 @@
                         <i class="bi bi-clock"></i> {{ r.horario_inicio|time:"H:i" }} – {{ r.horario_fim|time:"H:i" }}
                     </p>
                 </div>
-                <div class="text-end ms-2">
+                <div class="ms-3" style="white-space: nowrap;">
                     {% if r.status == 'PENDENTE' %}
                         <span class="badge badge-pending rounded-pill px-3">Pendente</span>
                     {% elif r.status == 'APROVADA' %}

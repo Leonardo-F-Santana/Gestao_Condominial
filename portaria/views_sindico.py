@@ -170,7 +170,7 @@ def painel_sindico(request):
 
 @login_required
 def moradores_sindico(request):
-    """Gestão de moradores com criação de usuário"""
+    """Gestão de moradores com criação de usuário e importação em massa"""
     if not is_sindico(request.user):
         return redirect('home')
     
@@ -179,40 +179,126 @@ def moradores_sindico(request):
         return redirect('sindico_home')
     
     if request.method == 'POST':
-        nome = request.POST.get('nome', '').strip()
-        apartamento = request.POST.get('apartamento', '').strip()
-        bloco = request.POST.get('bloco', '').strip()
-        telefone = request.POST.get('telefone', '').strip()
-        email = request.POST.get('email', '').strip()
-        username = request.POST.get('username', '').strip()
-        password = request.POST.get('password', '').strip()
+        action = request.POST.get('action', 'cadastrar')
         
-        if nome and apartamento:
-            user_obj = None
-            if username and password:
-                if User.objects.filter(username=username).exists():
-                    messages.error(request, f"Usuário '{username}' já existe.")
-                    return redirect('sindico_moradores')
-                user_obj = User.objects.create_user(
-                    username=username,
-                    password=password,
-                    first_name=nome.split()[0] if nome else '',
-                    email=email
-                )
+        if action == 'importar':
+            # Importação em massa (Excel / CSV)
+            arquivo = request.FILES.get('arquivo')
+            if not arquivo:
+                messages.error(request, "Nenhum arquivo selecionado.")
+                return redirect('sindico_moradores')
             
-            Morador.objects.create(
-                condominio=condominio,
-                nome=nome,
-                bloco=bloco,
-                apartamento=apartamento,
-                telefone=telefone,
-                email=email,
-                usuario=user_obj
-            )
-            messages.success(request, f"Morador '{nome}' cadastrado!")
-            if user_obj:
-                messages.info(request, f"Login criado: {username}")
+            nome_arquivo = arquivo.name.lower()
+            rows = []
+            
+            try:
+                if nome_arquivo.endswith('.xlsx'):
+                    import openpyxl
+                    wb = openpyxl.load_workbook(arquivo, read_only=True)
+                    ws = wb.active
+                    for i, row in enumerate(ws.iter_rows(values_only=True)):
+                        if i == 0:  # pular cabeçalho
+                            continue
+                        if row and any(row):
+                            rows.append([str(c).strip() if c else '' for c in row])
+                    wb.close()
+                elif nome_arquivo.endswith('.xls'):
+                    import xlrd
+                    wb = xlrd.open_workbook(file_contents=arquivo.read())
+                    ws = wb.sheet_by_index(0)
+                    for i in range(1, ws.nrows):  # pular cabeçalho
+                        row = [str(ws.cell_value(i, j)).strip() for j in range(ws.ncols)]
+                        if any(row):
+                            rows.append(row)
+                elif nome_arquivo.endswith('.csv'):
+                    import csv, io
+                    content = arquivo.read().decode('utf-8-sig')
+                    reader = csv.reader(io.StringIO(content), delimiter=';')
+                    for i, row in enumerate(reader):
+                        if i == 0:
+                            # Tentar detectar delimitador
+                            if len(row) == 1 and ',' in row[0]:
+                                content = arquivo.read().decode('utf-8-sig') if hasattr(arquivo, 'read') else content
+                                reader = csv.reader(io.StringIO(content), delimiter=',')
+                                continue
+                            continue
+                        if any(row):
+                            rows.append([c.strip() for c in row])
+                else:
+                    messages.error(request, "Formato não suportado. Use .xlsx, .xls ou .csv")
+                    return redirect('sindico_moradores')
+            except Exception as e:
+                messages.error(request, f"Erro ao ler o arquivo: {e}")
+                return redirect('sindico_moradores')
+            
+            total = 0
+            erros = 0
+            for row in rows:
+                try:
+                    nome = row[0] if len(row) > 0 else ''
+                    apartamento = row[1] if len(row) > 1 else ''
+                    bloco = row[2] if len(row) > 2 else ''
+                    telefone = row[3] if len(row) > 3 else ''
+                    email = row[4] if len(row) > 4 else ''
+                    
+                    if not nome or not apartamento:
+                        erros += 1
+                        continue
+                    
+                    Morador.objects.create(
+                        condominio=condominio,
+                        nome=nome,
+                        bloco=bloco,
+                        apartamento=apartamento,
+                        telefone=telefone,
+                        email=email,
+                    )
+                    total += 1
+                except Exception:
+                    erros += 1
+            
+            if total > 0:
+                messages.success(request, f"{total} morador(es) importado(s) com sucesso!")
+            if erros > 0:
+                messages.warning(request, f"{erros} linha(s) ignorada(s) (dados incompletos ou erro).")
             return redirect('sindico_moradores')
+        
+        else:
+            # Cadastro individual (form original)
+            nome = request.POST.get('nome', '').strip()
+            apartamento = request.POST.get('apartamento', '').strip()
+            bloco = request.POST.get('bloco', '').strip()
+            telefone = request.POST.get('telefone', '').strip()
+            email = request.POST.get('email', '').strip()
+            username = request.POST.get('username', '').strip()
+            password = request.POST.get('password', '').strip()
+            
+            if nome and apartamento:
+                user_obj = None
+                if username and password:
+                    if User.objects.filter(username=username).exists():
+                        messages.error(request, f"Usuário '{username}' já existe.")
+                        return redirect('sindico_moradores')
+                    user_obj = User.objects.create_user(
+                        username=username,
+                        password=password,
+                        first_name=nome.split()[0] if nome else '',
+                        email=email
+                    )
+                
+                Morador.objects.create(
+                    condominio=condominio,
+                    nome=nome,
+                    bloco=bloco,
+                    apartamento=apartamento,
+                    telefone=telefone,
+                    email=email,
+                    usuario=user_obj
+                )
+                messages.success(request, f"Morador '{nome}' cadastrado!")
+                if user_obj:
+                    messages.info(request, f"Login criado: {username}")
+                return redirect('sindico_moradores')
     
     moradores = Morador.objects.filter(condominio=condominio).order_by('bloco', 'apartamento')
     ctx = sindico_context(request, {'moradores': moradores}, active_page='moradores')

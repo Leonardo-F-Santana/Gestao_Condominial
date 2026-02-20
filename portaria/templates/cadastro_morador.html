@@ -6,6 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro de Morador — {{ condominio.nome }}</title>
     <link rel="icon" href="/img/logo.ico" type="image/x-icon">
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="/img/logo.ico">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -259,10 +263,46 @@
         <div class="login-link">
             <a href="{% url 'login' %}">Já tem conta? <strong>Fazer login</strong></a>
         </div>
+
+        <!-- Botão Instalar App (só aparece se PWA disponível) -->
+        <div class="text-center mt-2">
+            <button id="btnInstalarApp" onclick="instalarApp()" style="display: none;
+                background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.4);
+                color: white; border-radius: 20px; padding: 0.4rem 1.2rem;
+                font-weight: 700; font-size: 0.82rem; cursor: pointer;">
+                <i class="bi bi-download me-1"></i>Instalar App
+            </button>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+    // PWA: registrar service worker
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/static/sw.js').catch(() => {});
+    }
+
+    // PWA: capturar evento de instalação
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        // Mostrar botão de instalar
+        const installBtn = document.getElementById('btnInstalarApp');
+        if (installBtn) installBtn.style.display = '';
+    });
+
+    function instalarApp() {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then(() => {
+                deferredPrompt = null;
+                const installBtn = document.getElementById('btnInstalarApp');
+                if (installBtn) installBtn.style.display = 'none';
+            });
+        }
+    }
+
     // iOS WebKit: intercepta o envio do formulário para tratar erros de CSRF
     (function() {
         var form = document.querySelector('form[method="post"]');

@@ -11,5 +11,6 @@ def notificacoes(request):
     return {
         'notif_avisos': qs.filter(tipo='aviso').count(),
         'notif_solicitacoes': qs.filter(tipo__in=['solicitacao', 'resposta_solicitacao']).count(),
+        'notif_reservas': qs.filter(tipo='reserva').count(),
         'notif_total': qs.count(),
     }
