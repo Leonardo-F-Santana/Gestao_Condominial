@@ -154,8 +154,18 @@ urlpatterns = [
     path('sindico/condominio/<int:condominio_id>/', dashboard_condominio, name='sindico_dashboard'),
 ]
 
-# Configuração para arquivos de mídia (Fotos/Uploads) em modo DEBUG
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    # Servir a pasta /img/ para logotipos
-    urlpatterns += static('/img/', document_root=settings.BASE_DIR / 'img')
+# Configuração para arquivos de mídia (Fotos/Uploads)
+# Nota: static() do Django é no-op quando DEBUG=False, então usamos re_path direto.
+# 
+# Para melhor performance no PythonAnywhere, configure TAMBÉM em:
+# Web tab > Static Files:
+#   URL: /media/   → Directory: /home/SEU_USUARIO/gestao_condominio/media
+#   URL: /img/     → Directory: /home/SEU_USUARIO/gestao_condominio/img
+#   URL: /static/  → Directory: /home/SEU_USUARIO/gestao_condominio/staticcollect
+from django.urls import re_path
+from django.views.static import serve as static_serve
+
+urlpatterns += [
+    re_path(r'^media/(?P<path>.*)$', static_serve, {'document_root': settings.MEDIA_ROOT}),
+    re_path(r'^img/(?P<path>.*)$', static_serve, {'document_root': settings.BASE_DIR / 'img'}),
+]
