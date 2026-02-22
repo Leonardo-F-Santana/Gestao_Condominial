@@ -10,7 +10,7 @@ from django.core.paginator import Paginator
 from django.http import HttpResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django_ratelimit.decorators import ratelimit
-from .models import Visitante, Morador, Encomenda, Solicitacao
+from .models import Visitante, Morador, Encomenda, Solicitacao, Notificacao, Sindico
 
 # Tenta importar biblioteca de PDF
 try:
@@ -42,6 +42,11 @@ def _gerar_pdf(request, template_name, context, filename):
 # 1. AUTENTICAÇÃO
 # ==========================================
 
+def is_porteiro(user):
+    """Verifica se o usuário é porteiro (staff ou membro do grupo Portaria)"""
+    return user.is_staff or user.groups.filter(name='Portaria').exists()
+
+
 @ratelimit(key='ip', rate='5/m', method='POST', block=True)
 def login_view(request):
     if request.user.is_authenticated:
@@ -50,7 +55,12 @@ def login_view(request):
             return redirect('morador_home')
         if hasattr(request.user, 'sindico'):
             return redirect('sindico_home')
-        return redirect('home')
+        if is_porteiro(request.user):
+            return redirect('home')
+        # Usuário sem perfil definido — evita loop
+        logout(request)
+        messages.error(request, "Seu usuário não possui perfil configurado. Contacte o administrador.")
+        return redirect('login')
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
@@ -61,7 +71,12 @@ def login_view(request):
                 return redirect('morador_home')
             if hasattr(user, 'sindico'):
                 return redirect('sindico_home')
-            return redirect('home')
+            if is_porteiro(user):
+                return redirect('home')
+            # Usuário sem perfil — faz logout e avisa
+            logout(request)
+            messages.error(request, "Seu usuário não possui perfil configurado. Contacte o administrador.")
+            return redirect('login')
         else:
             messages.error(request, "Usuário ou senha inválidos.")
     else:
@@ -191,8 +206,8 @@ def home(request):
     if hasattr(request.user, 'morador'):
         return redirect('morador_home')
     
-    # Só staff (porteiros/admin) podem acessar a portaria
-    if not request.user.is_staff:
+    # Só staff ou porteiros (grupo Portaria) podem acessar
+    if not is_porteiro(request.user):
         messages.error(request, "Você não tem permissão para acessar a portaria.")
         return redirect('login')
     
@@ -220,7 +235,7 @@ def home(request):
     solicitacoes_pendentes_count = Solicitacao.objects.filter(status='PENDENTE').count()
     
     lista_encomendas = Encomenda.objects.filter(entregue=False).select_related('morador').order_by('-data_chegada')
-    lista_solicitacoes = Solicitacao.objects.all().select_related('morador').order_by('-data_criacao')[:10]
+    lista_solicitacoes = Solicitacao.objects.all().select_related('morador').order_by('-data_criacao')[:50]
     todos_moradores = Morador.objects.all().order_by('bloco', 'apartamento')
 
     context = {
@@ -349,12 +364,26 @@ def registrar_solicitacao(request):
     if request.method == 'POST':
         morador_id = request.POST.get('morador_solicitacao')
         morador = Morador.objects.get(id=morador_id) if morador_id else None
-        Solicitacao.objects.create(
+        solicitacao = Solicitacao.objects.create(
             tipo=request.POST.get('tipo'),
             descricao=request.POST.get('descricao'),
             morador=morador,
             criado_por=request.user
         )
+
+        # Notificar síndicos do condomínio
+        if morador and morador.condominio:
+            sindicos = Sindico.objects.filter(condominios=morador.condominio)
+            notificacoes = [
+                Notificacao(
+                    usuario=s.usuario,
+                    tipo='solicitacao',
+                    mensagem=f'Porteiro {request.user.get_full_name() or request.user.username}: solicitação #{solicitacao.id}',
+                    link='/sindico/solicitacoes/'
+                ) for s in sindicos
+            ]
+            Notificacao.objects.bulk_create(notificacoes)
+
         messages.success(request, "Solicitação registrada!")
     return redirect('/?aba=solicitacoes')
 

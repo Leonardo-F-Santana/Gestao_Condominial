@@ -11,14 +11,10 @@
 </div>
 
 <!-- Stats -->
-<div class="stat-row">
+<div class="stat-row" style="grid-template-columns: 1fr 1fr;">
     <div class="stat-card blue">
         <div class="stat-value">{{ stats.moradores }}</div>
         <div class="stat-label">Moradores</div>
-    </div>
-    <div class="stat-card amber">
-        <div class="stat-value">{{ stats.encomendas_pendentes }}</div>
-        <div class="stat-label">Encomendas</div>
     </div>
     <div class="stat-card green">
         <div class="stat-value">{{ stats.solicitacoes_pendentes }}</div>
@@ -26,63 +22,7 @@
     </div>
 </div>
 
-<div class="stat-row" style="grid-template-columns: 1fr 1fr;">
-    <div class="stat-card">
-        <div class="stat-value" style="color: var(--blue);">{{ stats.visitantes_hoje }}</div>
-        <div class="stat-label">Visitantes Hoje</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-value" style="color: var(--green);">{{ stats.visitantes_no_local }}</div>
-        <div class="stat-label">No Local Agora</div>
-    </div>
-</div>
 
-<!-- Visitantes Recentes -->
-<div class="card-section">
-    <div class="card-section-header">
-        <span class="card-section-title"><i class="bi bi-person-badge"></i> Visitantes Recentes</span>
-        <a href="{% url 'sindico_visitantes' %}" class="text-decoration-none" style="font-size: 0.72rem; color: var(--blue); font-weight: 600;">Ver todos →</a>
-    </div>
-    <div class="card-section-body">
-        {% for v in ultimos_visitantes %}
-        <div class="list-row">
-            <div>
-                <div class="list-row-name">{{ v.nome_completo }}</div>
-                <div class="list-row-sub">{{ v.morador_responsavel|default:"Visitante geral" }}</div>
-            </div>
-            <span class="list-row-sub">{{ v.horario_chegada|time:"H:i" }}</span>
-        </div>
-        {% empty %}
-        <div class="empty-state">
-            <div class="empty-state-icon"><i class="bi bi-person-badge"></i></div>
-            <div class="empty-state-text">Nenhum visitante recente</div>
-        </div>
-        {% endfor %}
-    </div>
-</div>
-
-<!-- Encomendas Pendentes -->
-<div class="card-section">
-    <div class="card-section-header">
-        <span class="card-section-title"><i class="bi bi-box-seam"></i> Encomendas Pendentes</span>
-        <a href="{% url 'sindico_encomendas' %}" class="text-decoration-none" style="font-size: 0.72rem; color: var(--blue); font-weight: 600;">Ver todas →</a>
-    </div>
-    <div class="card-section-body">
-        {% for e in ultimas_encomendas %}
-        <div class="list-row">
-            <div>
-                <div class="list-row-name">{{ e.morador.nome|truncatechars:25 }}</div>
-                <div class="list-row-sub">{{ e.volume }} · {{ e.data_chegada|date:"d/m" }}</div>
-            </div>
-        </div>
-        {% empty %}
-        <div class="empty-state">
-            <div class="empty-state-icon"><i class="bi bi-box-seam"></i></div>
-            <div class="empty-state-text">Nenhuma encomenda pendente</div>
-        </div>
-        {% endfor %}
-    </div>
-</div>
 
 <!-- Solicitações Recentes -->
 <div class="card-section">

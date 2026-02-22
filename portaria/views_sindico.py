@@ -132,17 +132,6 @@ def painel_sindico(request):
     
     stats = {
         'moradores': Morador.objects.filter(condominio=condominio).count(),
-        'visitantes_hoje': Visitante.objects.filter(
-            morador_responsavel__condominio=condominio,
-            horario_chegada__date=timezone.now().date()
-        ).count(),
-        'visitantes_no_local': Visitante.objects.filter(
-            morador_responsavel__condominio=condominio,
-            horario_saida__isnull=True
-        ).count(),
-        'encomendas_pendentes': Encomenda.objects.filter(
-            morador__condominio=condominio, entregue=False
-        ).count(),
         'solicitacoes_pendentes': Solicitacao.objects.filter(
             morador__condominio=condominio, status='PENDENTE'
         ).count(),
@@ -150,12 +139,6 @@ def painel_sindico(request):
     
     ctx = sindico_context(request, {
         'stats': stats,
-        'ultimos_visitantes': Visitante.objects.filter(
-            morador_responsavel__condominio=condominio
-        ).order_by('-horario_chegada')[:5],
-        'ultimas_encomendas': Encomenda.objects.filter(
-            morador__condominio=condominio, entregue=False
-        ).order_by('-data_chegada')[:5],
         'ultimas_solicitacoes': Solicitacao.objects.filter(
             morador__condominio=condominio
         ).order_by('-data_criacao')[:5],
@@ -476,7 +459,7 @@ def solicitacoes_sindico(request):
     
     solicitacoes = Solicitacao.objects.filter(
         morador__condominio=condominio
-    ).order_by('-data_criacao')
+    ).select_related('morador', 'criado_por').order_by('-data_criacao')
     
     ctx = sindico_context(request, {'solicitacoes': solicitacoes}, active_page='solicitacoes')
     return render(request, 'sindico/solicitacoes.html', ctx)

@@ -37,12 +37,12 @@
     </div>
 </div>
 
-<div class="glass-card">
+<div class="glass-card" style="overflow: visible;">
     {% if avisos %}
-    <div class="list-group list-group-flush" id="listaAvisos">
+    <div class="list-group list-group-flush" id="listaAvisos" style="padding: 0.5rem;">
         {% for aviso in avisos %}
         <div class="list-group-item border-0 list-item-animated p-4 aviso-item"
-             style="cursor: pointer;"
+             style="cursor: pointer; border-left: 4px solid var(--primary) !important; border-radius: 12px; margin-bottom: 0.5rem; background: {% cycle 'rgba(58, 137, 201, 0.03)' 'rgba(255, 255, 255, 1)' %}; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: all 0.3s ease;"
              onclick="toggleAviso(this)"
              data-titulo="{{ aviso.titulo|lower }}"
              data-conteudo="{{ aviso.conteudo|lower|truncatechars:200 }}"

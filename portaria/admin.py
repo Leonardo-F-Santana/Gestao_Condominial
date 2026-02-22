@@ -6,7 +6,7 @@ from import_export import resources
 from unfold.admin import ModelAdmin
 from unfold.contrib.import_export.forms import ExportForm, ImportForm
 from .models import Condominio, Sindico, Visitante, Morador, Encomenda, Solicitacao, Aviso, Notificacao, AreaComum, Reserva
-from .forms import CustomUserChangeForm
+from .forms import CustomUserChangeForm, CustomUserCreationForm
 
 
 # --- CONFIGURAÇÃO DE USUÁRIOS (Django Auth) ---
@@ -19,6 +19,7 @@ admin.site.unregister(Group)
 @admin.register(User)
 class UserAdmin(BaseUserAdmin, ModelAdmin):
     form = CustomUserChangeForm
+    add_form = CustomUserCreationForm
     filter_horizontal = ('groups',)
 
 @admin.register(Group)

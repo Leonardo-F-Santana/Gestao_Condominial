@@ -1,6 +1,14 @@
 from django import forms
 from django.contrib.auth.models import Permission
-from django.contrib.auth.forms import UserChangeForm as BaseUserChangeForm
+from django.contrib.auth.forms import UserChangeForm as BaseUserChangeForm, UserCreationForm as BaseUserCreationForm
+from django.core.validators import RegexValidator
+
+
+# Validador que permite espaços no username
+username_validator = RegexValidator(
+    regex=r'^[\w.@+\- ]+$',
+    message='Informe um nome de usuário válido. Pode conter letras, números, espaços e @/./+/-/_.',
+)
 
 
 class PermissionToggleWidget(forms.Widget):
@@ -114,6 +122,13 @@ class PermissionToggleWidget(forms.Widget):
 class CustomUserChangeForm(BaseUserChangeForm):
     """Form customizado para edição de usuários com toggles de permissões."""
 
+    username = forms.CharField(
+        max_length=150,
+        validators=[username_validator],
+        help_text='Obrigatório. 150 caracteres ou menos. Letras, números, espaços e @/./+/-/_.',
+        label='Nome de usuário',
+    )
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if 'user_permissions' in self.fields:
@@ -121,3 +136,14 @@ class CustomUserChangeForm(BaseUserChangeForm):
             self.fields['user_permissions'].help_text = (
                 'Ative ou desative as permissões específicas deste usuário.'
             )
+
+
+class CustomUserCreationForm(BaseUserCreationForm):
+    """Form para criação de usuários permitindo espaços no username."""
+
+    username = forms.CharField(
+        max_length=150,
+        validators=[username_validator],
+        help_text='Obrigatório. 150 caracteres ou menos. Letras, números, espaços e @/./+/-/_.',
+        label='Nome de usuário',
+    )

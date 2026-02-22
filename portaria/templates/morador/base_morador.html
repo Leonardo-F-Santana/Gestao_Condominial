@@ -127,7 +127,7 @@
 
         /* Stat Cards */
         .stat-card {
-            padding: 1.5rem;
+            padding: 1rem 0.5rem;
             text-align: center;
             position: relative;
         }
@@ -151,8 +151,8 @@
         }
 
         .stat-card .icon {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+            margin-bottom: 0.25rem;
             animation: bounce 2s ease-in-out infinite;
         }
 
@@ -162,15 +162,15 @@
         }
 
         .stat-card .number {
-            font-size: 2.2rem;
+            font-size: 1.6rem;
             font-weight: 800;
             color: var(--primary-dark);
         }
 
         .stat-card .label {
             color: #64748b;
-            font-weight: 500;
-            font-size: 0.9rem;
+            font-weight: 600;
+            font-size: 0.75rem;
         }
 
         /* Buttons */
@@ -318,8 +318,8 @@
 
         .notification-badge {
             position: absolute;
-            top: -5px;
-            right: -5px;
+            top: -6px;
+            right: -10px;
             background: #ef4444;
             color: white;
             font-size: 0.65rem;
@@ -327,6 +327,16 @@
             border-radius: 10px;
             font-weight: 700;
             animation: pulse 1.5s ease-in-out infinite;
+            z-index: 10;
+        }
+
+        .bottom-nav a {
+            overflow: visible !important;
+        }
+
+        .icon-badge-wrapper {
+            position: relative;
+            display: inline-block;
         }
 
         /* Efeito de ondas no fundo */
@@ -425,18 +435,24 @@
             <span>Encomendas</span>
         </a>
         <a href="{% url 'morador_reservas' %}" class="{% if 'reserva' in request.resolver_match.url_name or 'areas' in request.resolver_match.url_name %}active{% endif %}">
-            <i class="bi bi-calendar-check{% if 'reserva' in request.resolver_match.url_name or 'areas' in request.resolver_match.url_name %}-fill{% endif %}"></i>
-            {% if notif_reservas %}<span class="notification-badge">{{ notif_reservas }}</span>{% endif %}
+            <span class="icon-badge-wrapper">
+                <i class="bi bi-calendar-check{% if 'reserva' in request.resolver_match.url_name or 'areas' in request.resolver_match.url_name %}-fill{% endif %}"></i>
+                {% if notif_reservas %}<span class="notification-badge">{{ notif_reservas }}</span>{% endif %}
+            </span>
             <span>Reservas</span>
         </a>
         <a href="{% url 'morador_solicitacoes' %}" class="{% if 'solicitac' in request.resolver_match.url_name %}active{% endif %}">
-            <i class="bi bi-clipboard2{% if 'solicitac' in request.resolver_match.url_name %}-check-fill{% else %}-check{% endif %}"></i>
-            {% if notif_solicitacoes %}<span class="notification-badge">{{ notif_solicitacoes }}</span>{% endif %}
+            <span class="icon-badge-wrapper">
+                <i class="bi bi-clipboard2{% if 'solicitac' in request.resolver_match.url_name %}-check-fill{% else %}-check{% endif %}"></i>
+                {% if notif_solicitacoes %}<span class="notification-badge">{{ notif_solicitacoes }}</span>{% endif %}
+            </span>
             <span>Pedidos</span>
         </a>
         <a href="{% url 'morador_avisos' %}" class="{% if 'aviso' in request.resolver_match.url_name %}active{% endif %}">
-            <i class="bi bi-megaphone{% if 'aviso' in request.resolver_match.url_name %}-fill{% endif %}"></i>
-            {% if notif_avisos %}<span class="notification-badge">{{ notif_avisos }}</span>{% endif %}
+            <span class="icon-badge-wrapper">
+                <i class="bi bi-megaphone{% if 'aviso' in request.resolver_match.url_name %}-fill{% endif %}"></i>
+                {% if notif_avisos %}<span class="notification-badge">{{ notif_avisos }}</span>{% endif %}
+            </span>
             <span>Avisos</span>
         </a>
     </div>

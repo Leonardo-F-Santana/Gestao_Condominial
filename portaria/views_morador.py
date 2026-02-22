@@ -37,6 +37,19 @@ def portal_home(request):
         entregue=False
     ).count()
 
+    # Solicitações pendentes
+    solicitacoes_pendentes = Solicitacao.objects.filter(
+        morador=morador,
+        status='PENDENTE'
+    ).count()
+
+    # Avisos não lidos
+    avisos_nao_lidos = Notificacao.objects.filter(
+        usuario=request.user,
+        tipo='aviso',
+        lida=False
+    ).count()
+
     # Solicitações recentes
     solicitacoes_recentes = Solicitacao.objects.filter(
         morador=morador
@@ -48,6 +61,8 @@ def portal_home(request):
     context = {
         'morador': morador,
         'encomendas_pendentes': encomendas_pendentes,
+        'solicitacoes_pendentes': solicitacoes_pendentes,
+        'avisos_nao_lidos': avisos_nao_lidos,
         'solicitacoes_recentes': solicitacoes_recentes,
         'avisos': avisos,
     }
@@ -322,6 +337,16 @@ def minhas_reservas(request):
     if status_filtro:
         reservas_list = reservas_list.filter(status=status_filtro)
 
+    # Filtro de área
+    area_filtro = request.GET.get('area')
+    if area_filtro:
+        reservas_list = reservas_list.filter(area_id=area_filtro)
+
+    # Áreas disponíveis do condomínio para o filtro
+    areas = AreaComum.objects.filter(
+        condominio=morador.condominio, ativo=True
+    ).order_by('nome') if morador.condominio else AreaComum.objects.none()
+
     paginator = Paginator(reservas_list, 10)
     page_number = request.GET.get('page')
     reservas = paginator.get_page(page_number)
@@ -330,6 +355,8 @@ def minhas_reservas(request):
         'morador': morador,
         'reservas': reservas,
         'status_filtro': status_filtro,
+        'area_filtro': area_filtro,
+        'areas': areas,
     }
     return render(request, 'morador/reservas.html', context)
 
