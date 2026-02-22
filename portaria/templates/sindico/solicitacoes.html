@@ -20,7 +20,7 @@
                         {{ s.get_status_display }}
                     </span>
                 </div>
-                <div class="list-row-sub">{{ s.morador.nome|default:"Anônimo" }} · {{ s.data_criacao|date:"d/m/Y H:i" }}{% if s.criado_por and s.criado_por.id != s.morador.user_id %} · <span style="color: var(--blue); font-weight: 600;">Porteiro {{ s.criado_por.get_full_name|default:s.criado_por.username }}</span>{% endif %}</div>
+                <div class="list-row-sub">{% if s.criado_por_id and s.criado_por_id != s.morador.usuario_id %}{{ s.morador.nome|default:"Anônimo" }} · {{ s.data_criacao|date:"d/m/Y H:i" }} · <span style="color: var(--blue); font-weight: 600;">Porteiro {{ s.criado_por.get_full_name|default:s.criado_por.username }}</span>{% else %}{{ s.morador.nome|default:"Anônimo" }} · {{ s.data_criacao|date:"d/m/Y H:i" }}{% endif %}</div>
                 <div class="list-row-sub">{{ s.descricao|truncatechars:60 }}</div>
             </div>
             <i class="bi bi-chevron-right" style="color: var(--slate-300);"></i>
@@ -38,7 +38,7 @@
                         <div class="mb-3">
                             <label class="form-label" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--slate-500);">Solicitante</label>
                             <div class="fw-semibold" style="font-size: 0.9rem;">{{ s.morador.nome|default:"Anônimo" }}</div>
-                            {% if s.criado_por and s.criado_por.id != s.morador.user_id %}
+                            {% if s.criado_por_id and s.criado_por_id != s.morador.usuario_id %}
                             <div class="mt-1" style="font-size: 0.78rem; color: var(--blue); font-weight: 600;">
                                 <i class="bi bi-person-badge me-1"></i>Registrado por Porteiro {{ s.criado_por.get_full_name|default:s.criado_por.username }}
                             </div>
