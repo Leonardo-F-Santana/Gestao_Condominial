@@ -31,7 +31,7 @@
             </div>
         </div>
         
-        <p style="font-size: 0.82rem; color: var(--slate-700); margin-bottom: 0.5rem;">{{ aviso.conteudo|truncatechars:150 }}</p>
+        <div style="font-size: 0.82rem; color: var(--slate-700); margin-bottom: 0.5rem;">{{ aviso.conteudo|linebreaksbr|truncatechars_html:150 }}</div>
         
         {% if aviso.imagem %}
         <img src="{{ aviso.imagem.url }}" alt="{{ aviso.titulo }}" style="width: 100%; border-radius: 8px; margin-bottom: 0.5rem;">
@@ -80,7 +80,8 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Conteúdo *</label>
-                        <textarea name="conteudo" class="form-control" rows="4" required>{{ aviso.conteudo }}</textarea>
+                        <textarea name="conteudo" class="form-control" rows="5" required style="white-space: pre-wrap;">{{ aviso.conteudo }}</textarea>
+                        <small class="text-muted">Pressione Enter para quebra de linha</small>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Imagem</label>
@@ -150,7 +151,8 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Conteúdo *</label>
-                        <textarea name="conteudo" class="form-control" rows="4" placeholder="Descreva o aviso..." required></textarea>
+                        <textarea name="conteudo" class="form-control" rows="5" placeholder="Descreva o aviso..." required style="white-space: pre-wrap;"></textarea>
+                        <small class="text-muted">Pressione Enter para quebra de linha</small>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Imagem (opcional)</label>

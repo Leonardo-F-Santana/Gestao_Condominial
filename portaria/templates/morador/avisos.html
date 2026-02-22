@@ -57,10 +57,10 @@
                 </div>
             </div>
             <!-- Prévia do conteúdo (sempre visível) -->
-            <p class="mb-0 text-muted aviso-preview">{{ aviso.conteudo|truncatechars:100 }}</p>
+            <div class="mb-0 text-muted aviso-preview">{{ aviso.conteudo|truncatechars:100 }}</div>
             <!-- Conteúdo completo (inicialmente oculto) -->
             <div class="aviso-full" style="display: none;">
-                <p class="mb-2 text-muted">{{ aviso.conteudo }}</p>
+                <div class="mb-2 text-muted">{{ aviso.conteudo|linebreaksbr }}</div>
                 {% if aviso.imagem %}
                 <div class="mb-2">
                     <img src="{{ aviso.imagem.url }}" alt="{{ aviso.titulo }}" 
