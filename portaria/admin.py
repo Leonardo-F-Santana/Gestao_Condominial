@@ -21,6 +21,12 @@ class UserAdmin(BaseUserAdmin, ModelAdmin):
     form = CustomUserChangeForm
     add_form = CustomUserCreationForm
     filter_horizontal = ('groups',)
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('username', 'password1', 'password2'),
+        }),
+    )
 
 @admin.register(Group)
 class GroupAdmin(BaseGroupAdmin, ModelAdmin):
