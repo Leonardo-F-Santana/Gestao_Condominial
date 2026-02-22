@@ -108,7 +108,6 @@ class Solicitacao(models.Model):
         ('RECLAMACAO', '📢 Reclamação'),
         ('MANUTENCAO', '🛠️ Manutenção'),
         ('MUDANCA', '🚚 Mudança'),
-        ('RESERVA', '📅 Reserva de Espaço'),
         ('OUTRO', '📝 Outro'),
     ]
 

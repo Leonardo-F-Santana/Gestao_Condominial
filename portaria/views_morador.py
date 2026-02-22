@@ -147,13 +147,15 @@ def nova_solicitacao(request):
         arquivo = request.FILES.get('arquivo')
 
         if tipo and descricao:
-            solicitacao = Solicitacao.objects.create(
+            sol_kwargs = dict(
                 tipo=tipo,
                 descricao=descricao,
                 morador=morador,
                 criado_por=request.user,
-                arquivo=arquivo if arquivo else ''
             )
+            if arquivo:
+                sol_kwargs['arquivo'] = arquivo
+            solicitacao = Solicitacao.objects.create(**sol_kwargs)
 
             # Notificar síndicos do condomínio
             if morador.condominio:
