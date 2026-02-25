@@ -8,9 +8,9 @@ from django.utils.timezone import localdate # <--- IMPORTANTE: ISSO CORRIGE O DA
 from django.db.models import Q, Count
 from django.core.paginator import Paginator
 from django.http import HttpResponse
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django_ratelimit.decorators import ratelimit
-from .models import Visitante, Morador, Encomenda, Solicitacao, Notificacao, Sindico
+from .models import Visitante, Morador, Encomenda, Solicitacao, Notificacao, Sindico, Porteiro, Condominio
 
 # Tenta importar biblioteca de PDF
 try:
@@ -44,7 +44,26 @@ def _gerar_pdf(request, template_name, context, filename):
 
 def is_porteiro(user):
     """Verifica se o usuário é porteiro (staff ou membro do grupo Portaria)"""
+    if user.is_superuser:
+        return True
     return user.is_staff or user.groups.filter(name='Portaria').exists()
+
+
+def get_condominio_porteiro(user):
+    """
+    Retorna o Condominio vinculado ao usuário logado.
+    Tenta: porteiro_perfil > síndico (primeiro cond) > None
+    """
+    # 1. Porteiro vinculado diretamente
+    if hasattr(user, 'porteiro_perfil'):
+        return user.porteiro_perfil.condominio
+    # 2. Síndico — pega o primeiro condomínio gerenciado
+    if hasattr(user, 'sindico'):
+        cond = user.sindico.condominios.first()
+        if cond:
+            return cond
+    # 3. Superuser sem vínculo — retorna None (verá TUDO)
+    return None
 
 
 @ratelimit(key='ip', rate='5/m', method='POST', block=True)
@@ -186,9 +205,18 @@ def api_stats(request):
     if not request.user.is_staff:
         return JsonResponse({'error': 'Não autorizado'}, status=403)
     
-    visitantes_no_local = Visitante.objects.filter(horario_saida__isnull=True).count()
-    encomendas_pendentes = Encomenda.objects.filter(entregue=False).count()
-    solicitacoes_pendentes = Solicitacao.objects.filter(status='PENDENTE').count()
+    cond = get_condominio_porteiro(request.user)
+    visitantes_qs = Visitante.objects.all()
+    encomendas_qs = Encomenda.objects.all()
+    solicitacoes_qs = Solicitacao.objects.all()
+    if cond:
+        visitantes_qs = visitantes_qs.filter(condominio=cond)
+        encomendas_qs = encomendas_qs.filter(condominio=cond)
+        solicitacoes_qs = solicitacoes_qs.filter(condominio=cond)
+    
+    visitantes_no_local = visitantes_qs.filter(horario_saida__isnull=True).count()
+    encomendas_pendentes = encomendas_qs.filter(entregue=False).count()
+    solicitacoes_pendentes = solicitacoes_qs.filter(status='PENDENTE').count()
     
     return JsonResponse({
         'visitantes_no_local': visitantes_no_local,
@@ -215,9 +243,12 @@ def home(request):
         registrar_visitante(request)
         return redirect('home')
 
+    cond = get_condominio_porteiro(request.user)
     query = request.GET.get('busca')
     
     visitantes_all = Visitante.objects.select_related('morador_responsavel').all().order_by('-horario_chegada')
+    if cond:
+        visitantes_all = visitantes_all.filter(condominio=cond)
     
     if query:
         visitantes_all = visitantes_all.filter(Q(nome_completo__icontains=query) | Q(cpf__icontains=query))
@@ -228,19 +259,23 @@ def home(request):
 
     # CORREÇÃO AQUI TAMBÉM: Usamos localdate()
     hoje = localdate()
-    visitantes_hoje_total = Visitante.objects.filter(horario_chegada__date=hoje).count() # Total do dia
-    visitantes_no_local_count = Visitante.objects.filter(horario_saida__isnull=True).count() # Só quem está dentro
+    base_visitantes = Visitante.objects.filter(condominio=cond) if cond else Visitante.objects.all()
+    base_encomendas = Encomenda.objects.filter(condominio=cond) if cond else Encomenda.objects.all()
+    base_solicitacoes = Solicitacao.objects.filter(condominio=cond) if cond else Solicitacao.objects.all()
     
-    encomendas_pendentes_count = Encomenda.objects.filter(entregue=False).count()
-    solicitacoes_pendentes_count = Solicitacao.objects.filter(status='PENDENTE').count()
+    visitantes_hoje_total = base_visitantes.filter(horario_chegada__date=hoje).count()
+    visitantes_no_local_count = base_visitantes.filter(horario_saida__isnull=True).count()
     
-    lista_encomendas = Encomenda.objects.filter(entregue=False).select_related('morador').order_by('-data_chegada')
-    lista_solicitacoes = Solicitacao.objects.all().select_related('morador').order_by('-data_criacao')[:50]
-    todos_moradores = Morador.objects.all().order_by('bloco', 'apartamento')
+    encomendas_pendentes_count = base_encomendas.filter(entregue=False).count()
+    solicitacoes_pendentes_count = base_solicitacoes.filter(status='PENDENTE').count()
+    
+    lista_encomendas = base_encomendas.filter(entregue=False).select_related('morador').order_by('-data_chegada')
+    lista_solicitacoes = base_solicitacoes.select_related('morador').order_by('-data_criacao')[:50]
+    todos_moradores = Morador.objects.filter(condominio=cond).order_by('bloco', 'apartamento') if cond else Morador.objects.all().order_by('bloco', 'apartamento')
 
     context = {
         'lista_visitantes': page_obj, 
-        'visitantes_hoje_total': visitantes_hoje_total, # Nova variável
+        'visitantes_hoje_total': visitantes_hoje_total,
         'visitantes_no_local': visitantes_no_local_count,
         'encomendas_pendentes': encomendas_pendentes_count,
         'solicitacoes_pendentes': solicitacoes_pendentes_count,
@@ -248,7 +283,8 @@ def home(request):
         'lista_solicitacoes': lista_solicitacoes,
         'todos_moradores': todos_moradores,
         'query_busca': query,
-        'aba_ativa': request.GET.get('aba', 'visitantes')
+        'aba_ativa': request.GET.get('aba', 'visitantes'),
+        'condominio_atual': cond,
     }
     return render(request, 'index.html', context)
 
@@ -257,8 +293,12 @@ def registrar_visitante(request):
     if request.method == 'POST':
         morador_id = request.POST.get('morador_responsavel')
         morador = Morador.objects.get(id=morador_id) if morador_id else None
+        cond = get_condominio_porteiro(request.user)
+        # Se o morador tem condomínio, usar esse; senão usar o do porteiro
+        condominio_registro = (morador.condominio if morador and morador.condominio else cond)
         
         Visitante.objects.create(
+            condominio=condominio_registro,
             nome_completo=request.POST.get('nome_completo'),
             cpf=request.POST.get('cpf'),
             data_nascimento=request.POST.get('data_nascimento') or None,
@@ -288,8 +328,11 @@ def registrar_encomenda(request):
     if request.method == 'POST':
         morador_id = request.POST.get('morador_encomenda')
         if morador_id:
+            morador = Morador.objects.get(id=morador_id)
+            cond = morador.condominio or get_condominio_porteiro(request.user)
             Encomenda.objects.create(
-                morador=Morador.objects.get(id=morador_id),
+                condominio=cond,
+                morador=morador,
                 volume=request.POST.get('volume'),
                 destinatario_alternativo=request.POST.get('destinatario_alternativo'),
                 porteiro_cadastro=request.user
@@ -322,6 +365,9 @@ def marcar_notificado(request, id_encomenda):
 @login_required
 def historico_encomendas(request):
     encomendas_list = Encomenda.objects.filter(entregue=True).order_by('-data_entrega')
+    cond = get_condominio_porteiro(request.user)
+    if cond:
+        encomendas_list = encomendas_list.filter(condominio=cond)
     
     busca = request.GET.get('busca')
     if busca:
@@ -364,7 +410,9 @@ def registrar_solicitacao(request):
     if request.method == 'POST':
         morador_id = request.POST.get('morador_solicitacao')
         morador = Morador.objects.get(id=morador_id) if morador_id else None
+        cond = (morador.condominio if morador and morador.condominio else get_condominio_porteiro(request.user))
         solicitacao = Solicitacao.objects.create(
+            condominio=cond,
             tipo=request.POST.get('tipo'),
             descricao=request.POST.get('descricao'),
             morador=morador,
@@ -372,8 +420,8 @@ def registrar_solicitacao(request):
         )
 
         # Notificar síndicos do condomínio
-        if morador and morador.condominio:
-            sindicos = Sindico.objects.filter(condominios=morador.condominio)
+        if cond:
+            sindicos = Sindico.objects.filter(condominios=cond)
             notificacoes = [
                 Notificacao(
                     usuario=s.usuario,
@@ -390,6 +438,9 @@ def registrar_solicitacao(request):
 @login_required
 def historico_solicitacoes(request):
     solicitacoes_list = Solicitacao.objects.select_related('morador').all().order_by('-data_criacao')
+    cond = get_condominio_porteiro(request.user)
+    if cond:
+        solicitacoes_list = solicitacoes_list.filter(condominio=cond)
     
     busca = request.GET.get('busca')
     if busca:
@@ -510,3 +561,116 @@ def exportar_relatorio_solicitacoes(request):
         'tipo_relatorio': 'solicitacoes'
     }
     return _gerar_pdf(request, 'relatorio_pdf.html', context, 'relatorio_ocorrencias.pdf')
+
+
+# ==========================================
+# 7. API OFFLINE (Sincronização)
+# ==========================================
+
+import json
+
+@login_required
+def api_moradores_offline(request):
+    """Retorna lista de moradores em JSON para cache offline no navegador."""
+    cond = get_condominio_porteiro(request.user)
+    qs = Morador.objects.all().order_by('bloco', 'apartamento')
+    if cond:
+        qs = qs.filter(condominio=cond)
+    moradores = qs.values('id', 'nome', 'bloco', 'apartamento', 'telefone')
+    return JsonResponse({'moradores': list(moradores), 'porteiro': request.user.username})
+
+
+@csrf_exempt
+@login_required
+def api_sync_offline(request):
+    """
+    Recebe dados coletados offline (visitantes e encomendas) e cria os registros
+    no banco de dados, atribuindo ao porteiro logado (request.user).
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método não permitido'}, status=405)
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'JSON inválido'}, status=400)
+
+    resultados = {'visitantes_criados': 0, 'encomendas_criadas': 0, 'solicitacoes_criadas': 0, 'erros': []}
+
+    cond = get_condominio_porteiro(request.user)
+
+    # --- Sincronizar Visitantes ---
+    for i, v in enumerate(data.get('visitantes', [])):
+        try:
+            morador = None
+            if v.get('morador_id'):
+                morador = Morador.objects.get(id=v['morador_id'])
+
+            condominio_reg = (morador.condominio if morador and morador.condominio else cond)
+            Visitante.objects.create(
+                condominio=condominio_reg,
+                nome_completo=v.get('nome_completo', 'Sem nome'),
+                cpf=v.get('cpf', ''),
+                data_nascimento=v.get('data_nascimento') or None,
+                placa_veiculo=v.get('placa_veiculo', ''),
+                morador_responsavel=morador,
+                quem_autorizou=v.get('quem_autorizou', ''),
+                observacoes=v.get('observacoes', '') + ' [Registrado offline]',
+                registrado_por=request.user
+            )
+            resultados['visitantes_criados'] += 1
+        except Exception as e:
+            resultados['erros'].append(f'Visitante #{i+1}: {str(e)}')
+
+    # --- Sincronizar Encomendas ---
+    for i, e in enumerate(data.get('encomendas', [])):
+        try:
+            morador = Morador.objects.get(id=e['morador_id'])
+            condominio_reg = morador.condominio or cond
+            Encomenda.objects.create(
+                condominio=condominio_reg,
+                morador=morador,
+                volume=e.get('volume', 'Sem descrição'),
+                destinatario_alternativo=e.get('destinatario_alternativo', ''),
+                porteiro_cadastro=request.user
+            )
+            resultados['encomendas_criadas'] += 1
+        except Exception as ex:
+            resultados['erros'].append(f'Encomenda #{i+1}: {str(ex)}')
+
+    # --- Sincronizar Solicitações ---
+    for i, s in enumerate(data.get('solicitacoes', [])):
+        try:
+            morador = None
+            if s.get('morador_id'):
+                morador = Morador.objects.get(id=s['morador_id'])
+
+            solicitacao = Solicitacao.objects.create(
+                condominio=(morador.condominio if morador and morador.condominio else cond),
+                tipo=s.get('tipo', 'OUTRO'),
+                descricao=s.get('descricao', '') + ' [Registrado offline]',
+                morador=morador,
+                criado_por=request.user
+            )
+
+            # Notificar síndicos do condomínio (mesma lógica da view normal)
+            solicitacao_cond = solicitacao.condominio
+            if solicitacao_cond:
+                sindicos = Sindico.objects.filter(condominios=solicitacao_cond)
+                notificacoes = [
+                    Notificacao(
+                        usuario=sind.usuario,
+                        tipo='solicitacao',
+                        mensagem=f'Porteiro {request.user.get_full_name() or request.user.username}: solicitação #{solicitacao.id} [offline]',
+                        link='/sindico/solicitacoes/'
+                    ) for sind in sindicos
+                ]
+                Notificacao.objects.bulk_create(notificacoes)
+
+            resultados['solicitacoes_criadas'] += 1
+        except Exception as ex:
+            resultados['erros'].append(f'Solicitação #{i+1}: {str(ex)}')
+
+    resultados['ok'] = len(resultados['erros']) == 0
+    resultados['porteiro'] = request.user.username
+    return JsonResponse(resultados)

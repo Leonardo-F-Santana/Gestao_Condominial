@@ -53,10 +53,10 @@ def portal_sindico_home(request):
             'condominio': cond,
             'moradores': Morador.objects.filter(condominio=cond).count(),
             'encomendas_pendentes': Encomenda.objects.filter(
-                morador__condominio=cond, entregue=False
+                condominio=cond, entregue=False
             ).count(),
             'solicitacoes_pendentes': Solicitacao.objects.filter(
-                morador__condominio=cond, status='PENDENTE'
+                condominio=cond, status='PENDENTE'
             ).count(),
         }
         condominios_stats.append(stats)
@@ -133,14 +133,14 @@ def painel_sindico(request):
     stats = {
         'moradores': Morador.objects.filter(condominio=condominio).count(),
         'solicitacoes_pendentes': Solicitacao.objects.filter(
-            morador__condominio=condominio, status='PENDENTE'
+            condominio=condominio, status='PENDENTE'
         ).count(),
     }
     
     ctx = sindico_context(request, {
         'stats': stats,
         'ultimas_solicitacoes': Solicitacao.objects.filter(
-            morador__condominio=condominio
+            condominio=condominio
         ).order_by('-data_criacao')[:5],
     }, active_page='painel')
     
@@ -353,7 +353,7 @@ def visitantes_sindico(request):
     
     moradores = Morador.objects.filter(condominio=condominio).order_by('bloco', 'apartamento')
     visitantes_no_local = Visitante.objects.filter(
-        morador_responsavel__condominio=condominio,
+        condominio=condominio,
         horario_saida__isnull=True
     ).order_by('-horario_chegada')
     
@@ -365,6 +365,7 @@ def visitantes_sindico(request):
         if nome:
             morador = Morador.objects.get(id=morador_id) if morador_id else None
             Visitante.objects.create(
+                condominio=condominio,
                 nome_completo=nome,
                 morador_responsavel=morador,
                 placa_veiculo=placa,
@@ -405,7 +406,7 @@ def encomendas_sindico(request):
     
     moradores = Morador.objects.filter(condominio=condominio).order_by('bloco', 'apartamento')
     encomendas_pendentes = Encomenda.objects.filter(
-        morador__condominio=condominio, entregue=False
+        condominio=condominio, entregue=False
     ).order_by('-data_chegada')
     
     if request.method == 'POST' and 'registrar_encomenda' in request.POST:
@@ -414,7 +415,7 @@ def encomendas_sindico(request):
         if morador_id and volume:
             morador = Morador.objects.get(id=morador_id)
             Encomenda.objects.create(
-                morador=morador, volume=volume, porteiro_cadastro=request.user
+                condominio=condominio, morador=morador, volume=volume, porteiro_cadastro=request.user
             )
             messages.success(request, f"Encomenda para '{morador.nome}' registrada!")
             return redirect('sindico_encomendas')
@@ -458,7 +459,7 @@ def solicitacoes_sindico(request):
     ).update(lida=True)
     
     solicitacoes = Solicitacao.objects.filter(
-        morador__condominio=condominio
+        condominio=condominio
     ).select_related('morador', 'criado_por').order_by('-data_criacao')
     
     ctx = sindico_context(request, {'solicitacoes': solicitacoes}, active_page='solicitacoes')

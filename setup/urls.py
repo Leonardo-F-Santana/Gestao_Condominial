@@ -23,7 +23,9 @@ from portaria.views import (
     historico_solicitacoes,
     api_stats,
     alterar_senha,
-    cadastro_morador
+    cadastro_morador,
+    api_moradores_offline,
+    api_sync_offline
 )
 
 # Views do Portal do Morador
@@ -113,6 +115,8 @@ urlpatterns = [
     # --- Gestão e Relatórios Gerais ---
 
     path('api/stats/', api_stats, name='api_stats'),
+    path('api/moradores-offline/', api_moradores_offline, name='api_moradores_offline'),
+    path('api/sync-offline/', api_sync_offline, name='api_sync_offline'),
     path('exportar_relatorio/', exportar_relatorio, name='exportar_relatorio'),
     
     # --- Portal do Morador ---

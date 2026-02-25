@@ -44,6 +44,23 @@ class Sindico(models.Model):
         verbose_name_plural = "Síndicos"
 
 
+class Porteiro(models.Model):
+    """Porteiro/Zelador vinculado a um condomínio específico"""
+    usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='porteiro_perfil')
+    nome = models.CharField(max_length=100, verbose_name="Nome Completo")
+    condominio = models.ForeignKey(Condominio, on_delete=models.CASCADE, 
+                                    related_name='porteiros', verbose_name="Condomínio")
+    cargo = models.CharField(max_length=50, default='Porteiro', verbose_name="Cargo",
+                              help_text="Ex: Porteiro, Zelador, Segurança")
+
+    def __str__(self):
+        return f"{self.nome} — {self.condominio.nome} ({self.cargo})"
+
+    class Meta:
+        verbose_name = "Porteiro / Acesso"
+        verbose_name_plural = "Porteiros e Acessos"
+
+
 # ==========================================
 # MODELOS PRINCIPAIS
 # ==========================================
@@ -72,6 +89,9 @@ class Morador(models.Model):
 
 
 class Visitante(models.Model):
+    condominio = models.ForeignKey(Condominio, on_delete=models.CASCADE,
+                                    null=True, blank=True, verbose_name="Condomínio",
+                                    related_name='visitantes')
     nome_completo = models.CharField(max_length=100, verbose_name="Nome Completo")
     cpf = models.CharField(max_length=14, verbose_name="CPF", blank=True, null=True)
     data_nascimento = models.DateField(verbose_name="Data de Nascimento", blank=True, null=True)
@@ -88,6 +108,9 @@ class Visitante(models.Model):
         return self.nome_completo
 
 class Encomenda(models.Model):
+    condominio = models.ForeignKey(Condominio, on_delete=models.CASCADE,
+                                    null=True, blank=True, verbose_name="Condomínio",
+                                    related_name='encomendas')
     morador = models.ForeignKey(Morador, on_delete=models.CASCADE, verbose_name="Morador")
     data_chegada = models.DateTimeField(auto_now_add=True, verbose_name="Data de Chegada")
     volume = models.CharField(max_length=50, verbose_name="Volume")
@@ -120,6 +143,9 @@ class Solicitacao(models.Model):
 
     tipo = models.CharField(max_length=20, choices=TIPOS_CHOICES, verbose_name="Tipo de Solicitação")
     descricao = models.TextField(verbose_name="Descrição do Pedido")
+    condominio = models.ForeignKey(Condominio, on_delete=models.CASCADE,
+                                    null=True, blank=True, verbose_name="Condomínio",
+                                    related_name='solicitacoes')
     morador = models.ForeignKey(Morador, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Morador Solicitante")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDENTE', verbose_name="Status Atual")
     arquivo = models.FileField(upload_to='solicitacoes/%Y/%m/', blank=True, verbose_name="Foto/Vídeo")

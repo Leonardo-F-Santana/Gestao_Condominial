@@ -5,7 +5,7 @@ from django.utils.html import format_html
 from import_export import resources
 from unfold.admin import ModelAdmin
 from unfold.contrib.import_export.forms import ExportForm, ImportForm
-from .models import Condominio, Sindico, Visitante, Morador, Encomenda, Solicitacao, Aviso, Notificacao, AreaComum, Reserva
+from .models import Condominio, Sindico, Porteiro, Visitante, Morador, Encomenda, Solicitacao, Aviso, Notificacao, AreaComum, Reserva
 from .forms import CustomUserChangeForm, CustomUserCreationForm
 
 
@@ -21,6 +21,16 @@ class UserAdmin(BaseUserAdmin, ModelAdmin):
     form = CustomUserChangeForm
     add_form = CustomUserCreationForm
     filter_horizontal = ('groups',)
+    list_display = ('username', 'first_name', 'last_name', 'email', 'is_staff', 'is_active')
+    list_filter = ('is_staff', 'is_active', 'groups')
+    search_fields = ('username', 'first_name', 'last_name', 'email')
+    ordering = ('username',)
+    fieldsets = (
+        (None, {'fields': ('username', 'password')}),
+        ('Informações Pessoais', {'fields': ('first_name', 'last_name', 'email')}),
+        ('Permissões', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Datas', {'fields': ('last_login', 'date_joined')}),
+    )
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
@@ -54,6 +64,14 @@ class SindicoAdmin(ModelAdmin):
     get_condominios.short_description = 'Condomínios'
 
 
+@admin.register(Porteiro)
+class PorteiroAdmin(ModelAdmin):
+    list_display = ('nome', 'usuario', 'condominio', 'cargo')
+    list_filter = ('condominio', 'cargo')
+    search_fields = ('nome', 'usuario__username', 'condominio__nome')
+    autocomplete_fields = ('usuario', 'condominio')
+
+
 # --- CONFIGURAÇÃO DE MORADORES (COM IMPORTAÇÃO) ---
 
 
@@ -80,15 +98,15 @@ class MoradorAdmin(ModelAdmin):
 
 @admin.register(Visitante)
 class VisitanteAdmin(ModelAdmin):
-    list_display = ('nome_completo', 'morador_responsavel', 'horario_chegada', 'horario_saida', 'registrado_por')
-    list_filter = ('horario_chegada', 'registrado_por')
+    list_display = ('nome_completo', 'condominio', 'morador_responsavel', 'horario_chegada', 'horario_saida', 'registrado_por')
+    list_filter = ('condominio', 'horario_chegada', 'registrado_por')
     search_fields = ('nome_completo', 'cpf', 'placa_veiculo')
     readonly_fields = ('horario_chegada', 'registrado_por')
 
 @admin.register(Encomenda)
 class EncomendaAdmin(ModelAdmin):
-    list_display = ('morador', 'volume', 'data_chegada', 'get_status_html', 'porteiro_cadastro')
-    list_filter = ('entregue', 'data_chegada', 'porteiro_cadastro')
+    list_display = ('morador', 'condominio', 'volume', 'data_chegada', 'get_status_html', 'porteiro_cadastro')
+    list_filter = ('condominio', 'entregue', 'data_chegada', 'porteiro_cadastro')
     search_fields = ('morador__nome', 'volume', 'quem_retirou')
     readonly_fields = ('data_chegada', 'data_entrega', 'porteiro_cadastro', 'porteiro_entrega')
 
@@ -100,8 +118,8 @@ class EncomendaAdmin(ModelAdmin):
 
 @admin.register(Solicitacao)
 class SolicitacaoAdmin(ModelAdmin):
-    list_display = ('get_tipo_html', 'morador', 'descricao_curta', 'criado_por', 'data_criacao', 'get_status_html')
-    list_filter = ('status', 'tipo', 'data_criacao', 'criado_por')
+    list_display = ('get_tipo_html', 'condominio', 'morador', 'descricao_curta', 'criado_por', 'data_criacao', 'get_status_html')
+    list_filter = ('condominio', 'status', 'tipo', 'data_criacao', 'criado_por')
     search_fields = ('descricao', 'morador__nome', 'morador__apartamento')
     readonly_fields = ('data_criacao', 'criado_por')
 

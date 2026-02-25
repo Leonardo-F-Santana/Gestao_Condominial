@@ -1,10 +1,1 @@
-na pagina minhas reservas, organizar o alinhamento dos status das reservas, estão desalinhados;
-no menu superior com 3 pontinhos, os botões estão muito juntinhos, poderia organizar isso também;
-na pagina avisos do condomínio, voce poderia colocar um filtro de busca com data e nome;
-criar a mesma notificação que tem na pagina de pedidos também em reservas para o sindico e para o morador;
-o logotipo não carrega corretamente, aparece uma imagem quebrada;
-colocar uma opção na pagina adm pra subir arquivo com vários moradores ao invés de cadastrar um por um (arquivo excel e afins);
-retirar pagina de encomendas e visitas do app do sindico;
-criar o pwa;
-na pagina de login ao invés de "gestão condominial" coloque 'Splash Residence Club' com a logo do condomínio;
-a parte do "esqueceu a senha" não está funcionando.
+Na página do Django Admin, continuo sem conseguir alterar as senhas dos usuários, e preciso que isso seja corrigido. Além disso, ao cadastrar um novo usuário, os campos para 'nome de usuário', 'senha' e 'confirmação de senha' ainda não aparecem corretamente — o espaço para digitação não está visível, preciso que corrija isso.
