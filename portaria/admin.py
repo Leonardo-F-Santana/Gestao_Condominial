@@ -5,6 +5,7 @@ from django.utils.html import format_html
 from import_export import resources
 from unfold.admin import ModelAdmin
 from unfold.contrib.import_export.forms import ExportForm, ImportForm
+from unfold.forms import AdminPasswordChangeForm
 from .models import Condominio, Sindico, Porteiro, Visitante, Morador, Encomenda, Solicitacao, Aviso, Notificacao, AreaComum, Reserva
 from .forms import CustomUserChangeForm, CustomUserCreationForm
 
@@ -20,6 +21,7 @@ admin.site.unregister(Group)
 class UserAdmin(BaseUserAdmin, ModelAdmin):
     form = CustomUserChangeForm
     add_form = CustomUserCreationForm
+    change_password_form = AdminPasswordChangeForm
     filter_horizontal = ('groups',)
     list_display = ('username', 'first_name', 'last_name', 'email', 'is_staff', 'is_active')
     list_filter = ('is_staff', 'is_active', 'groups')

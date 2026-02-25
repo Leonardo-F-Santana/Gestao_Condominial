@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import Permission
-from django.contrib.auth.forms import UserChangeForm as BaseUserChangeForm, UserCreationForm as BaseUserCreationForm
+from unfold.forms import UserChangeForm as BaseUserChangeForm, UserCreationForm as BaseUserCreationForm
 from django.core.validators import RegexValidator
 
 
