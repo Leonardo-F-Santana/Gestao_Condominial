@@ -93,6 +93,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'portaria.context_processors.notificacoes',
+                'portaria.context_processors.condominio_info',
             ],
         },
     },
@@ -142,6 +143,8 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800
 FILE_UPLOAD_MAX_MEMORY_SIZE = 52428800
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+AUTH_USER_MODEL = 'portaria.CustomUser'
 
 LOGIN_REDIRECT_URL = 'home'
 LOGIN_URL = 'login'
@@ -290,7 +293,7 @@ UNFOLD = {
                     {
                         "title": "Usuários",
                         "icon": "person",
-                        "link": reverse_lazy("admin:auth_user_changelist"),
+                        "link": reverse_lazy("admin:portaria_customuser_changelist"),
                     },
                     {
                         "title": "Grupos",

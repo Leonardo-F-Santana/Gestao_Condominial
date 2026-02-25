@@ -27,12 +27,16 @@
 
     <div class="splash-logo-wrapper">
         <div class="splash-glow"></div>
+        {% if condominio_atual and condominio_atual.logo %}
+        <img src="{{ condominio_atual.logo.url }}" alt="{{ condominio_atual.nome }}" class="splash-logo">
+        {% else %}
         <img src="/static/img/icon-192.png" alt="Splash RC" class="splash-logo">
+        {% endif %}
     </div>
 
     <div class="splash-text">
-        <h1 class="splash-title">Splash Residence</h1>
-        <p class="splash-subtitle">Club</p>
+        <h1 class="splash-title">{% if condominio_atual %}{{ condominio_atual.nome }}{% else %}Splash Residence Club{% endif %}</h1>
+        <p class="splash-subtitle">{% if condominio_atual %}Condomínio{% else %}Club{% endif %}</p>
     </div>
 
     <div class="splash-loader">

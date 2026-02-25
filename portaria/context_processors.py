@@ -1,16 +1,20 @@
+from django.conf import settings
 from .models import Notificacao
 
+def condominio_info(request):
+    """
+    Injeta o condomínio atual no contexto de todos os templates.
+    Se o usuário estiver logado e tiver um condomínio vinculado, retorna os dados dele.
+    """
+    if request.user.is_authenticated and hasattr(request.user, 'condominio') and request.user.condominio:
+        return {'condominio_atual': request.user.condominio}
+    return {'condominio_atual': None}
 
 def notificacoes(request):
-    """Injeta contagens de notificações não lidas em todas as templates"""
-    if not request.user.is_authenticated:
-        return {}
-
-    qs = Notificacao.objects.filter(usuario=request.user, lida=False)
-
-    return {
-        'notif_avisos': qs.filter(tipo='aviso').count(),
-        'notif_solicitacoes': qs.filter(tipo__in=['solicitacao', 'resposta_solicitacao']).count(),
-        'notif_reservas': qs.filter(tipo='reserva').count(),
-        'notif_total': qs.count(),
-    }
+    """
+    Retorna as notificações não lidas para o usuário autenticado.
+    Necessário para o badge de notificações na navbar de todas as páginas.
+    """
+    if request.user.is_authenticated:
+        return {'notificacoes': Notificacao.objects.filter(usuario=request.user, lida=False)}
+    return {'notificacoes': []}

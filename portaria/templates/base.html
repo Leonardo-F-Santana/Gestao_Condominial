@@ -288,8 +288,12 @@
     <nav class="navbar navbar-expand-lg navbar-modern sticky-top">
         <div class="container">
             <a class="navbar-brand" href="{% url 'home' %}">
+                {% if condominio_atual and condominio_atual.logo %}
+                <img src="{{ condominio_atual.logo.url }}" alt="{{ condominio_atual.nome }}" class="brand-logo" onerror="this.style.display='none'">
+                {% else %}
                 <img src="/img/logo.ico" alt="Logo" class="brand-logo" onerror="this.style.display='none'">
-                <span class="brand-text">Portaria Splash Residence Club</span>
+                {% endif %}
+                <span class="brand-text">Portaria {% if condominio_atual %}{{ condominio_atual.nome }}{% else %}Splash Residence Club{% endif %}</span>
             </a>
             
             <div class="d-flex align-items-center gap-2">

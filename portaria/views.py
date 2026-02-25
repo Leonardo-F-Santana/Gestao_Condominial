@@ -43,36 +43,26 @@ def _gerar_pdf(request, template_name, context, filename):
 # ==========================================
 
 def is_porteiro(user):
-    """Verifica se o usuário é porteiro (staff ou membro do grupo Portaria)"""
+    """Verifica se o usuário é porteiro (staff ou grupo Portaria/tipo)"""
     if user.is_superuser:
         return True
-    return user.is_staff or user.groups.filter(name='Portaria').exists()
+    return getattr(user, 'tipo_usuario', '') == 'porteiro' or user.is_staff or user.groups.filter(name='Portaria').exists()
 
 
 def get_condominio_porteiro(user):
     """
     Retorna o Condominio vinculado ao usuário logado.
-    Tenta: porteiro_perfil > síndico (primeiro cond) > None
     """
-    # 1. Porteiro vinculado diretamente
-    if hasattr(user, 'porteiro_perfil'):
-        return user.porteiro_perfil.condominio
-    # 2. Síndico — pega o primeiro condomínio gerenciado
-    if hasattr(user, 'sindico'):
-        cond = user.sindico.condominios.first()
-        if cond:
-            return cond
-    # 3. Superuser sem vínculo — retorna None (verá TUDO)
-    return None
+    return getattr(user, 'condominio', None)
 
 
 @ratelimit(key='ip', rate='5/m', method='POST', block=True)
 def login_view(request):
     if request.user.is_authenticated:
         # Redireciona baseado no tipo de usuário
-        if hasattr(request.user, 'morador'):
+        if getattr(request.user, 'tipo_usuario', '') == 'morador':
             return redirect('morador_home')
-        if hasattr(request.user, 'sindico'):
+        if getattr(request.user, 'tipo_usuario', '') == 'sindico':
             return redirect('sindico_home')
         if is_porteiro(request.user):
             return redirect('home')
@@ -86,9 +76,9 @@ def login_view(request):
             user = form.get_user()
             login(request, user)
             # Redireciona baseado no perfil
-            if hasattr(user, 'morador'):
+            if getattr(user, 'tipo_usuario', '') == 'morador':
                 return redirect('morador_home')
-            if hasattr(user, 'sindico'):
+            if getattr(user, 'tipo_usuario', '') == 'sindico':
                 return redirect('sindico_home')
             if is_porteiro(user):
                 return redirect('home')
@@ -124,9 +114,9 @@ def alterar_senha(request):
             login(request, request.user)
             messages.success(request, "Senha alterada com sucesso!")
             
-            if hasattr(request.user, 'morador'):
+            if getattr(request.user, 'tipo_usuario', '') == 'morador':
                 return redirect('morador_home')
-            if hasattr(request.user, 'sindico'):
+            if getattr(request.user, 'tipo_usuario', '') == 'sindico':
                 return redirect('sindico_home')
             return redirect('home')
     
@@ -137,7 +127,8 @@ def alterar_senha(request):
 def cadastro_morador(request, codigo_convite):
     """Página pública de autocadastro de morador via link de convite"""
     from .models import Condominio, Morador
-    from django.contrib.auth.models import User as UserModel
+    from django.contrib.auth import get_user_model
+    UserModel = get_user_model()
     
     condominio = get_object_or_404(Condominio, codigo_convite=codigo_convite, ativo=True)
     form_data = {}
@@ -173,7 +164,9 @@ def cadastro_morador(request, codigo_convite):
                 username=username,
                 password=password,
                 first_name=nome.split()[0] if nome else '',
-                email=email
+                email=email,
+                tipo_usuario='morador',
+                condominio=condominio
             )
             Morador.objects.create(
                 condominio=condominio,
@@ -231,7 +224,7 @@ def api_stats(request):
 @login_required
 def home(request):
     # Se for morador, redireciona para o portal do morador
-    if hasattr(request.user, 'morador'):
+    if getattr(request.user, 'tipo_usuario', '') == 'morador':
         return redirect('morador_home')
     
     # Só staff ou porteiros (grupo Portaria) podem acessar
@@ -421,14 +414,14 @@ def registrar_solicitacao(request):
 
         # Notificar síndicos do condomínio
         if cond:
-            sindicos = Sindico.objects.filter(condominios=cond)
+            sindicos = Sindico.objects.filter(condominio=cond)
             notificacoes = [
                 Notificacao(
                     usuario=s.usuario,
                     tipo='solicitacao',
                     mensagem=f'Porteiro {request.user.get_full_name() or request.user.username}: solicitação #{solicitacao.id}',
                     link='/sindico/solicitacoes/'
-                ) for s in sindicos
+                ) for s in sindicos if s.usuario
             ]
             Notificacao.objects.bulk_create(notificacoes)
 
@@ -656,14 +649,14 @@ def api_sync_offline(request):
             # Notificar síndicos do condomínio (mesma lógica da view normal)
             solicitacao_cond = solicitacao.condominio
             if solicitacao_cond:
-                sindicos = Sindico.objects.filter(condominios=solicitacao_cond)
+                sindicos = Sindico.objects.filter(condominio=solicitacao_cond)
                 notificacoes = [
                     Notificacao(
                         usuario=sind.usuario,
                         tipo='solicitacao',
                         mensagem=f'Porteiro {request.user.get_full_name() or request.user.username}: solicitação #{solicitacao.id} [offline]',
                         link='/sindico/solicitacoes/'
-                    ) for sind in sindicos
+                    ) for sind in sindicos if sind.usuario
                 ]
                 Notificacao.objects.bulk_create(notificacoes)
 

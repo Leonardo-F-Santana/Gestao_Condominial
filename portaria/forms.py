@@ -1,6 +1,9 @@
 from django import forms
 from django.contrib.auth.models import Permission
 from unfold.forms import UserChangeForm as BaseUserChangeForm, UserCreationForm as BaseUserCreationForm
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 from django.core.validators import RegexValidator
 
 
@@ -137,6 +140,10 @@ class CustomUserChangeForm(BaseUserChangeForm):
                 'Ative ou desative as permissões específicas deste usuário.'
             )
 
+    class Meta(BaseUserChangeForm.Meta):
+        model = User
+        fields = '__all__'
+
 
 class CustomUserCreationForm(BaseUserCreationForm):
     """Form para criação de usuários permitindo espaços no username."""
@@ -147,3 +154,7 @@ class CustomUserCreationForm(BaseUserCreationForm):
         help_text='Obrigatório. 150 caracteres ou menos. Letras, números, espaços e @/./+/-/_.',
         label='Nome de usuário',
     )
+
+    class Meta(BaseUserCreationForm.Meta):
+        model = User
+        fields = ('username', 'tipo_usuario', 'condominio')

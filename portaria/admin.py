@@ -1,5 +1,6 @@
 from django.contrib import admin
-from django.contrib.auth.models import User, Group
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin, GroupAdmin as BaseGroupAdmin
 from django.utils.html import format_html
 from import_export import resources
@@ -9,26 +10,58 @@ from unfold.forms import AdminPasswordChangeForm
 from .models import Condominio, Sindico, Porteiro, Visitante, Morador, Encomenda, Solicitacao, Aviso, Notificacao, AreaComum, Reserva
 from .forms import CustomUserChangeForm, CustomUserCreationForm
 
+User = get_user_model()
 
 # --- CONFIGURAÇÃO DE USUÁRIOS (Django Auth) ---
 
 # Desregistrar o admin padrão
-admin.site.unregister(User)
+# admin.site.unregister(User)
 admin.site.unregister(Group)
 
-# Registrar com Unfold
+class TenantAdminMixin:
+    """Mixin para gerenciar o isolamento de dados por condomínio e ocultar dos superusuários"""
+    
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs.none() # Superuser não vê dados operacionais
+        if hasattr(request.user, 'condominio') and request.user.condominio:
+            return qs.filter(condominio=request.user.condominio)
+        return qs.none()
+
+    def save_model(self, request, obj, form, change):
+        if not change and not request.user.is_superuser:
+            if hasattr(obj, 'condominio_id') and obj.condominio_id is None:
+                obj.condominio = request.user.condominio
+        super().save_model(request, obj, form, change)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if not request.user.is_superuser and hasattr(request.user, 'condominio') and request.user.condominio:
+            if db_field.name == "morador":
+                kwargs["queryset"] = Morador.objects.filter(condominio=request.user.condominio)
+            if db_field.name == "condominio":
+                kwargs["queryset"] = Condominio.objects.filter(id=request.user.condominio.id)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def has_module_permission(self, request):
+        if request.user.is_superuser:
+            return False
+        return super().has_module_permission(request)
+
+
 @admin.register(User)
 class UserAdmin(BaseUserAdmin, ModelAdmin):
     form = CustomUserChangeForm
     add_form = CustomUserCreationForm
     change_password_form = AdminPasswordChangeForm
     filter_horizontal = ('groups',)
-    list_display = ('username', 'first_name', 'last_name', 'email', 'is_staff', 'is_active')
-    list_filter = ('is_staff', 'is_active', 'groups')
+    list_display = ('username', 'first_name', 'last_name', 'email', 'tipo_usuario', 'condominio', 'is_staff', 'is_active')
+    list_filter = ('tipo_usuario', 'condominio', 'is_staff', 'is_active', 'groups')
     search_fields = ('username', 'first_name', 'last_name', 'email')
     ordering = ('username',)
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
+        ('Classificação', {'fields': ('tipo_usuario', 'condominio')}),
         ('Informações Pessoais', {'fields': ('first_name', 'last_name', 'email')}),
         ('Permissões', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('Datas', {'fields': ('last_login', 'date_joined')}),
@@ -38,7 +71,19 @@ class UserAdmin(BaseUserAdmin, ModelAdmin):
             'classes': ('wide',),
             'fields': ('username', 'password1', 'password2'),
         }),
+        ('Classificação', {
+            'classes': ('wide',),
+            'fields': ('tipo_usuario', 'condominio'),
+        }),
     )
+    
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        if hasattr(request.user, 'condominio') and request.user.condominio:
+            return qs.filter(condominio=request.user.condominio)
+        return qs.none()
 
 @admin.register(Group)
 class GroupAdmin(BaseGroupAdmin, ModelAdmin):
@@ -56,18 +101,17 @@ class CondominioAdmin(ModelAdmin):
 
 
 @admin.register(Sindico)
-class SindicoAdmin(ModelAdmin):
+class SindicoAdmin(TenantAdminMixin, ModelAdmin):
     list_display = ('nome', 'usuario', 'telefone', 'get_condominios')
     search_fields = ('nome', 'usuario__username')
-    filter_horizontal = ('condominios',)
 
     def get_condominios(self, obj):
-        return ", ".join([c.nome for c in obj.condominios.all()])
-    get_condominios.short_description = 'Condomínios'
+        return obj.condominio.nome if obj.condominio else ""
+    get_condominios.short_description = 'Condomínio'
 
 
 @admin.register(Porteiro)
-class PorteiroAdmin(ModelAdmin):
+class PorteiroAdmin(TenantAdminMixin, ModelAdmin):
     list_display = ('nome', 'usuario', 'condominio', 'cargo')
     list_filter = ('condominio', 'cargo')
     search_fields = ('nome', 'usuario__username', 'condominio__nome')
@@ -87,7 +131,7 @@ class MoradorResource(resources.ModelResource):
         import_id_fields = ('cpf',)
 
 @admin.register(Morador)
-class MoradorAdmin(ModelAdmin):
+class MoradorAdmin(TenantAdminMixin, ModelAdmin):
     resource_class = MoradorResource
     import_form_class = ImportForm
     export_form_class = ExportForm
@@ -99,14 +143,14 @@ class MoradorAdmin(ModelAdmin):
 # --- OUTROS CADASTROS ---
 
 @admin.register(Visitante)
-class VisitanteAdmin(ModelAdmin):
+class VisitanteAdmin(TenantAdminMixin, ModelAdmin):
     list_display = ('nome_completo', 'condominio', 'morador_responsavel', 'horario_chegada', 'horario_saida', 'registrado_por')
     list_filter = ('condominio', 'horario_chegada', 'registrado_por')
     search_fields = ('nome_completo', 'cpf', 'placa_veiculo')
     readonly_fields = ('horario_chegada', 'registrado_por')
 
 @admin.register(Encomenda)
-class EncomendaAdmin(ModelAdmin):
+class EncomendaAdmin(TenantAdminMixin, ModelAdmin):
     list_display = ('morador', 'condominio', 'volume', 'data_chegada', 'get_status_html', 'porteiro_cadastro')
     list_filter = ('condominio', 'entregue', 'data_chegada', 'porteiro_cadastro')
     search_fields = ('morador__nome', 'volume', 'quem_retirou')
@@ -119,7 +163,7 @@ class EncomendaAdmin(ModelAdmin):
     get_status_html.short_description = 'Status'
 
 @admin.register(Solicitacao)
-class SolicitacaoAdmin(ModelAdmin):
+class SolicitacaoAdmin(TenantAdminMixin, ModelAdmin):
     list_display = ('get_tipo_html', 'condominio', 'morador', 'descricao_curta', 'criado_por', 'data_criacao', 'get_status_html')
     list_filter = ('condominio', 'status', 'tipo', 'data_criacao', 'criado_por')
     search_fields = ('descricao', 'morador__nome', 'morador__apartamento')
@@ -152,7 +196,7 @@ class SolicitacaoAdmin(ModelAdmin):
 
 
 @admin.register(Aviso)
-class AvisoAdmin(ModelAdmin):
+class AvisoAdmin(TenantAdminMixin, ModelAdmin):
     list_display = ('titulo', 'data_publicacao', 'ativo', 'criado_por')
     list_filter = ('ativo', 'data_publicacao')
     search_fields = ('titulo', 'conteudo')
@@ -181,7 +225,7 @@ class AvisoAdmin(ModelAdmin):
 
 
 @admin.register(Notificacao)
-class NotificacaoAdmin(ModelAdmin):
+class NotificacaoAdmin(TenantAdminMixin, ModelAdmin):
     list_display = ('tipo', 'usuario', 'mensagem', 'lida', 'data_criacao')
     list_filter = ('tipo', 'lida')
     search_fields = ('mensagem', 'usuario__username')
@@ -190,7 +234,7 @@ class NotificacaoAdmin(ModelAdmin):
 
 
 @admin.register(AreaComum)
-class AreaComumAdmin(ModelAdmin):
+class AreaComumAdmin(TenantAdminMixin, ModelAdmin):
     list_display = ('nome', 'condominio', 'capacidade', 'horario_abertura', 'horario_fechamento', 'ativo')
     list_filter = ('condominio', 'ativo')
     search_fields = ('nome',)
@@ -198,7 +242,7 @@ class AreaComumAdmin(ModelAdmin):
 
 
 @admin.register(Reserva)
-class ReservaAdmin(ModelAdmin):
+class ReservaAdmin(TenantAdminMixin, ModelAdmin):
     list_display = ('area', 'morador', 'data', 'horario_inicio', 'horario_fim', 'get_status_html')
     list_filter = ('status', 'data', 'area')
     search_fields = ('area__nome', 'morador__nome')

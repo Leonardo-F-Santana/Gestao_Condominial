@@ -159,14 +159,14 @@ def nova_solicitacao(request):
 
             # Notificar síndicos do condomínio
             if morador.condominio:
-                sindicos = Sindico.objects.filter(condominios=morador.condominio)
+                sindicos = Sindico.objects.filter(condominio=morador.condominio)
                 notificacoes = [
                     Notificacao(
                         usuario=s.usuario,
                         tipo='solicitacao',
                         mensagem=f'Nova solicitação #{solicitacao.id} de {morador.nome[:30]}',
                         link='/sindico/solicitacoes/'
-                    ) for s in sindicos
+                    ) for s in sindicos if s.usuario
                 ]
                 Notificacao.objects.bulk_create(notificacoes)
 
@@ -277,14 +277,14 @@ def fazer_reserva(request, area_id):
 
                 # Notificar síndicos
                 if morador.condominio:
-                    sindicos = Sindico.objects.filter(condominios=morador.condominio)
+                    sindicos = Sindico.objects.filter(condominio=morador.condominio)
                     notificacoes = [
                         Notificacao(
                             usuario=s.usuario,
                             tipo='reserva',
                             mensagem=f'Nova reserva de {area.nome} por {morador.nome[:20]}',
                             link='/sindico/reservas/'
-                        ) for s in sindicos
+                        ) for s in sindicos if s.usuario
                     ]
                     Notificacao.objects.bulk_create(notificacoes)
 
