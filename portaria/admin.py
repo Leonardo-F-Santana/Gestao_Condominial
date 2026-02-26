@@ -49,6 +49,14 @@ class TenantAdminMixin:
         return super().has_module_permission(request)
 
 
+from unfold.admin import ModelAdmin, StackedInline
+
+class MoradorInline(StackedInline):
+    model = Morador
+    extra = 0
+    can_delete = False
+    autocomplete_fields = ['condominio']
+    
 @admin.register(User)
 class UserAdmin(BaseUserAdmin, ModelAdmin):
     form = CustomUserChangeForm
@@ -56,6 +64,10 @@ class UserAdmin(BaseUserAdmin, ModelAdmin):
     change_password_form = AdminPasswordChangeForm
     filter_horizontal = ('groups',)
     list_display = ('username', 'first_name', 'last_name', 'email', 'tipo_usuario', 'condominio', 'is_staff', 'is_active')
+    list_filter = ('tipo_usuario', 'condominio', 'is_staff', 'is_active', 'groups')
+    search_fields = ('username', 'first_name', 'last_name', 'email')
+    ordering = ('username',)
+    inlines = [MoradorInline]
     list_filter = ('tipo_usuario', 'condominio', 'is_staff', 'is_active', 'groups')
     search_fields = ('username', 'first_name', 'last_name', 'email')
     ordering = ('username',)
@@ -178,125 +190,7 @@ class MoradorAdmin(TenantAdminMixin, ModelAdmin):
 
         super().save_model(request, obj, form, change)
 
-# --- OUTROS CADASTROS ---
+# --- OUTROS CADASTROS (REMOVIDOS DO ADMIN GLOBAL) ---
 
-@admin.register(Visitante)
-class VisitanteAdmin(TenantAdminMixin, ModelAdmin):
-    list_display = ('nome_completo', 'condominio', 'morador_responsavel', 'horario_chegada', 'horario_saida', 'registrado_por')
-    list_filter = ('condominio', 'horario_chegada', 'registrado_por')
-    search_fields = ('nome_completo', 'cpf', 'placa_veiculo')
-    readonly_fields = ('horario_chegada', 'registrado_por')
-
-@admin.register(Encomenda)
-class EncomendaAdmin(TenantAdminMixin, ModelAdmin):
-    list_display = ('morador', 'condominio', 'volume', 'data_chegada', 'get_status_html', 'porteiro_cadastro')
-    list_filter = ('condominio', 'entregue', 'data_chegada', 'porteiro_cadastro')
-    search_fields = ('morador__nome', 'volume', 'quem_retirou')
-    readonly_fields = ('data_chegada', 'data_entrega', 'porteiro_cadastro', 'porteiro_entrega')
-
-    def get_status_html(self, obj):
-        if obj.entregue:
-            return format_html('<span style="color: green; font-weight: bold;">{}</span>', '✅ Entregue')
-        return format_html('<span style="color: orange; font-weight: bold;">{}</span>', '📦 Na Portaria')
-    get_status_html.short_description = 'Status'
-
-@admin.register(Solicitacao)
-class SolicitacaoAdmin(TenantAdminMixin, ModelAdmin):
-    list_display = ('get_tipo_html', 'condominio', 'morador', 'descricao_curta', 'criado_por', 'data_criacao', 'get_status_html')
-    list_filter = ('condominio', 'status', 'tipo', 'data_criacao', 'criado_por')
-    search_fields = ('descricao', 'morador__nome', 'morador__apartamento')
-    readonly_fields = ('data_criacao', 'criado_por')
-
-    def get_status_html(self, obj):
-        cores = {
-            'PENDENTE': 'orange',
-            'EM_ANDAMENTO': 'blue',
-            'CONCLUIDO': 'green',
-            'CANCELADO': 'red',
-        }
-        cor = cores.get(obj.status, 'black')
-        return format_html(
-            '<span style="color: {}; font-weight: bold;">{}</span>',
-            cor,
-            obj.get_status_display()
-        )
-    get_status_html.short_description = 'Situação'
-
-    def get_tipo_html(self, obj):
-        return obj.get_tipo_display()
-    get_tipo_html.short_description = 'Tipo'
-
-    def descricao_curta(self, obj):
-        if len(obj.descricao) > 50:
-            return obj.descricao[:50] + "..."
-        return obj.descricao
-    descricao_curta.short_description = "Descrição Detalhada"
-
-
-@admin.register(Aviso)
-class AvisoAdmin(TenantAdminMixin, ModelAdmin):
-    list_display = ('titulo', 'data_publicacao', 'ativo', 'criado_por')
-    list_filter = ('ativo', 'data_publicacao')
-    search_fields = ('titulo', 'conteudo')
-    readonly_fields = ('data_publicacao', 'criado_por')
-    list_editable = ('ativo',)
-
-    def save_model(self, request, obj, form, change):
-        if not change:
-            obj.criado_por = request.user
-        super().save_model(request, obj, form, change)
-        
-        # Criar notificações para todos os moradores do condomínio (apenas ao criar)
-        if not change and obj.condominio:
-            moradores = Morador.objects.filter(
-                condominio=obj.condominio, usuario__isnull=False
-            )
-            notificacoes = [
-                Notificacao(
-                    usuario=m.usuario,
-                    tipo='aviso',
-                    mensagem=f'Novo aviso: {obj.titulo[:80]}',
-                    link='/morador/avisos/'
-                ) for m in moradores
-            ]
-            Notificacao.objects.bulk_create(notificacoes)
-
-
-@admin.register(Notificacao)
-class NotificacaoAdmin(TenantAdminMixin, ModelAdmin):
-    list_display = ('tipo', 'usuario', 'mensagem', 'lida', 'data_criacao')
-    list_filter = ('tipo', 'lida')
-    search_fields = ('mensagem', 'usuario__username')
-    readonly_fields = ('data_criacao',)
-    list_editable = ('lida',)
-
-
-@admin.register(AreaComum)
-class AreaComumAdmin(TenantAdminMixin, ModelAdmin):
-    list_display = ('nome', 'condominio', 'capacidade', 'horario_abertura', 'horario_fechamento', 'ativo')
-    list_filter = ('condominio', 'ativo')
-    search_fields = ('nome',)
-    list_editable = ('ativo',)
-
-
-@admin.register(Reserva)
-class ReservaAdmin(TenantAdminMixin, ModelAdmin):
-    list_display = ('area', 'morador', 'data', 'horario_inicio', 'horario_fim', 'get_status_html')
-    list_filter = ('status', 'data', 'area')
-    search_fields = ('area__nome', 'morador__nome')
-    readonly_fields = ('data_criacao',)
-
-    def get_status_html(self, obj):
-        cores = {
-            'PENDENTE': 'orange',
-            'APROVADA': 'green',
-            'RECUSADA': 'red',
-            'CANCELADA': 'gray',
-        }
-        cor = cores.get(obj.status, 'black')
-        return format_html(
-            '<span style="color: {}; font-weight: bold;">{}</span>',
-            cor,
-            obj.get_status_display()
-        )
-    get_status_html.short_description = 'Status'
+# Os models operacionais (Visitante, Encomenda, Solicitacao, Aviso, Notificacao, AreaComum, Reserva)
+# foram ocultados do painel global de administração conforme o requisito 4.

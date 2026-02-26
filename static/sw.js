@@ -2,6 +2,12 @@ const CACHE_NAME = 'splash-rc-v1';
 const ASSETS_TO_CACHE = [
     '/',
     '/img/logo.ico',
+    '/portaria/',
+    '/portaria/visitantes/',
+    '/portaria/encomendas/',
+    '/portaria/solicitacoes/',
+    '/sindico/visitantes/',
+    '/sindico/encomendas/',
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css',
     'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css',
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js',

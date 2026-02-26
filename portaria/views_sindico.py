@@ -178,9 +178,13 @@ def moradores_sindico(request):
                         bloco = row[2] if len(row) > 2 else ''
                         telefone = row[3] if len(row) > 3 else ''
                         email = row[4] if len(row) > 4 else ''
+                        cpf = row[5] if len(row) > 5 else ''
+                        
+                        nome = nome.strip()
+                        apartamento = apartamento.strip()
                         
                         if not nome or not apartamento:
-                            raise ValueError("Nome e apartamento são obrigatórios.")
+                            raise ValueError(f"Linha {index}: Nome e apartamento são obrigatórios.")
                         
                         # Generate unique username
                         base_username = f"{nome.split()[0].lower()}.{apartamento}"
@@ -192,6 +196,10 @@ def moradores_sindico(request):
                         while User.objects.filter(username=username).exists():
                             username = f"{base_username}{counter}"
                             counter += 1
+                            
+                        # Validação de e-mail (opicional) e CPF
+                        if cpf and len(cpf) > 14:
+                            raise ValueError(f"Linha {index}: CPF longo demais.")
                             
                         user_obj = User.objects.create_user(
                             username=username,
@@ -209,11 +217,12 @@ def moradores_sindico(request):
                             apartamento=apartamento,
                             telefone=telefone,
                             email=email,
+                            cpf=cpf,
                             usuario=user_obj
                         )
                         total += 1
                 except Exception as e:
-                    erros_lista.append(f"Linha {index} ({nome or 'Desconhecido'}): {str(e)}")
+                    erros_lista.append(str(e) if "Linha " in str(e) else f"Linha {index} ({nome or 'Desconhecido'}): {str(e)}")
             
             if total > 0:
                 messages.success(request, f"{total} morador(es) importado(s) com sucesso!")
