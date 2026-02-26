@@ -9,6 +9,7 @@ from django.db.models import Q, Count
 from django.core.paginator import Paginator
 from django.http import HttpResponse
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
+from django.views.decorators.cache import never_cache
 from django_ratelimit.decorators import ratelimit
 from .models import Visitante, Morador, Encomenda, Solicitacao, Notificacao, Sindico, Porteiro, Condominio
 
@@ -56,13 +57,25 @@ def get_condominio_porteiro(user):
     return getattr(user, 'condominio', None)
 
 
+@never_cache
 @ratelimit(key='ip', rate='5/m', method='POST', block=True)
 def login_view(request):
     if request.user.is_authenticated:
+        if request.user.is_superuser or request.user.is_staff:
+            return redirect('/admin/')
+            
         # Redireciona baseado no tipo de usuário
         if getattr(request.user, 'tipo_usuario', '') == 'morador':
+            if not hasattr(request.user, 'morador') or not request.user.morador:
+                logout(request)
+                messages.error(request, "Seu usuário ainda não possui um perfil de morador gerado. Contate a administração.")
+                return redirect('login')
             return redirect('morador_home')
         if getattr(request.user, 'tipo_usuario', '') == 'sindico':
+            if not getattr(request.user, 'condominio', None):
+                logout(request)
+                messages.error(request, "Seu usuário síndico não está vinculado a nenhum condomínio. Contate a administração.")
+                return redirect('login')
             return redirect('sindico_home')
         if is_porteiro(request.user):
             return redirect('home')
@@ -75,10 +88,21 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
+            if user.is_superuser or user.is_staff:
+                return redirect('/admin/')
+                
             # Redireciona baseado no perfil
             if getattr(user, 'tipo_usuario', '') == 'morador':
+                if not hasattr(user, 'morador') or not user.morador:
+                    logout(request)
+                    messages.error(request, "Seu usuário ainda não possui um perfil de morador gerado. Contate a administração.")
+                    return redirect('login')
                 return redirect('morador_home')
             if getattr(user, 'tipo_usuario', '') == 'sindico':
+                if not getattr(user, 'condominio', None):
+                    logout(request)
+                    messages.error(request, "Seu usuário síndico não está vinculado a nenhum condomínio. Contate a administração.")
+                    return redirect('login')
                 return redirect('sindico_home')
             if is_porteiro(user):
                 return redirect('home')
@@ -92,6 +116,7 @@ def login_view(request):
         form = AuthenticationForm()
     return render(request, 'login.html', {'form': form})
 
+@never_cache
 def logout_view(request):
     logout(request)
     return redirect('login')
@@ -223,13 +248,24 @@ def api_stats(request):
 
 @login_required
 def home(request):
+    if request.user.is_superuser or request.user.is_staff:
+        # Admins can bypass the morador check and view the home if they want,
+        # but usually they go to admin. Let them see home.
+        pass
     # Se for morador, redireciona para o portal do morador
-    if getattr(request.user, 'tipo_usuario', '') == 'morador':
+    elif getattr(request.user, 'tipo_usuario', '') == 'morador':
+        if not hasattr(request.user, 'morador') or not getattr(request.user, 'morador'):
+            from django.contrib.auth import logout
+            logout(request)
+            messages.error(request, "Seu usuário não possui um perfil de morador gerado. Contate a administração.")
+            return redirect('login')
         return redirect('morador_home')
     
     # Só staff ou porteiros (grupo Portaria) podem acessar
     if not is_porteiro(request.user):
         messages.error(request, "Você não tem permissão para acessar a portaria.")
+        from django.contrib.auth import logout
+        logout(request)
         return redirect('login')
     
     if request.method == 'POST' and 'nome_completo' in request.POST:

@@ -38,7 +38,17 @@ def portal_sindico_home(request):
     """Dashboard redirecionado"""
     if not is_sindico(request.user):
         messages.error(request, "Você não tem permissão de síndico.")
-        return redirect('home')
+        from django.contrib.auth import logout
+        logout(request)
+        return redirect('login')
+    
+    condominio = get_condominio_ativo(request)
+    if not condominio:
+        messages.error(request, "Seu usuário síndico não está vinculado a um condomínio.")
+        from django.contrib.auth import logout
+        logout(request)
+        return redirect('login')
+
     return redirect('sindico_painel')
 
 
@@ -60,11 +70,15 @@ def criar_condominio(request):
 def painel_sindico(request):
     """Dashboard do condomínio selecionado"""
     if not is_sindico(request.user):
-        return redirect('home')
+        from django.contrib.auth import logout
+        logout(request)
+        return redirect('login')
     
     condominio = get_condominio_ativo(request)
     if not condominio:
-        return redirect('sindico_home')
+        from django.contrib.auth import logout
+        logout(request)
+        return redirect('login')
     
     sindico = getattr(request.user, 'sindico', None)
     

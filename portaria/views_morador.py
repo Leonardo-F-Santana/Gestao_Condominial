@@ -20,6 +20,8 @@ def morador_required(view_func):
         morador = get_morador_from_user(request.user)
         if not morador:
             messages.error(request, "Você não tem acesso ao portal do morador.")
+            from django.contrib.auth import logout
+            logout(request)
             return redirect('login')
         request.morador = morador
         return view_func(request, *args, **kwargs)
