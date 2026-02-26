@@ -242,50 +242,6 @@ UNFOLD = {
                 ],
             },
             {
-                "title": "Moradores & Visitantes",
-                "separator": True,
-                "collapsible": True,
-                "items": [
-                    {
-                        "title": "Moradores",
-                        "icon": "groups",
-                        "link": reverse_lazy("admin:portaria_morador_changelist"),
-                    },
-                    {
-                        "title": "Visitantes",
-                        "icon": "badge",
-                        "link": reverse_lazy("admin:portaria_visitante_changelist"),
-                    },
-                ],
-            },
-            {
-                "title": "Operações",
-                "separator": True,
-                "collapsible": True,
-                "items": [
-                    {
-                        "title": "Encomendas",
-                        "icon": "package_2",
-                        "link": reverse_lazy("admin:portaria_encomenda_changelist"),
-                    },
-                    {
-                        "title": "Solicitações",
-                        "icon": "assignment",
-                        "link": reverse_lazy("admin:portaria_solicitacao_changelist"),
-                    },
-                    {
-                        "title": "Avisos",
-                        "icon": "campaign",
-                        "link": reverse_lazy("admin:portaria_aviso_changelist"),
-                    },
-                    {
-                        "title": "Notificações",
-                        "icon": "notifications",
-                        "link": reverse_lazy("admin:portaria_notificacao_changelist"),
-                    },
-                ],
-            },
-            {
                 "title": "Acesso",
                 "separator": True,
                 "collapsible": True,

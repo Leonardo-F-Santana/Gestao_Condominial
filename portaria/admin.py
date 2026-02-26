@@ -135,10 +135,48 @@ class MoradorAdmin(TenantAdminMixin, ModelAdmin):
     resource_class = MoradorResource
     import_form_class = ImportForm
     export_form_class = ExportForm
-    list_display = ('nome', 'bloco', 'apartamento', 'telefone', 'email')
-    list_filter = ('bloco',)
+    list_display = ('nome', 'condominio', 'bloco', 'apartamento', 'get_usuario_status')
+    list_filter = ('condominio', 'bloco')
     search_fields = ('nome', 'apartamento', 'cpf', 'email')
-    ordering = ('bloco', 'apartamento')
+    ordering = ('condominio', 'bloco', 'apartamento')
+
+    def get_usuario_status(self, obj):
+        if obj.usuario:
+            if obj.usuario.is_active:
+                return format_html('<span style="color: green;">Ativo</span>')
+            return format_html('<span style="color: orange;">Inativo</span>')
+        return format_html('<span style="color: gray;">Sem Login</span>')
+    get_usuario_status.short_description = 'Status'
+
+    def save_model(self, request, obj, form, change):
+        if not obj.pk and not obj.usuario:
+            # Generate a default user
+            username = f"{obj.nome.split()[0].lower()}.{obj.apartamento}"
+            if obj.bloco:
+                username += f".{obj.bloco.lower()}"
+                
+            # Ensure uniqueness
+            base_username = username
+            counter = 1
+            while User.objects.filter(username=username).exists():
+                username = f"{base_username}{counter}"
+                counter += 1
+                
+            user = User.objects.create_user(
+                username=username,
+                password='mudar123',
+                first_name=obj.nome.split()[0] if obj.nome else '',
+                email=obj.email or '',
+                tipo_usuario='morador',
+                condominio=obj.condominio if obj.condominio else request.user.condominio
+            )
+            obj.usuario = user
+            
+            # Show a success message to the admin
+            from django.contrib import messages
+            messages.success(request, f"Conta criada automaticamente: Login = '{username}' | Senha = 'mudar123'")
+
+        super().save_model(request, obj, form, change)
 
 # --- OUTROS CADASTROS ---
 

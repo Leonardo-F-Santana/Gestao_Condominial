@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from django.contrib import messages
 from django.utils import timezone
+from django.db import transaction
 from .models import Condominio, Sindico, Morador, Visitante, Encomenda, Solicitacao, Aviso, Notificacao, AreaComum, Reserva
 
 User = get_user_model()
@@ -167,35 +168,59 @@ def moradores_sindico(request):
                 return redirect('sindico_moradores')
             
             total = 0
-            erros = 0
-            for row in rows:
+            erros_lista = []
+            
+            for index, row in enumerate(rows, start=1):
                 try:
-                    nome = row[0] if len(row) > 0 else ''
-                    apartamento = row[1] if len(row) > 1 else ''
-                    bloco = row[2] if len(row) > 2 else ''
-                    telefone = row[3] if len(row) > 3 else ''
-                    email = row[4] if len(row) > 4 else ''
-                    
-                    if not nome or not apartamento:
-                        erros += 1
-                        continue
-                    
-                    Morador.objects.create(
-                        condominio=condominio,
-                        nome=nome,
-                        bloco=bloco,
-                        apartamento=apartamento,
-                        telefone=telefone,
-                        email=email,
-                    )
-                    total += 1
-                except Exception:
-                    erros += 1
+                    with transaction.atomic():
+                        nome = row[0] if len(row) > 0 else ''
+                        apartamento = row[1] if len(row) > 1 else ''
+                        bloco = row[2] if len(row) > 2 else ''
+                        telefone = row[3] if len(row) > 3 else ''
+                        email = row[4] if len(row) > 4 else ''
+                        
+                        if not nome or not apartamento:
+                            raise ValueError("Nome e apartamento são obrigatórios.")
+                        
+                        # Generate unique username
+                        base_username = f"{nome.split()[0].lower()}.{apartamento}"
+                        if bloco:
+                            base_username += f".{bloco.lower()}"
+                            
+                        username = base_username
+                        counter = 1
+                        while User.objects.filter(username=username).exists():
+                            username = f"{base_username}{counter}"
+                            counter += 1
+                            
+                        user_obj = User.objects.create_user(
+                            username=username,
+                            password='mudar123',
+                            first_name=nome.split()[0] if nome else '',
+                            email=email,
+                            tipo_usuario='morador',
+                            condominio=condominio
+                        )
+                        
+                        Morador.objects.create(
+                            condominio=condominio,
+                            nome=nome,
+                            bloco=bloco,
+                            apartamento=apartamento,
+                            telefone=telefone,
+                            email=email,
+                            usuario=user_obj
+                        )
+                        total += 1
+                except Exception as e:
+                    erros_lista.append(f"Linha {index} ({nome or 'Desconhecido'}): {str(e)}")
             
             if total > 0:
                 messages.success(request, f"{total} morador(es) importado(s) com sucesso!")
-            if erros > 0:
-                messages.warning(request, f"{erros} linha(s) ignorada(s) (dados incompletos ou erro).")
+            
+            if erros_lista:
+                for erro_msg in erros_lista:
+                    messages.warning(request, erro_msg)
             return redirect('sindico_moradores')
         
         else:
