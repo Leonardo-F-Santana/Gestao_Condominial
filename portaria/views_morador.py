@@ -3,7 +3,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.utils import timezone
-from .models import Morador, Encomenda, Solicitacao, Aviso, Notificacao, Sindico, AreaComum, Reserva
+from django.conf import settings
+from .models import (
+    Condominio, Morador, Encomenda, Solicitacao, Aviso, Notificacao, Sindico, AreaComum, Reserva, Mensagem, Ocorrencia, PushSubscription, Cobranca
+)
+from django.db.models import Q
+import json
+from django.http import JsonResponse
 
 
 def get_morador_from_user(user):
@@ -26,6 +32,50 @@ def morador_required(view_func):
         request.morador = morador
         return view_func(request, *args, **kwargs)
     return login_required(wrapper)
+
+
+def get_morador_ativo(request):
+    """Retorna o objeto Morador do usuário logado, se existir."""
+    if request.user.is_authenticated:
+        try:
+            return request.user.morador
+        except Morador.DoesNotExist:
+            pass
+    return None
+
+def get_condominio_ativo(request):
+    """Retorna o objeto Condominio do morador logado, se existir."""
+    morador = get_morador_ativo(request)
+    if morador:
+        return morador.condominio
+    return None
+
+def morador_context(request, extra_context=None, active_page=None):
+    """
+    Cria um dicionário de contexto padrão para as views do morador.
+    Inclui o morador, condomínio, e contagens de notificações.
+    """
+    morador = get_morador_ativo(request)
+    condominio = get_condominio_ativo(request)
+    
+    context = {
+        'morador': morador,
+        'condominio': condominio,
+        'active_page': active_page,
+    }
+
+    if request.user.is_authenticated:
+        context['notificacoes_nao_lidas'] = Notificacao.objects.filter(
+            usuario=request.user, lida=False
+        ).count()
+        context['mensagens_nao_lidas'] = Mensagem.objects.filter(
+            destinatario=request.user, lida=False
+        ).count()
+        context['VAPID_PUBLIC_KEY'] = getattr(settings, 'VAPID_PUBLIC_KEY', '')
+
+    if extra_context:
+        context.update(extra_context)
+    return context
 
 
 @morador_required
@@ -60,6 +110,13 @@ def portal_home(request):
     # Avisos ativos
     avisos = Aviso.objects.filter(ativo=True)[:3]
 
+    # Cobranças Pendentes
+    cobrancas_pendentes = Cobranca.objects.filter(
+        morador=morador,
+        condominio=morador.condominio,
+        status__in=['PENDENTE', 'ATRASADO']
+    ).count()
+
     context = {
         'morador': morador,
         'encomendas_pendentes': encomendas_pendentes,
@@ -67,8 +124,28 @@ def portal_home(request):
         'avisos_nao_lidos': avisos_nao_lidos,
         'solicitacoes_recentes': solicitacoes_recentes,
         'avisos': avisos,
+        'cobrancas_pendentes': cobrancas_pendentes,
     }
     return render(request, 'morador/portal_home.html', context)
+
+@morador_required
+def minhas_cobrancas(request):
+    """Lista de boletos e cobranças do morador"""
+    morador = request.morador
+    cobrancas_list = Cobranca.objects.filter(
+        morador=morador,
+        condominio=morador.condominio
+    ).order_by('-data_vencimento')
+
+    paginator = Paginator(cobrancas_list, 10)
+    page_number = request.GET.get('page')
+    cobrancas = paginator.get_page(page_number)
+
+    context = morador_context(request, {
+        'cobrancas': cobrancas,
+    }, active_page='cobrancas')
+
+    return render(request, 'morador/cobrancas.html', context)
 
 
 @morador_required
@@ -379,3 +456,134 @@ def cancelar_reserva(request, reserva_id):
         messages.error(request, 'Só é possível cancelar reservas pendentes.')
 
     return redirect('morador_reservas')
+
+# ==========================================
+# MENSAGENS / COMUNICAÇÃO INTERNA
+# ==========================================
+
+@morador_required
+def mensagens(request):
+    """Caixa de entrada e chat interno para o morador"""
+    morador = request.morador
+    usuario = request.user
+    condominio = morador.condominio
+
+    if request.method == 'POST':
+        destinatario_id = request.POST.get('destinatario_id')
+        conteudo = request.POST.get('conteudo', '').strip()
+
+        if destinatario_id and conteudo:
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            destinatario = get_object_or_404(User, id=destinatario_id)
+
+            Mensagem.objects.create(
+                condominio=condominio,
+                remetente=usuario,
+                destinatario=destinatario,
+                conteudo=conteudo
+            )
+            messages.success(request, 'Mensagem enviada com sucesso!')
+            return redirect('morador_mensagens')
+        else:
+            messages.error(request, 'Destinatário e conteúdo são obrigatórios.')
+
+    # Marcar mensagens recebidas como lidas
+    Mensagem.objects.filter(destinatario=usuario, lida=False).update(lida=True)
+
+    mensagens_list = Mensagem.objects.filter(
+        Q(remetente=usuario) | Q(destinatario=usuario)
+    ).select_related('remetente', 'destinatario').order_by('-data_envio')
+
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    destinatarios_possiveis = User.objects.filter(
+        condominio=condominio,
+        tipo_usuario__in=['sindico', 'porteiro']
+    ).exclude(id=usuario.id)
+
+    # Agrupar mensagens por contato para chat estilo WhatsApp
+    conversas = {}
+    for msg in mensagens_list:
+        outro_usuario = msg.destinatario if msg.remetente == usuario else msg.remetente
+        if outro_usuario not in conversas:
+            conversas[outro_usuario] = []
+        conversas[outro_usuario].append(msg)
+        
+    # Reverter mensagens para ficar em ordem cronológica no chat
+    for k in conversas:
+        conversas[k] = list(reversed(conversas[k]))
+
+    context = morador_context(request, {
+        'conversas': conversas,
+        'destinatarios': destinatarios_possiveis,
+    }, active_page='mensagens')
+    
+    return render(request, 'morador/mensagens.html', context)
+
+# ==========================================
+# OCORRÊNCIAS / LIVRO NEGRO
+# ==========================================
+
+@login_required
+def ocorrencias(request):
+    """View para o morador registrar e listar ocorrências (Livro Negro)"""
+    morador = get_morador_ativo(request)
+    if not morador:
+        return redirect('home')
+
+    condominio = get_condominio_ativo(request)
+    
+    if request.method == 'POST':
+        infrator = request.POST.get('infrator', '').strip()
+        descricao = request.POST.get('descricao', '').strip()
+        
+        if descricao:
+            Ocorrencia.objects.create(
+                condominio=condominio,
+                autor=morador,
+                infrator=infrator,
+                descricao=descricao
+            )
+            messages.success(request, 'Ocorrência registrada com sucesso.')
+            return redirect('morador_ocorrencias')
+        else:
+            messages.error(request, 'A descrição da ocorrência é obrigatória.')
+
+    ocorrencias_list = Ocorrencia.objects.filter(condominio=condominio, autor=morador).order_by('-data_registro')
+    
+    context = morador_context(request, {
+        'ocorrencias': ocorrencias_list,
+    }, active_page='ocorrencias')
+    
+    return render(request, 'morador/ocorrencias.html', context)
+
+
+@login_required
+def salvar_push_subscription(request):
+    """Salva a inscrição (PushSubscription) do usuário logado."""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            endpoint = data.get('endpoint')
+            keys = data.get('keys', {})
+            p256dh = keys.get('p256dh')
+            auth = keys.get('auth')
+
+            if endpoint and p256dh and auth:
+                # Update or create the subscription for the user
+                PushSubscription.objects.update_or_create(
+                    usuario=request.user,
+                    endpoint=endpoint,
+                    defaults={
+                        'p256dh': p256dh,
+                        'auth': auth
+                    }
+                )
+                return JsonResponse({'status': 'success'}, status=200)
+            return JsonResponse({'status': 'invalid data'}, status=400)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    
+    return JsonResponse({'status': 'invalid method'}, status=405)
+

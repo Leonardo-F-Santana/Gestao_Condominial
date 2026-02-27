@@ -21,6 +21,7 @@ from portaria.views import (
     exportar_relatorio_solicitacoes,
     historico_encomendas,
     historico_solicitacoes,
+    mensagens_portaria,
     api_stats,
     alterar_senha,
     cadastro_morador,
@@ -39,7 +40,11 @@ from portaria.views_morador import (
     areas_disponiveis,
     fazer_reserva,
     minhas_reservas,
-    cancelar_reserva
+    cancelar_reserva,
+    mensagens,
+    ocorrencias,
+    salvar_push_subscription,
+    minhas_cobrancas
 )
 
 # Views do Portal do Síndico
@@ -65,7 +70,11 @@ from portaria.views_sindico import (
     excluir_area_sindico,
     reservas_sindico,
     aprovar_reserva_sindico,
-    recusar_reserva_sindico
+    recusar_reserva_sindico,
+    financeiro_sindico,
+    mensagens_sindico,
+    ocorrencias_sindico,
+    alterar_status_ocorrencia
 )
 
 urlpatterns = [
@@ -112,6 +121,9 @@ urlpatterns = [
     path('historico_solicitacoes/', historico_solicitacoes, name='historico_solicitacoes'),
     path('exportar_relatorio_solicitacoes/', exportar_relatorio_solicitacoes, name='exportar_relatorio_solicitacoes'),
     
+    # --- Chat da Portaria ---
+    path('mensagens/', mensagens_portaria, name='mensagens_portaria'),
+    
     # --- Gestão e Relatórios Gerais ---
 
     path('api/stats/', api_stats, name='api_stats'),
@@ -126,10 +138,14 @@ urlpatterns = [
     path('morador/solicitacoes/nova/', nova_solicitacao, name='morador_nova_solicitacao'),
     path('morador/solicitacoes/<int:id>/', ver_solicitacao, name='morador_ver_solicitacao'),
     path('morador/avisos/', avisos, name='morador_avisos'),
+    path('morador/mensagens/', mensagens, name='morador_mensagens'),
     path('morador/reservas/', minhas_reservas, name='morador_reservas'),
     path('morador/reservas/areas/', areas_disponiveis, name='morador_areas_disponiveis'),
     path('morador/reservas/nova/<int:area_id>/', fazer_reserva, name='morador_fazer_reserva'),
     path('morador/reservas/<int:reserva_id>/cancelar/', cancelar_reserva, name='morador_cancelar_reserva'),
+    path('morador/ocorrencias/', ocorrencias, name='morador_ocorrencias'),
+    path('morador/financeiro/', minhas_cobrancas, name='morador_cobrancas'),
+    path('api/push/subscribe/', salvar_push_subscription, name='salvar_push_subscription'),
     
     # --- Portal do Síndico ---
     path('sindico/', portal_sindico_home, name='sindico_home'),
@@ -154,6 +170,10 @@ urlpatterns = [
     path('sindico/reservas/', reservas_sindico, name='sindico_reservas'),
     path('sindico/reservas/<int:reserva_id>/aprovar/', aprovar_reserva_sindico, name='sindico_aprovar_reserva'),
     path('sindico/reservas/<int:reserva_id>/recusar/', recusar_reserva_sindico, name='sindico_recusar_reserva'),
+    path('sindico/financeiro/', financeiro_sindico, name='sindico_financeiro'),
+    path('sindico/mensagens/', mensagens_sindico, name='sindico_mensagens'),
+    path('sindico/ocorrencias/', ocorrencias_sindico, name='sindico_ocorrencias'),
+    path('sindico/ocorrencias/<int:ocorrencia_id>/status/', alterar_status_ocorrencia, name='sindico_alterar_status_ocorrencia'),
     # Compatibilidade com rota antiga
     path('sindico/condominio/<int:condominio_id>/', dashboard_condominio, name='sindico_dashboard'),
 ]

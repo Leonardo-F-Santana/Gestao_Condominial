@@ -389,15 +389,30 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if 'aviso' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'morador_avisos' %}">
-                            <i class="bi bi-megaphone-fill"></i> Avisos
-                            {% if notif_avisos %}<span class="badge bg-danger rounded-pill ms-1">{{ notif_avisos }}</span>{% endif %}
+                        <a class="nav-link {% if request.resolver_match.url_name == 'morador_avisos' %}active{% endif %}" href="{% url 'morador_avisos' %}">
+                            <i class="bi bi-megaphone"></i> Mural de Avisos
+                            {% if avisos_nao_lidos > 0 %}
+                                <span class="badge bg-danger rounded-pill ms-2 badge-notificacao">{{ avisos_nao_lidos }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'morador_mensagens' %}active{% endif %}" href="{% url 'morador_mensagens' %}">
+                            <i class="bi bi-chat-dots"></i> Mensagens
+                            {% if mensagens_nao_lidas > 0 %}
+                                <span class="badge bg-danger rounded-pill ms-2 badge-notificacao">{{ mensagens_nao_lidas }}</span>
+                            {% endif %}
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if 'reserva' in request.resolver_match.url_name or 'areas' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'morador_reservas' %}">
                             <i class="bi bi-calendar-check-fill"></i> Reservas
                             {% if notif_reservas %}<span class="badge bg-danger rounded-pill ms-1">{{ notif_reservas }}</span>{% endif %}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'morador_cobrancas' %}active{% endif %}" href="{% url 'morador_cobrancas' %}">
+                            <i class="bi bi-receipt"></i> Cobranças
                         </a>
                     </li>
                 </ul>
@@ -408,9 +423,12 @@
                     <a href="{% url 'alterar_senha' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 my-1">
                         <i class="bi bi-key"></i> Senha
                     </a>
-                    <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm rounded-pill px-3 my-1">
-                        <i class="bi bi-box-arrow-right"></i> Sair
-                    </a>
+                    <form action="{% url 'logout' %}" method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3 my-1">
+                            <i class="bi bi-box-arrow-right"></i> Sair
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -420,7 +438,7 @@
         {% if messages %}
             {% for message in messages %}
                 <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    <i class="bi bi-check-circle-fill me-2"></i>{{ message }}
+                    <i class="bi bi-info-circle-fill me-2"></i>{{ message }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             {% endfor %}
@@ -435,9 +453,9 @@
             <i class="bi bi-house-heart{% if request.resolver_match.url_name == 'morador_home' %}-fill{% endif %}"></i>
             <span>Início</span>
         </a>
-        <a href="{% url 'morador_encomendas' %}" class="{% if 'encomenda' in request.resolver_match.url_name %}active{% endif %}">
-            <i class="bi bi-box-seam{% if 'encomenda' in request.resolver_match.url_name %}-fill{% endif %}"></i>
-            <span>Encomendas</span>
+        <a href="{% url 'morador_cobrancas' %}" class="{% if 'cobrancas' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-receipt{% if 'cobrancas' in request.resolver_match.url_name %}-cutoff{% endif %}"></i>
+            <span>Cobranças</span>
         </a>
         <a href="{% url 'morador_reservas' %}" class="{% if 'reserva' in request.resolver_match.url_name or 'areas' in request.resolver_match.url_name %}active{% endif %}">
             <span class="icon-badge-wrapper">
@@ -456,16 +474,68 @@
         <a href="{% url 'morador_avisos' %}" class="{% if 'aviso' in request.resolver_match.url_name %}active{% endif %}">
             <span class="icon-badge-wrapper">
                 <i class="bi bi-megaphone{% if 'aviso' in request.resolver_match.url_name %}-fill{% endif %}"></i>
-                {% if notif_avisos %}<span class="notification-badge">{{ notif_avisos }}</span>{% endif %}
+                {% if avisos_nao_lidos > 0 %}<span class="notification-badge">{{ avisos_nao_lidos }}</span>{% endif %}
             </span>
             <span>Avisos</span>
+        </a>
+        <a href="{% url 'morador_mensagens' %}" class="{% if 'mensagens' in request.resolver_match.url_name %}active{% endif %}">
+            <span class="icon-badge-wrapper">
+                <i class="bi bi-chat-dots{% if 'mensagens' in request.resolver_match.url_name %}-fill{% endif %}"></i>
+                {% if mensagens_nao_lidas > 0 %}<span class="notification-badge">{{ mensagens_nao_lidas }}</span>{% endif %}
+            </span>
+            <span>Mensagens</span>
         </a>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/static/sw.js').catch(() => {});
+        // Função para converter VAPID base64 em Uint8Array
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
+
+        if ('serviceWorker' in navigator && 'PushManager' in window) {
+            navigator.serviceWorker.register('/static/sw.js').then(function(registration) {
+                console.log('Service Worker registrado com sucesso.');
+                
+                // Pedir permissão e inscrever
+                const vapidPublicKey = "{{ VAPID_PUBLIC_KEY|default:'' }}";
+                if (vapidPublicKey) {
+                    const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+
+                    registration.pushManager.getSubscription().then(function(subscription) {
+                        if (subscription === null) {
+                            return registration.pushManager.subscribe({
+                                userVisibleOnly: true,
+                                applicationServerKey: convertedVapidKey
+                            });
+                        } else {
+                            return subscription;
+                        }
+                    }).then(function(subscription) {
+                        // Enviar a inscrição para o backend
+                        fetch('/api/push/subscribe/', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': '{{ csrf_token }}'
+                            },
+                            body: JSON.stringify(subscription)
+                        }).catch(err => console.error('Erro ao salvar subscription', err));
+                    }).catch(function(err) {
+                        console.log('Erro ao se inscrever para push:', err);
+                    });
+                }
+            }).catch(function(err) {
+                console.log('Falha ao registrar Service Worker:', err);
+            });
         }
     </script>
     {% block scripts %}{% endblock %}

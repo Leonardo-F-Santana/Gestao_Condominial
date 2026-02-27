@@ -1,4 +1,4 @@
-const CACHE_NAME = 'splash-rc-v1';
+const CACHE_NAME = 'splash-rc-v2';
 const ASSETS_TO_CACHE = [
     '/',
     '/img/logo.ico',
@@ -40,7 +40,7 @@ self.addEventListener('fetch', event => {
     if (event.request.method !== 'GET') return;
 
     // By-pass chache on sensitive auth and admin paths
-    const bypassRoutes = ['/login', '/logout', '/admin', '/password_reset', '/reset', '/api/'];
+    const bypassRoutes = ['/login', '/logout', '/admin', '/password_reset', '/reset', '/api/', '/sindico/', '/morador/'];
     if (bypassRoutes.some(route => event.request.url.includes(route))) {
         return; 
     }
@@ -56,5 +56,39 @@ self.addEventListener('fetch', event => {
                 return response;
             })
             .catch(() => caches.match(event.request))
+    );
+});
+
+// Push notification listener
+self.addEventListener('push', event => {
+    let data = {};
+    try {
+        if (event.data) {
+            data = event.data.json();
+        }
+    } catch (e) {
+        console.error("Error parsing push data", e);
+    }
+    
+    const title = data.title || "Nova Notificação do Condomínio";
+    const options = {
+        body: data.body || "Você tem uma nova atualização no portal.",
+        icon: data.icon || "/static/img/icon-192.png",
+        badge: "/static/img/icon-192.png",
+        data: {
+            url: data.url || "/"
+        }
+    };
+
+    event.waitUntil(
+        self.registration.showNotification(title, options)
+    );
+});
+
+// Handle notification click
+self.addEventListener('notificationclick', event => {
+    event.notification.close();
+    event.waitUntil(
+        clients.openWindow(event.notification.data.url)
     );
 });

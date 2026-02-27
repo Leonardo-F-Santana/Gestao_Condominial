@@ -11,7 +11,7 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.views.decorators.cache import never_cache
 from django_ratelimit.decorators import ratelimit
-from .models import Visitante, Morador, Encomenda, Solicitacao, Notificacao, Sindico, Porteiro, Condominio
+from .models import Visitante, Morador, Encomenda, Solicitacao, Notificacao, Sindico, Porteiro, Condominio, Mensagem
 
 # Tenta importar biblioteca de PDF
 try:
@@ -72,7 +72,11 @@ def login_view(request):
                 return redirect('login')
             return redirect('morador_home')
         if getattr(request.user, 'tipo_usuario', '') == 'sindico':
-            if not getattr(request.user, 'condominio', None):
+            condominio = getattr(request.user, 'condominio', None)
+            if not condominio and hasattr(request.user, 'sindico'):
+                condominio = getattr(request.user.sindico, 'condominio', None)
+                
+            if not condominio:
                 logout(request)
                 messages.error(request, "Seu usuário síndico não está vinculado a nenhum condomínio. Contate a administração.")
                 return redirect('login')
@@ -99,7 +103,11 @@ def login_view(request):
                     return redirect('login')
                 return redirect('morador_home')
             if getattr(user, 'tipo_usuario', '') == 'sindico':
-                if not getattr(user, 'condominio', None):
+                condominio = getattr(user, 'condominio', None)
+                if not condominio and hasattr(user, 'sindico'):
+                    condominio = getattr(user.sindico, 'condominio', None)
+                    
+                if not condominio:
                     logout(request)
                     messages.error(request, "Seu usuário síndico não está vinculado a nenhum condomínio. Contate a administração.")
                     return redirect('login')
@@ -262,6 +270,9 @@ def home(request):
         return redirect('morador_home')
     
     # Só staff ou porteiros (grupo Portaria) podem acessar
+    if getattr(request.user, 'tipo_usuario', '') == 'sindico':
+        return redirect('sindico_home')
+        
     if not is_porteiro(request.user):
         messages.error(request, "Você não tem permissão para acessar a portaria.")
         from django.contrib.auth import logout
@@ -316,6 +327,72 @@ def home(request):
         'condominio_atual': cond,
     }
     return render(request, 'index.html', context)
+
+@login_required
+def mensagens_portaria(request):
+    """View de caixa de entrada do Porteiro"""
+    if not is_porteiro(request.user):
+        messages.error(request, "Sem permissão.")
+        return redirect('login')
+    
+    cond = get_condominio_porteiro(request.user)
+    
+    if request.method == 'POST':
+        dest_id = request.POST.get('destinatario')
+        conteudo = request.POST.get('conteudo')
+        resposta_a_id = request.POST.get('resposta_a')
+        
+        reply_to = None
+        if resposta_a_id:
+            reply_to = Mensagem.objects.filter(id=resposta_a_id).first()
+            
+        if dest_id and conteudo:
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            destinatario = User.objects.get(id=dest_id)
+            Mensagem.objects.create(
+                condominio=cond,
+                remetente=request.user,
+                destinatario=destinatario,
+                conteudo=conteudo,
+                resposta_a=reply_to
+            )
+            messages.success(request, "Mensagem enviada.")
+            return redirect('mensagens_portaria')
+            
+    # Marcar recebidas como lidas
+    Mensagem.objects.filter(destinatario=request.user, lida=False).update(lida=True)
+    
+    mensagens = Mensagem.objects.filter(
+        Q(remetente=request.user) | Q(destinatario=request.user)
+    ).select_related('remetente', 'destinatario', 'resposta_a').order_by('data_envio')
+    
+    moradores = Morador.objects.filter(condominio=cond).select_related('usuario')
+    sindicos = Sindico.objects.filter(condominio=cond).select_related('usuario')
+    
+    destinatarios = []
+    for m in moradores:
+        if m.usuario: destinatarios.append(m.usuario)
+    for s in sindicos:
+        if s.usuario: destinatarios.append(s.usuario)
+        
+    # Agrupar mensagens por contato (WhatsApp style simplificado)
+    conversas = {}
+    for msg in mensagens:
+        other_user = msg.destinatario if msg.remetente == request.user else msg.remetente
+        if other_user not in conversas:
+            conversas[other_user] = []
+        conversas[other_user].append(msg)
+        
+    mensagens_nao_lidas = 0 # Na portaria as lidas sao marcadas na hora, entao zera
+    
+    context = {
+        'aba_ativa': 'mensagens',
+        'conversas': conversas,
+        'destinatarios': destinatarios,
+        'mensagens_nao_lidas': mensagens_nao_lidas
+    }
+    return render(request, 'mensagens_portaria.html', context)
 
 @login_required
 def registrar_visitante(request):

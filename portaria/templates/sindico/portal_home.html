@@ -142,9 +142,12 @@
             <span class="topbar-brand">SÍNDICO</span>
             <div class="d-flex align-items-center gap-2">
                 <span style="color: var(--slate-300); font-size: 0.75rem;">{{ sindico.nome|truncatechars:15 }}</span>
-                <a href="{% url 'logout' %}" style="color: #f87171; font-size: 0.8rem; padding: 0.2rem 0.4rem; background: rgba(255,255,255,0.1); border-radius: 5px;">
-                    <i class="bi bi-power"></i>
-                </a>
+                <form action="{% url 'logout' %}" method="post" class="m-0 p-0" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" style="color: #f87171; font-size: 0.8rem; padding: 0.2rem 0.4rem; background: rgba(255,255,255,0.1); border-radius: 5px; border: none; cursor: pointer;">
+                        <i class="bi bi-power"></i>
+                    </button>
+                </form>
             </div>
         </div>
     </header>

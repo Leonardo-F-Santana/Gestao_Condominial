@@ -6,8 +6,10 @@ from django.utils.html import format_html
 from import_export import resources
 from unfold.admin import ModelAdmin
 from unfold.contrib.import_export.forms import ExportForm, ImportForm
-from unfold.forms import AdminPasswordChangeForm
-from .models import Condominio, Sindico, Porteiro, Visitante, Morador, Encomenda, Solicitacao, Aviso, Notificacao, AreaComum, Reserva
+from unfold.forms import AdminPasswordChangeForm, UserChangeForm, UserCreationForm
+from .models import (
+    Condominio, Sindico, Porteiro, Visitante, Morador, Encomenda, Solicitacao, Aviso, Notificacao, AreaComum, Reserva, Cobranca, Mensagem, Ocorrencia
+)
 from .forms import CustomUserChangeForm, CustomUserCreationForm
 
 User = get_user_model()
@@ -24,7 +26,7 @@ class TenantAdminMixin:
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         if request.user.is_superuser:
-            return qs.none() # Superuser não vê dados operacionais
+            return qs # Superuser vê tudo
         if hasattr(request.user, 'condominio') and request.user.condominio:
             return qs.filter(condominio=request.user.condominio)
         return qs.none()
@@ -45,7 +47,7 @@ class TenantAdminMixin:
 
     def has_module_permission(self, request):
         if request.user.is_superuser:
-            return False
+            return True
         return super().has_module_permission(request)
 
 
@@ -155,9 +157,9 @@ class MoradorAdmin(TenantAdminMixin, ModelAdmin):
     def get_usuario_status(self, obj):
         if obj.usuario:
             if obj.usuario.is_active:
-                return format_html('<span style="color: green;">Ativo</span>')
-            return format_html('<span style="color: orange;">Inativo</span>')
-        return format_html('<span style="color: gray;">Sem Login</span>')
+                return format_html('<span style="color: green;">{}</span>', 'Ativo')
+            return format_html('<span style="color: orange;">{}</span>', 'Inativo')
+        return format_html('<span style="color: gray;">{}</span>', 'Sem Login')
     get_usuario_status.short_description = 'Status'
 
     def save_model(self, request, obj, form, change):
@@ -194,3 +196,41 @@ class MoradorAdmin(TenantAdminMixin, ModelAdmin):
 
 # Os models operacionais (Visitante, Encomenda, Solicitacao, Aviso, Notificacao, AreaComum, Reserva)
 # foram ocultados do painel global de administração conforme o requisito 4.
+
+@admin.register(Cobranca)
+class CobrancaAdmin(TenantAdminMixin, ModelAdmin):
+    list_display = ('descricao', 'condominio', 'morador', 'valor', 'data_vencimento', 'get_status_html')
+    list_filter = ('condominio', 'status', 'data_vencimento')
+    search_fields = ('descricao', 'morador__nome', 'morador__apartamento')
+    autocomplete_fields = ['morador', 'condominio']
+    
+    def get_status_html(self, obj):
+        cores = {
+            'PENDENTE': 'orange',
+            'PAGO': 'green',
+            'ATRASADO': 'red',
+            'CANCELADO': 'gray',
+        }
+        cor = cores.get(obj.status, 'black')
+        from django.utils.html import format_html
+        return format_html(
+            '<span style="color: {}; font-weight: bold;">{}</span>',
+            cor,
+            obj.get_status_display()
+        )
+    get_status_html.short_description = 'Status'
+
+@admin.register(Mensagem)
+class MensagemAdmin(TenantAdminMixin, ModelAdmin):
+    list_display = ('id', 'condominio', 'remetente', 'destinatario', 'data_envio', 'lida')
+    list_filter = ('condominio', 'lida', 'data_envio')
+    search_fields = ('remetente__username', 'destinatario__username', 'conteudo')
+    autocomplete_fields = ['remetente', 'destinatario', 'condominio']
+
+@admin.register(Ocorrencia)
+class OcorrenciaAdmin(TenantAdminMixin, ModelAdmin):
+    list_display = ('id', 'condominio', 'autor', 'status', 'data_registro')
+    list_filter = ('condominio', 'status', 'data_registro')
+    search_fields = ('autor__nome', 'infrator', 'descricao')
+    autocomplete_fields = ['autor', 'condominio']
+

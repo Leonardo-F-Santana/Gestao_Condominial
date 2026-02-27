@@ -22,6 +22,18 @@
     </div>
 </div>
 
+<!-- Panorama Financeiro -->
+<div class="card-section mt-4">
+    <div class="card-section-header d-flex justify-content-between">
+        <span class="card-section-title"><i class="bi bi-wallet2"></i> Saúde Financeira</span>
+        <a href="{% url 'sindico_financeiro' %}" class="text-decoration-none" style="font-size: 0.72rem; color: var(--blue); font-weight: 600;">Ver cobranças →</a>
+    </div>
+    <div class="card-section-body text-center p-3" style="max-height: 300px; position: relative;">
+        <!-- Canvas do Chart.js -->
+        <canvas id="financeChart"></canvas>
+    </div>
+</div>
+
 
 
 <!-- Solicitações Recentes -->
@@ -49,4 +61,48 @@
         {% endfor %}
     </div>
 </div>
+</div>
+
+<!-- Importando Chart.js via CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var ctx = document.getElementById('financeChart').getContext('2d');
+    var financeChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Pagas', 'Pendentes', 'Atrasadas'],
+            datasets: [{
+                data: [
+                    {{ stats.cobrancas_pagas|default:0 }},
+                    {{ stats.cobrancas_pendentes|default:0 }},
+                    {{ stats.cobrancas_atrasadas|default:0 }}
+                ],
+                backgroundColor: [
+                    '#10b981', // Verde (Pagas)
+                    '#f59e0b', // Laranja (Pendentes)
+                    '#ef4444'  // Vermelho (Atrasadas)
+                ],
+                borderWidth: 0,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: {
+                            family: "'Inter', sans-serif"
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
 {% endblock %}

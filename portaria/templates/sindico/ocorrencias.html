@@ -1,0 +1,116 @@
+{% extends 'sindico/base_sindico.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Livro Negro / Ocorrências</h2>
+</div>
+
+<!-- Filtros -->
+<div class="card card-custom mb-4">
+    <div class="card-body py-3">
+        <form method="GET" class="d-flex align-items-center gap-2">
+            <span class="text-muted"><i class="bi bi-funnel"></i> Status:</span>
+            <select name="status" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                <option value="TODOS" {% if status_filtro == 'TODOS' %}selected{% endif %}>Todas</option>
+                <option value="REGISTRADA" {% if status_filtro == 'REGISTRADA' %}selected{% endif %}>Registradas</option>
+                <option value="EM_ANALISE" {% if status_filtro == 'EM_ANALISE' %}selected{% endif %}>Em Análise</option>
+                <option value="RESOLVIDA" {% if status_filtro == 'RESOLVIDA' %}selected{% endif %}>Resolvidas</option>
+            </select>
+        </form>
+    </div>
+</div>
+
+<div class="card card-custom">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Data</th>
+                        <th>Autor (Morador)</th>
+                        <th>Infrator / Ref.</th>
+                        <th>Status</th>
+                        <th class="text-end">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for o in ocorrencias %}
+                    <tr>
+                        <td class="text-muted">#{{ o.id }}</td>
+                        <td>{{ o.data_registro|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            <div class="fw-bold">{{ o.autor.nome }}</div>
+                            <small class="text-muted">{{ o.autor.bloco|default:"" }} {{ o.autor.apartamento|default:"" }}</small>
+                        </td>
+                        <td>{{ o.infrator|default:"<span class='text-muted'>Não informado</span>" }}</td>
+                        <td>
+                            {% if o.status == 'REGISTRADA' %}
+                                <span class="badge bg-secondary">Registrada</span>
+                            {% elif o.status == 'EM_ANALISE' %}
+                                <span class="badge bg-warning text-dark">Em Análise</span>
+                            {% elif o.status == 'RESOLVIDA' %}
+                                <span class="badge bg-success">Resolvida</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#ocorrenciaModal{{ o.id }}" title="Ver e Gerenciar">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </td>
+                    </tr>
+
+                    <!-- Modal Gerenciar Ocorrencia -->
+                    <div class="modal fade" id="ocorrenciaModal{{ o.id }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Ocorrência #{{ o.id }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label class="text-muted small d-block">Autor</label>
+                                        <div class="fw-bold">{{ o.autor.nome }} ({{ o.autor.bloco|default:"" }} {{ o.autor.apartamento|default:"" }})</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="text-muted small d-block">Possível Infrator</label>
+                                        <div>{{ o.infrator|default:"-" }}</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="text-muted small d-block">Descrição da Ocorrência</label>
+                                        <div class="p-3 bg-light rounded text-secondary" style="white-space: pre-wrap;">{{ o.descricao }}</div>
+                                    </div>
+                                    
+                                    <hr>
+                                    
+                                    <form method="POST" action="{% url 'sindico_alterar_status_ocorrencia' o.id %}">
+                                        {% csrf_token %}
+                                        <label class="fw-bold mb-2">Ação / Mudar Status</label>
+                                        <div class="d-flex gap-2">
+                                            <select name="status" class="form-select">
+                                                <option value="REGISTRADA" {% if o.status == 'REGISTRADA' %}selected{% endif %}>Registrada</option>
+                                                <option value="EM_ANALISE" {% if o.status == 'EM_ANALISE' %}selected{% endif %}>Em Análise</option>
+                                                <option value="RESOLVIDA" {% if o.status == 'RESOLVIDA' %}selected{% endif %}>Resolvida</option>
+                                            </select>
+                                            <button type="submit" class="btn btn-primary">Salvar</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <i class="bi bi-journal-x" style="font-size: 2rem;"></i>
+                            <p class="mt-2 text-muted">Nenhuma ocorrência encontrada.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

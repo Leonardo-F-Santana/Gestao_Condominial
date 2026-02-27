@@ -4,30 +4,53 @@ from django.contrib.auth import get_user_model
 from django.contrib import messages
 from django.utils import timezone
 from django.db import transaction
-from .models import Condominio, Sindico, Morador, Visitante, Encomenda, Solicitacao, Aviso, Notificacao, AreaComum, Reserva
+from django.db.models import Sum, Q
+from .models import Condominio, Sindico, Morador, Visitante, Encomenda, Solicitacao, Aviso, Notificacao, AreaComum, Reserva, Cobranca, Mensagem, Ocorrencia
 
 User = get_user_model()
 
 
 def is_sindico(user):
     """Verifica se o usuário é um síndico"""
-    return getattr(user, 'tipo_usuario', '') == 'sindico'
+    print(f"DEBUG is_sindico: checking user {user.username}, tipo_usuario={getattr(user, 'tipo_usuario', None)}, hasattr sindico={hasattr(user, 'sindico')}")
+    if getattr(user, 'tipo_usuario', '') == 'sindico':
+        return True
+    if hasattr(user, 'sindico'):
+        return True
+    return False
 
 
 def get_condominio_ativo(request):
     """Retorna o condomínio vinculado ao usuário logado"""
-    return getattr(request.user, 'condominio', None)
+    condominio = getattr(request.user, 'condominio', None)
+    if not condominio and hasattr(request.user, 'sindico'):
+        condominio = request.user.sindico.condominio
+    print(f"DEBUG get_condominio_ativo: user {request.user.username}, returning condominio={condominio}")
+    return condominio
 
 
 def sindico_context(request, extra=None, active_page=''):
     """Contexto base para todas as views do síndico"""
-    ctx = {
-        'condominio': get_condominio_ativo(request),
+    condominio = get_condominio_ativo(request)
+    context_data = {
+        'condominio': condominio,
         'active_page': active_page,
     }
+    
+    # Adicionar contagens de notificações globais pro header/bottom nav
+    if condominio and hasattr(request, 'user') and request.user.is_authenticated:
+        # Mensagens não lidas para o síndico
+        unread_msgs = Mensagem.objects.filter(destinatario=request.user, lida=False).count()
+        context_data['unread_mensagens_count'] = unread_msgs
+        
+        # Opcional: Outras unreads que já funcionavam
+        # (Se havia notif_solicitacoes ou notif_reservas antes de injetar, eles estão no views.py do síndico,
+        # mas injetá-los globais aqui ajuda muito se tiver querys pra isso)
+
     if extra:
-        ctx.update(extra)
-    return ctx
+        context_data.update(extra)
+        
+    return context_data
 
 
 # ==========================================
@@ -39,16 +62,12 @@ def portal_sindico_home(request):
     """Dashboard redirecionado"""
     if not is_sindico(request.user):
         messages.error(request, "Você não tem permissão de síndico.")
-        from django.contrib.auth import logout
-        logout(request)
-        return redirect('login')
+        return redirect('home')
     
     condominio = get_condominio_ativo(request)
     if not condominio:
         messages.error(request, "Seu usuário síndico não está vinculado a um condomínio.")
-        from django.contrib.auth import logout
-        logout(request)
-        return redirect('login')
+        return redirect('home')
 
     return redirect('sindico_painel')
 
@@ -71,15 +90,11 @@ def criar_condominio(request):
 def painel_sindico(request):
     """Dashboard do condomínio selecionado"""
     if not is_sindico(request.user):
-        from django.contrib.auth import logout
-        logout(request)
-        return redirect('login')
+        return redirect('home')
     
     condominio = get_condominio_ativo(request)
     if not condominio:
-        from django.contrib.auth import logout
-        logout(request)
-        return redirect('login')
+        return redirect('home')
     
     sindico = getattr(request.user, 'sindico', None)
     
@@ -87,6 +102,12 @@ def painel_sindico(request):
         'moradores': Morador.objects.filter(condominio=condominio).count(),
         'solicitacoes_pendentes': Solicitacao.objects.filter(
             condominio=condominio, status='PENDENTE'
+        ).count(),
+        'cobrancas_pagas': Cobranca.objects.filter(
+            condominio=condominio, status='PAGO'
+        ).count(),
+        'cobrancas_pendentes': Cobranca.objects.filter(
+            condominio=condominio, status__in=['PENDENTE', 'ATRASADO']
         ).count(),
     }
     
@@ -738,6 +759,21 @@ def aprovar_reserva_sindico(request, reserva_id):
     reserva.status = 'APROVADA'
     reserva.save()
 
+    reserva.save()
+
+    # Gerar Cobrança Automática
+    if reserva.area.taxa_reserva > 0:
+        Cobranca.objects.create(
+            condominio=condominio,
+            morador=reserva.morador,
+            descricao=f"Reserva de {reserva.area.nome} ({reserva.data.strftime('%d/%m/%Y')})",
+            valor=reserva.area.taxa_reserva,
+            data_vencimento=timezone.now().date() + timezone.timedelta(days=5) # 5 dias pra pagar
+        )
+        msg = f'Reserva aprovada e cobrança de R$ {reserva.area.taxa_reserva} gerada!'
+    else:
+        msg = 'Reserva aprovada!'
+
     # Notificar morador
     if reserva.morador.usuario:
         Notificacao.objects.create(
@@ -747,7 +783,7 @@ def aprovar_reserva_sindico(request, reserva_id):
             link='/morador/reservas/'
         )
 
-    messages.success(request, 'Reserva aprovada!')
+    messages.success(request, msg)
     return redirect('sindico_reservas')
 
 
@@ -773,3 +809,192 @@ def recusar_reserva_sindico(request, reserva_id):
 
     messages.success(request, 'Reserva recusada.')
     return redirect('sindico_reservas')
+
+# ==========================================
+# FINANCEIRO
+# ==========================================
+
+@login_required
+def financeiro_sindico(request):
+    """Gestão Financeira (Inadimplência e Cobranças)"""
+    if not is_sindico(request.user):
+        return redirect('home')
+
+    condominio = get_condominio_ativo(request)
+    if not condominio:
+        return redirect('sindico_home')
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'criar_cobranca':
+            morador_id = request.POST.get('morador_id')
+            descricao = request.POST.get('descricao', '').strip()
+            valor = request.POST.get('valor', '0').replace(',', '.')
+            data_vencimento = request.POST.get('data_vencimento')
+            
+            if morador_id and descricao and valor and data_vencimento:
+                morador = get_object_or_404(Morador, id=morador_id, condominio=condominio)
+                Cobranca.objects.create(
+                    condominio=condominio,
+                    morador=morador,
+                    descricao=descricao,
+                    valor=valor,
+                    data_vencimento=data_vencimento
+                )
+                messages.success(request, f'Cobrança "{descricao}" gerada para {morador.nome}.')
+            else:
+                messages.error(request, 'Preencha todos os campos obrigatórios da cobrança.')
+                
+        elif action == 'marcar_pago':
+            cobranca_id = request.POST.get('cobranca_id')
+            cobranca = get_object_or_404(Cobranca, id=cobranca_id, condominio=condominio)
+            cobranca.status = 'PAGO'
+            cobranca.data_pagamento = timezone.now().date()
+            cobranca.save()
+            messages.success(request, f'Cobrança "{cobranca.descricao}" marcada como paga.')
+            
+        return redirect('sindico_financeiro')
+
+    cobrancas = Cobranca.objects.filter(condominio=condominio).select_related('morador').order_by('-data_vencimento')
+    moradores = Morador.objects.filter(condominio=condominio).order_by('bloco', 'apartamento')
+    
+    # Atualizar status de atrasadas automaticamente na view
+    hoje = timezone.now().date()
+    Cobranca.objects.filter(
+        condominio=condominio, 
+        status='PENDENTE', 
+        data_vencimento__lt=hoje
+    ).update(status='ATRASADO')
+
+    context = sindico_context(request, {
+        'cobrancas': cobrancas,
+        'moradores': moradores,
+    }, active_page='financeiro')
+    
+    return render(request, 'sindico/financeiro.html', context)
+
+# ==========================================
+# MENSAGENS / COMUNICAÇÃO INTERNA
+# ==========================================
+
+@login_required
+def mensagens_sindico(request):
+    """Mensagens para o Síndico"""
+    if not is_sindico(request.user):
+        return redirect('home')
+
+    condominio = get_condominio_ativo(request)
+    if not condominio:
+        return redirect('sindico_home')
+
+    usuario = request.user
+
+    if request.method == 'POST':
+        destinatario_id = request.POST.get('destinatario_id')
+        conteudo = request.POST.get('conteudo', '').strip()
+
+        if destinatario_id and conteudo:
+            destinatario = get_object_or_404(User, id=destinatario_id)
+
+            Mensagem.objects.create(
+                condominio=condominio,
+                remetente=usuario,
+                destinatario=destinatario,
+                conteudo=conteudo
+            )
+            messages.success(request, 'Mensagem enviada com sucesso!')
+            return redirect('sindico_mensagens')
+        else:
+            messages.error(request, 'Destinatário e conteúdo são obrigatórios.')
+
+    # Marcar lidas
+    Mensagem.objects.filter(destinatario=usuario, lida=False).update(lida=True)
+
+    mensagens_list = Mensagem.objects.filter(
+        Q(remetente=usuario) | Q(destinatario=usuario)
+    ).select_related('remetente', 'destinatario').order_by('-data_envio')
+
+    # Destinatários: Moradores e Outros Síndicos do condomínio
+    destinatarios_possiveis = User.objects.filter(condominio=condominio).exclude(id=usuario.id)
+
+    # Agrupar mensagens por contato para chat estilo WhatsApp
+    conversas = {}
+    for msg in mensagens_list:
+        outro_usuario = msg.destinatario if msg.remetente == usuario else msg.remetente
+        if outro_usuario not in conversas:
+            conversas[outro_usuario] = []
+        conversas[outro_usuario].append(msg)
+        
+    # Reverter mensagens para ficar em ordem cronológica no chat
+    for k in conversas:
+        conversas[k] = list(reversed(conversas[k]))
+
+    context = sindico_context(request, {
+        'conversas': conversas,
+        'destinatarios': destinatarios_possiveis,
+    }, active_page='mensagens')
+    
+    
+    return render(request, 'sindico/mensagens.html', context)
+
+# ==========================================
+# OCORRÊNCIAS / LIVRO NEGRO
+# ==========================================
+
+@login_required
+def ocorrencias_sindico(request):
+    """Listar e gerenciar ocorrências para o Síndico"""
+    if not is_sindico(request.user):
+        return redirect('home')
+
+    condominio = get_condominio_ativo(request)
+    if not condominio:
+        return redirect('sindico_home')
+
+    status = request.GET.get('status', 'TODOS')
+    
+    ocorrencias_list = Ocorrencia.objects.filter(condominio=condominio)
+    
+    if status != 'TODOS':
+        ocorrencias_list = ocorrencias_list.filter(status=status)
+        
+    ocorrencias_list = ocorrencias_list.order_by('-data_registro')
+
+    context = sindico_context(request, {
+        'ocorrencias': ocorrencias_list,
+        'status_filtro': status,
+    }, active_page='ocorrencias')
+    
+    return render(request, 'sindico/ocorrencias.html', context)
+
+
+@login_required
+def alterar_status_ocorrencia(request, ocorrencia_id):
+    """Alterar status da ocorrência pelo síndico"""
+    if not is_sindico(request.user):
+        return redirect('home')
+
+    if request.method == 'POST':
+        novo_status = request.POST.get('status')
+        ocorrencia = get_object_or_404(Ocorrencia, id=ocorrencia_id, condominio=get_condominio_ativo(request))
+        
+        if novo_status in dict(Ocorrencia.STATUS_CHOICES).keys():
+            ocorrencia.status = novo_status
+            ocorrencia.save()
+            
+            # Notificar autor se resolvida
+            if novo_status == 'RESOLVIDA' and ocorrencia.autor.usuario:
+                Notificacao.objects.create(
+                    usuario=ocorrencia.autor.usuario,
+                    tipo='geral',
+                    mensagem=f'Sua ocorrência registrada em {ocorrencia.data_registro.strftime("%d/%m")} foi marcada como RESOLVIDA.',
+                    link='/morador/ocorrencias/'
+                )
+            
+            messages.success(request, f'Status da ocorrência alterado para {ocorrencia.get_status_display()}.')
+    
+    return redirect('sindico_ocorrencias')
+
+
+

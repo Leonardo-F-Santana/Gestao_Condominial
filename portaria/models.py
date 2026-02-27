@@ -1,6 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
+from django.utils import timezone
+from django.core.validators import MinValueValidator
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 import uuid
 
 # ==========================================
@@ -101,6 +105,35 @@ class Morador(models.Model):
         verbose_name = "Morador"
         verbose_name_plural = "Moradores"
         ordering = ['bloco', 'apartamento']
+
+
+class Cobranca(models.Model):
+    """Gestão de pagamentos e taxas do condomínio"""
+    STATUS_CHOICES = [
+        ('PENDENTE', '🟡 Pendente'),
+        ('PAGO', '🟢 Pago'),
+        ('ATRASADO', '🔴 Atrasado'),
+        ('CANCELADO', '⚫ Cancelado'),
+    ]
+
+    condominio = models.ForeignKey(Condominio, on_delete=models.CASCADE, 
+                                    related_name='cobrancas', verbose_name="Condomínio")
+    morador = models.ForeignKey(Morador, on_delete=models.CASCADE, 
+                                 related_name='cobrancas', verbose_name="Morador")
+    descricao = models.CharField(max_length=200, verbose_name="Descrição da Cobrança", default="Taxa Condominial")
+    valor = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Valor (R$)")
+    data_vencimento = models.DateField(verbose_name="Data de Vencimento")
+    data_pagamento = models.DateField(null=True, blank=True, verbose_name="Data do Pagamento")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDENTE', verbose_name="Status")
+    data_criacao = models.DateTimeField(auto_now_add=True, verbose_name="Gerado em")
+
+    def __str__(self):
+        return f"{self.descricao} - {self.morador} ({self.get_status_display()})"
+
+    class Meta:
+        verbose_name = "Cobrança"
+        verbose_name_plural = "Cobranças"
+        ordering = ['-data_vencimento']
 
 
 class Visitante(models.Model):
@@ -235,10 +268,15 @@ class AreaComum(models.Model):
     nome = models.CharField(max_length=100, verbose_name="Nome do Espaço")
     descricao = models.TextField(blank=True, verbose_name="Descrição / Regras de Uso")
     imagem = models.ImageField(upload_to='areas_comuns/', blank=True, verbose_name="Foto do Espaço")
-    capacidade = models.PositiveIntegerField(default=0, verbose_name="Capacidade (pessoas)")
-    horario_abertura = models.TimeField(default='08:00', verbose_name="Horário de Abertura")
-    horario_fechamento = models.TimeField(default='22:00', verbose_name="Horário de Fechamento")
-    ativo = models.BooleanField(default=True, verbose_name="Disponível para Reservas")
+    capacidade = models.PositiveIntegerField(help_text="Capacidade máxima de pessoas", verbose_name="Capacidade")
+    horario_abertura = models.TimeField(verbose_name="Horário de Abertura")
+    horario_fechamento = models.TimeField(verbose_name="Horário de Fechamento")
+    ativo = models.BooleanField(default=True)
+    taxa_reserva = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0.00, 
+        verbose_name="Taxa de Reserva (R$)",
+        help_text="Valor cobrado automaticamente ao aprovar a reserva (0 = Grátis)"
+    )
 
     def __str__(self):
         return f"{self.nome} — {self.condominio.nome}"
@@ -278,3 +316,70 @@ class Reserva(models.Model):
         verbose_name = "Reserva"
         verbose_name_plural = "Reservas"
         ordering = ['-data', '-horario_inicio']
+
+# ==========================================
+# CHAT / MENSAGENS INTERNAS
+# ==========================================
+
+class Mensagem(models.Model):
+    condominio = models.ForeignKey(Condominio, on_delete=models.CASCADE, related_name='mensagens')
+    remetente = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='mensagens_enviadas', verbose_name="Remetente")
+    destinatario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='mensagens_recebidas', verbose_name="Destinatário")
+    conteudo = models.TextField(verbose_name="Memsagem")
+    resposta_a = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, related_name='respostas', verbose_name="Em resposta a")
+    lida = models.BooleanField(default=False, verbose_name="Lida?")
+    data_envio = models.DateTimeField(auto_now_add=True, verbose_name="Enviada em")
+
+    def __str__(self):
+        return f"De {self.remetente} para {self.destinatario} - {self.data_envio.strftime('%d/%m %H:%M')}"
+
+    class Meta:
+        verbose_name = "Mensagem"
+        verbose_name_plural = "Mensagens"
+        ordering = ['-data_envio']
+
+
+# ==========================================
+# OCORRÊNCIAS / LIVRO NEGRO
+# ==========================================
+
+class Ocorrencia(models.Model):
+    STATUS_CHOICES = (
+        ('REGISTRADA', 'Registrada'),
+        ('EM_ANALISE', 'Em Análise'),
+        ('RESOLVIDA', 'Resolvida')
+    )
+    
+    condominio = models.ForeignKey(Condominio, on_delete=models.CASCADE, related_name='ocorrencias')
+    autor = models.ForeignKey(Morador, on_delete=models.CASCADE, related_name='ocorrencias_registradas', verbose_name="Autor da Ocorrência")
+    infrator = models.CharField(max_length=200, blank=True, verbose_name="Possível Infrator/Unidade")
+    descricao = models.TextField(verbose_name="Descrição da Ocorrência")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='REGISTRADA', verbose_name="Status")
+    data_registro = models.DateTimeField(auto_now_add=True, verbose_name="Data do Registro")
+
+    def __str__(self):
+        return f"Ocorrência {self.id} - {self.condominio.nome}"
+
+    class Meta:
+        verbose_name = "Ocorrência"
+        verbose_name_plural = "Ocorrências"
+        ordering = ['-data_registro']
+
+# ==========================================
+# WEB PUSH NOTIFICATIONS
+# ==========================================
+
+class PushSubscription(models.Model):
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='push_subscriptions')
+    endpoint = models.URLField(max_length=500)
+    p256dh = models.CharField(max_length=200)
+    auth = models.CharField(max_length=200)
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Inscrição Web Push"
+        verbose_name_plural = "Inscrições Web Push"
+
+    def __str__(self):
+        return f"Push Sub de {self.usuario.username}"
+

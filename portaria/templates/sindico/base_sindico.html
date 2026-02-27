@@ -450,9 +450,23 @@
                 <a href="{% url 'alterar_senha' %}" class="topbar-condo">
                     <i class="bi bi-key"></i>
                 </a>
-                <a href="{% url 'logout' %}" class="topbar-condo" style="color: #f87171;">
-                    <i class="bi bi-power"></i>
+                <a href="{% url 'sindico_mensagens' %}" class="topbar-condo position-relative">
+                    <i class="bi bi-chat-dots"></i>
+                    {% if unread_mensagens_count %}
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.55rem; padding: 0.2rem 0.35rem; transform: translate(-30%, -30%) !important;">
+                        {{ unread_mensagens_count }}
+                    </span>
+                    {% endif %}
                 </a>
+                <a href="{% url 'sindico_ocorrencias' %}" class="topbar-condo">
+                    <i class="bi bi-journal-x"></i>
+                </a>
+                <form action="{% url 'logout' %}" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="topbar-condo border-0" style="color: #f87171; background: rgba(255,255,255,0.12); cursor: pointer;">
+                        <i class="bi bi-power"></i>
+                    </button>
+                </form>
             </div>
         </div>
     </header>

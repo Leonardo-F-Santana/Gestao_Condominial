@@ -293,19 +293,51 @@ const OfflineEngine = (function () {
     // =====================
     function interceptarFormularios() {
         // --- Formulário de Visitantes ---
-        const formVisitante = document.querySelector('form[action*="home"]');
-        if (formVisitante && formVisitante.querySelector('[name="nome_completo"]')) {
+        const formVisitante = document.querySelector('form[action*="registrar_entrada"]'); // action url has registrar_entrada in views, or input hidden with registrar_entrada
+        if (!formVisitante) {
+            // Se formVisitante falhar, tenta pegar via input hidden 
+            const inputVisitante = document.querySelector('input[name="registrar_entrada"]');
+            if (inputVisitante && inputVisitante.closest('form')) {
+                const formReal = inputVisitante.closest('form');
+                formReal.addEventListener('submit', function (e) {
+                    if (navigator.onLine) return; // Online: deixa o form normal funcionar
+    
+                    e.preventDefault();
+                    const formData = new FormData(formReal);
+                    salvarVisitante({
+                        nome_completo: formData.get('nome'),
+                        cpf: formData.get('cpf') || '',
+                        data_nascimento: formData.get('data_nascimento') || '',
+                        placa_veiculo: formData.get('placa') || '',
+                        morador_id: formData.get('morador_id') || '',
+                        quem_autorizou: formData.get('quem_autorizou') || '',
+                        observacoes: formData.get('observacoes') || ''
+                    }).then(() => {
+                        formReal.reset();
+                        mostrarNotificacao('Visitante salvo offline — será sincronizado automaticamente quando a internet voltar.', 'warning');
+                        atualizarBadgePendentes();
+                        
+                        // Close modal if exists
+                        const modal = document.getElementById('modalEntrada');
+                        if (modal && typeof bootstrap !== 'undefined') {
+                            const bsModal = bootstrap.Modal.getInstance(modal);
+                            if (bsModal) bsModal.hide();
+                        }
+                    });
+                });
+            }
+        } else {
             formVisitante.addEventListener('submit', function (e) {
                 if (navigator.onLine) return; // Online: deixa o form normal funcionar
 
                 e.preventDefault();
                 const formData = new FormData(formVisitante);
                 salvarVisitante({
-                    nome_completo: formData.get('nome_completo'),
+                    nome_completo: formData.get('nome_completo') || formData.get('nome'),
                     cpf: formData.get('cpf') || '',
                     data_nascimento: formData.get('data_nascimento') || '',
-                    placa_veiculo: formData.get('placa_veiculo') || '',
-                    morador_id: formData.get('morador_responsavel') || '',
+                    placa_veiculo: formData.get('placa_veiculo') || formData.get('placa') || '',
+                    morador_id: formData.get('morador_responsavel') || formData.get('morador_id') || '',
                     quem_autorizou: formData.get('quem_autorizou') || '',
                     observacoes: formData.get('observacoes') || ''
                 }).then(() => {

@@ -12,6 +12,11 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-chave-padrao-desenvolvimen
 
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
+# VAPID Keys for Web Push Notifications
+VAPID_PRIVATE_KEY = os.getenv('VAPID_PRIVATE_KEY', 'pW5iP4E4A0I_w44vwaolv6v6BOPPexfzafhWC5NNBR4')
+VAPID_PUBLIC_KEY = os.getenv('VAPID_PUBLIC_KEY', 'BMmfQyrCznoXGxPezko8XjnphjNvAJN13V5moSzXlwt7UwD0ErR-hzQ2kYBOgJfDr7UnQ4CP9Q0-EIqPUqDCiR0')
+VAPID_ADMIN_EMAIL = os.getenv('VAPID_ADMIN_EMAIL', 'mailto:admin@gestaocondominial.com')
+
 # Hosts permitidos (separados por vírgula no .env)
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,*').split(',')
 
@@ -238,6 +243,11 @@ UNFOLD = {
                         "title": "Síndicos",
                         "icon": "admin_panel_settings",
                         "link": reverse_lazy("admin:portaria_sindico_changelist"),
+                    },
+                    {
+                        "title": "Moradores",
+                        "icon": "people",
+                        "link": reverse_lazy("admin:portaria_morador_changelist"),
                     },
                 ],
             },

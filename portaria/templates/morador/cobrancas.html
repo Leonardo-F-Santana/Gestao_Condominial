@@ -1,0 +1,79 @@
+{% extends 'morador/base_morador.html' %}
+
+{% block title %}Minhas Cobranças - Portal do Morador{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0 text-white">
+        <i class="bi bi-receipt"></i> Minhas Cobranças
+    </h4>
+</div>
+
+<div class="glass-card mb-4 card-animate">
+    <div class="table-responsive p-3">
+        <table class="table align-middle table-hover">
+            <thead>
+                <tr>
+                    <th class="text-secondary fw-semibold">Descrição</th>
+                    <th class="text-secondary fw-semibold">Vencimento</th>
+                    <th class="text-secondary fw-semibold">Valor</th>
+                    <th class="text-secondary fw-semibold">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in cobrancas %}
+                <tr>
+                    <td>
+                        <span class="fw-bold text-dark">{{ c.descricao }}</span><br>
+                        <small class="text-muted">Gerado em: {{ c.data_criacao|date:"d/m/Y" }}</small>
+                    </td>
+                    <td>{{ c.data_vencimento|date:"d/m/Y" }}</td>
+                    <td class="fw-bold" style="color: var(--primary-dark);">R$ {{ c.valor }}</td>
+                    <td>
+                        {% if c.status == 'PAGO' %}
+                            <span class="badge bg-success rounded-pill px-3 py-2"><i class="bi bi-check-circle me-1"></i>Pago</span>
+                        {% elif c.status == 'ATRASADO' %}
+                            <span class="badge bg-danger rounded-pill px-3 py-2"><i class="bi bi-x-circle me-1"></i>Atrasado</span>
+                        {% elif c.status == 'PENDENTE' %}
+                            <span class="badge bg-warning text-dark rounded-pill px-3 py-2"><i class="bi bi-clock-history me-1"></i>Pendente</span>
+                        {% else %}
+                            <span class="badge bg-secondary rounded-pill px-3 py-2">Cancelado</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center text-muted py-5">
+                        <i class="bi bi-receipt" style="font-size: 2.5rem; opacity: 0.5;"></i>
+                        <p class="mt-2 mb-0 fw-semibold">Nenhuma cobrança registrada.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if cobrancas.has_other_pages %}
+<nav aria-label="Navegação de cobranças">
+    <ul class="pagination justify-content-center">
+        {% if cobrancas.has_previous %}
+            <li class="page-item"><a class="page-link shadow-sm text-dark" href="?page={{ cobrancas.previous_page_number }}">Anterior</a></li>
+        {% endif %}
+        
+        {% for i in cobrancas.paginator.page_range %}
+            {% if cobrancas.number == i %}
+                <li class="page-item active"><span class="page-link shadow-sm bg-primary border-primary">{{ i }}</span></li>
+            {% else %}
+                <li class="page-item"><a class="page-link shadow-sm text-dark" href="?page={{ i }}">{{ i }}</a></li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if cobrancas.has_next %}
+            <li class="page-item"><a class="page-link shadow-sm text-dark" href="?page={{ cobrancas.next_page_number }}">Próxima</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% endblock %}

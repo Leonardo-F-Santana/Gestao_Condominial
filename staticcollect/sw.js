@@ -2,6 +2,12 @@ const CACHE_NAME = 'splash-rc-v1';
 const ASSETS_TO_CACHE = [
     '/',
     '/img/logo.ico',
+    '/portaria/',
+    '/portaria/visitantes/',
+    '/portaria/encomendas/',
+    '/portaria/solicitacoes/',
+    '/sindico/visitantes/',
+    '/sindico/encomendas/',
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css',
     'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css',
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js',
@@ -50,5 +56,39 @@ self.addEventListener('fetch', event => {
                 return response;
             })
             .catch(() => caches.match(event.request))
+    );
+});
+
+// Push notification listener
+self.addEventListener('push', event => {
+    let data = {};
+    try {
+        if (event.data) {
+            data = event.data.json();
+        }
+    } catch (e) {
+        console.error("Error parsing push data", e);
+    }
+    
+    const title = data.title || "Nova Notificação do Condomínio";
+    const options = {
+        body: data.body || "Você tem uma nova atualização no portal.",
+        icon: data.icon || "/static/img/icon-192.png",
+        badge: "/static/img/icon-192.png",
+        data: {
+            url: data.url || "/"
+        }
+    };
+
+    event.waitUntil(
+        self.registration.showNotification(title, options)
+    );
+});
+
+// Handle notification click
+self.addEventListener('notificationclick', event => {
+    event.notification.close();
+    event.waitUntil(
+        clients.openWindow(event.notification.data.url)
     );
 });
