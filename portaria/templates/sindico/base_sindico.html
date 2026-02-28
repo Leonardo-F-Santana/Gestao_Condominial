@@ -452,9 +452,9 @@
                 </a>
                 <a href="{% url 'sindico_mensagens' %}" class="topbar-condo position-relative">
                     <i class="bi bi-chat-dots"></i>
-                    {% if unread_mensagens_count %}
+                    {% if mensagens_nao_lidas > 0 %}
                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.55rem; padding: 0.2rem 0.35rem; transform: translate(-30%, -30%) !important;">
-                        {{ unread_mensagens_count }}
+                        {{ mensagens_nao_lidas }}
                     </span>
                     {% endif %}
                 </a>

@@ -16,5 +16,12 @@ def notificacoes(request):
     Necessário para o badge de notificações na navbar de todas as páginas.
     """
     if request.user.is_authenticated:
-        return {'notificacoes': Notificacao.objects.filter(usuario=request.user, lida=False)}
-    return {'notificacoes': []}
+        try:
+            from .models import Notificacao, Mensagem
+            return {
+                'notificacoes': Notificacao.objects.filter(usuario=request.user, lida=False),
+                'mensagens_nao_lidas': Mensagem.objects.filter(destinatario=request.user, lida=False).count()
+            }
+        except ImportError:
+            pass
+    return {'notificacoes': [], 'mensagens_nao_lidas': 0}

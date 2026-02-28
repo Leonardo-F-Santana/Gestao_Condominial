@@ -55,9 +55,15 @@
                         
                         {% if s.arquivo %}
                         <div class="mb-3">
-                            <a href="{{ s.arquivo.url }}" target="_blank" class="btn-exec btn-exec-sm" style="background: var(--blue);">
-                                <i class="bi bi-paperclip"></i> Ver Anexo
-                            </a>
+                            {% if '.jpg' in s.arquivo.url or '.png' in s.arquivo.url or '.jpeg' in s.arquivo.url or '.webp' in s.arquivo.url or '.JPG' in s.arquivo.url or '.PNG' in s.arquivo.url or 'image' in s.arquivo.url %}
+                                <a href="{{ s.arquivo.url }}" target="_blank">
+                                    <img src="{{ s.arquivo.url }}" class="img-fluid rounded-3 shadow mt-2" style="max-width: 100%; max-height: 300px; cursor: pointer;">
+                                </a>
+                            {% else %}
+                                <a href="{{ s.arquivo.url }}" target="_blank" class="btn-exec btn-exec-sm" style="background: var(--blue);">
+                                    <i class="bi bi-paperclip"></i> Ver Anexo
+                                </a>
+                            {% endif %}
                         </div>
                         {% endif %}
 

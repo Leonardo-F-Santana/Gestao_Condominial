@@ -307,6 +307,9 @@
                 {% if request.resolver_match.url_name != 'login' %}
                     <a href="{% url 'mensagens_portaria' %}" class="quick-action position-relative me-2">
                         <i class="bi bi-chat-dots-fill"></i> <span class="d-none d-md-inline">Mensagens</span>
+                        {% if mensagens_nao_lidas > 0 %}
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.55rem; padding: 0.2rem 0.35rem; transform: translate(-30%, -30%) !important;">{{ mensagens_nao_lidas }}</span>
+                        {% endif %}
                     </a>
                 {% endif %}
                 <a href="{% url 'alterar_senha' %}" class="quick-action d-none d-md-flex">

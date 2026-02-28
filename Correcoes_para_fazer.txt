@@ -1,4 +1,6 @@
 na pagina de adm, criar filtragem por condomínio, sindico, morador e portaria
 adicionar a pagina de usuários novamente, o site ainda continua tendo que ligar o usuário ao morador, mas não tem a pagina morador no admin;
 tirar o logo do splash na tela de login e colocar um ícone de condomínio
-acrescentar na pagina botao com o perfil do sindico e morador para ediçao
+acrescentar na pagina botao com o perfil do sindico e morador para edição
+
+quando faço uma solicitação no app do morador, da erro;

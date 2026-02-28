@@ -1,277 +1,138 @@
 {% extends 'base.html' %}
-{% load static %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h4 mb-0"><i class="bi bi-chat-dots me-2"></i> Mensagens</h2>
-    <span class="badge bg-danger rounded-pill px-3 py-2">
-        <i class="bi bi-envelope"></i> {{ mensagens_nao_lidas }} não lidas
-    </span>
-</div>
-
-<div class="row g-4">
-    <!-- Lista de Contatos -->
-    <div class="col-md-4">
-        <div class="card card-custom h-100 border-0 shadow-sm">
-            <div class="card-header bg-white border-bottom-0 pt-4 pb-2">
-                <h6 class="mb-0 fw-bold d-flex align-items-center">
-                    <i class="bi bi-people text-primary me-2"></i> Nova Mensagem
-                </h6>
-            </div>
-            <div class="card-body p-0">
-                <div class="list-group list-group-flush" style="max-height: 500px; overflow-y: auto;">
-                    <a href="#" class="list-group-item list-group-item-action border-0 py-3" data-bs-toggle="modal" data-bs-target="#novaMensagemModal">
-                        <div class="d-flex align-items-center text-primary">
-                            <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
-                                <i class="bi bi-plus-lg"></i>
-                            </div>
-                            <span class="fw-semibold">Escrever para Morador/Síndico</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-
-            <div class="card-header bg-light border-bottom-0 border-top pt-3 pb-2 mt-2">
-                <h6 class="mb-0 fw-bold text-muted small text-uppercase">Conversas Ativas</h6>
-            </div>
-            <div class="card-body p-0">
-                <div class="list-group list-group-flush" style="max-height: 500px; overflow-y: auto;">
-                    {% for contato, msgs in conversas.items %}
-                    <a href="#" class="list-group-item list-group-item-action border-0 py-3" onclick="abrirConversa('{{ contato.id }}', '{{ contato.get_full_name|default:contato.username }}')">
-                        <div class="d-flex align-items-center">
-                            <div class="bg-secondary bg-opacity-10 text-secondary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
-                                <i class="bi bi-person-fill"></i>
-                            </div>
-                            <div class="flex-grow-1 min-w-0">
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <span class="fw-semibold text-truncate">{{ contato.get_full_name|default:contato.username }}</span>
-                                    <small class="text-muted">{{ msgs|last|default:""|date:"H:i" }}</small>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <p class="mb-0 text-muted small text-truncate" style="max-width: 150px;">
-                                        {% with last_msg=msgs|last %}
-                                            {% if last_msg.remetente == request.user %}
-                                                <i class="bi bi-check2-all {% if last_msg.lida %}text-primary{% endif %}"></i> 
-                                            {% endif %}
-                                            {{ last_msg.conteudo }}
-                                        {% endwith %}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </a>
-                    {% empty %}
-                    <div class="p-4 text-center text-muted">
-                        <i class="bi bi-chat-square text-light mb-2" style="font-size: 2rem;"></i>
-                        <p class="mb-0 small">Nenhuma conversa encontrada</p>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Área da Conversa (Chat) -->
-    <div class="col-md-8">
-        <div class="card card-custom h-100 border-0 shadow-sm d-flex flex-column" id="chatArea" style="min-height: 600px; background-color: #f0f2f5;">
-            <!-- Header do Chat -->
-            <div class="card-header bg-white p-3 border-bottom d-flex align-items-center">
-                <div class="bg-secondary bg-opacity-10 text-secondary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px;">
-                    <i class="bi bi-person-fill fs-5"></i>
-                </div>
-                <div>
-                    <h6 class="mb-0 fw-bold" id="chatNome">Selecione uma conversa</h6>
-                    <small class="text-success" id="chatStatus" style="display: none;">Online</small>
-                </div>
-            </div>
-
-            <!-- Corpo do Chat (Mensagens) -->
-            <div class="card-body p-4 flex-grow-1 overflow-auto d-flex flex-column" id="chatMessages" style="background-image: url('data:image/svg+xml,%3Csvg width=\'20\' height=\'20\' viewBox=\'0 0 20 20\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'%239C92AC\' fill-opacity=\'0.05\' fill-rule=\'evenodd\'%3E%3Ccircle cx=\'3\' cy=\'3\' r=\'3\'/%3E%3Ccircle cx=\'13\' cy=\'13\' r=\'3\'/%3E%3C/g%3E%3C/svg%3E');">
-                <div class="h-100 d-flex flex-column align-items-center justify-content-center text-muted" id="emptyChatState">
-                    <div class="bg-white p-4 rounded-circle shadow-sm mb-3">
-                        <i class="bi bi-chat-dots" style="font-size: 3rem; color: #cbd5e1;"></i>
-                    </div>
-                    <p>Selecione um contato ao lado para iniciar</p>
-                </div>
-
-                <!-- Template de Mensagens (Preenchido via JS) -->
-                {% for contato, msgs in conversas.items %}
-                    <div class="d-none w-100 chat-Thread" id="thread-{{ contato.id }}">
-                        <!-- Data Divisor -->
-                        <div class="text-center my-3">
-                            <span class="badge bg-white text-muted shadow-sm px-3 py-2 rounded-pill">Hoje</span>
-                        </div>
-                        
-                        {% for msg in msgs %}
-                        <div class="d-flex flex-column {% if msg.remetente == request.user %}align-items-end{% else %}align-items-start{% endif %} mb-3">
-                            <div class="d-flex flex-column {% if msg.remetente == request.user %}align-items-end{% else %}align-items-start{% endif %}" style="max-width: 75%;">
-                                
-                                {% if msg.resposta_a %}
-                                <div class="bg-black bg-opacity-10 rounded-top px-3 py-2 mb-0 border-start border-3 border-primary" style="font-size: 0.85rem; opacity: 0.8; width: 100%;">
-                                    <div class="fw-bold text-primary mb-1">{{ msg.resposta_a.remetente.get_full_name|default:msg.resposta_a.remetente.username }}</div>
-                                    <div class="text-truncate">{{ msg.resposta_a.conteudo }}</div>
-                                </div>
-                                {% endif %}
-
-                                <div class="position-relative p-3 {% if msg.remetente == request.user %}bg-success text-white rounded-start rounded-bottom bg-opacity-75 shadow-sm{% else %}bg-white text-dark rounded-end rounded-bottom shadow-sm{% endif %}" 
-                                     style="{% if msg.resposta_a %}border-top-left-radius: 0 !important; border-top-right-radius: 0 !important;{% endif %} display: inline-block;">
-                                    <p class="mb-1">{{ msg.conteudo|linebreaksbr }}</p>
-                                    <div class="d-flex justify-content-end align-items-center mt-1" style="font-size: 0.75rem;">
-                                        <span class="{% if msg.remetente == request.user %}text-white-50{% else %}text-muted{% endif %} me-1">{{ msg.data_envio|date:"H:i" }}</span>
-                                        {% if msg.remetente == request.user %}
-                                            <i class="bi bi-check2-all {% if msg.lida %}text-primary{% endif %}"></i>
-                                        {% endif %}
-                                    </div>
-
-                                    <!-- Botão de Responder (Hover) -->
-                                    <button class="btn btn-sm position-absolute top-50 translate-middle-y {% if msg.remetente == request.user %}start-0 translate-middle-x-n100 text-muted{% else %}end-0 translate-middle-x-100 text-muted{% endif %} p-0 btn-reply" 
-                                            style="opacity: 0; transition: opacity 0.2s; width: 30px; height: 30px;"
-                                            onclick="prepararResposta('{{ msg.id }}', '{{ msg.conteudo|escapejs }}', '{{ msg.remetente.get_full_name|default:msg.remetente.username }}')">
-                                        <div class="bg-white rounded-circle shadow-sm d-flex align-items-center justify-content-center w-100 h-100">
-                                            <i class="bi bi-reply-fill"></i>
-                                        </div>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                {% endfor %}
-            </div>
-
-            <!-- Input do Chat -->
-            <div class="card-footer bg-white p-3 border-top" id="chatInputArea" style="display: none;">
-                
-                <!-- Container de Resposta Ativa -->
-                <div id="replyContainer" class="d-none bg-light rounded p-2 mb-2 border-start border-4 border-primary align-items-center justify-content-between">
-                    <div>
-                        <small class="fw-bold text-primary d-block" id="replyName">Nome</small>
-                        <small class="text-muted text-truncate d-block" id="replyText" style="max-height: 20px;">Texto da mensagem...</small>
-                    </div>
-                    <button type="button" class="btn-close ms-2" style="font-size: 0.7rem;" onclick="cancelarResposta()"></button>
-                </div>
-
-                <form method="POST" action="{% url 'mensagens_portaria' %}" class="d-flex align-items-center gap-2">
-                    {% csrf_token %}
-                    <input type="hidden" name="destinatario" id="chatDestinatarioId">
-                    <input type="hidden" name="resposta_a" id="chatRespostaAId">
-                    
-                    <button type="button" class="btn btn-light rounded-circle text-muted" style="width: 40px; height: 40px;">
-                        <i class="bi bi-emoji-smile"></i>
-                    </button>
-                    <button type="button" class="btn btn-light rounded-circle text-muted" style="width: 40px; height: 40px;">
-                        <i class="bi bi-paperclip"></i>
-                    </button>
-                    
-                    <input type="text" name="conteudo" class="form-control rounded-pill px-4 bg-light border-0 py-2" placeholder="Digite uma mensagem..." required autocomplete="off">
-                    
-                    <button type="submit" class="btn btn-primary rounded-circle shadow-sm" style="width: 45px; height: 45px;">
-                        <i class="bi bi-send-fill"></i>
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
+    <h2>Caixa de Mensagens</h2>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#novaMensagemModal">
+        <i class="bi bi-pencil-square"></i> Nova Mensagem
+    </button>
 </div>
 
 <!-- Modal Nova Mensagem -->
 <div class="modal fade" id="novaMensagemModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-primary text-white border-0">
-                <h5 class="modal-title"><i class="bi bi-envelope-plus me-2"></i>Nova Mensagem</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nova Mensagem</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="{% url 'mensagens_portaria' %}">
                 {% csrf_token %}
-                <div class="modal-body p-4">
-                    <div class="mb-4">
-                        <label class="form-label fw-bold text-secondary">Para quem?</label>
-                        <select name="destinatario" class="form-select border-0 bg-light" required>
-                            <option value="">Selecione um morador ou síndico...</option>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label>Enviar para:</label>
+                        <select name="destinatario" class="form-select" required>
+                            <option value="">Selecione o destinatário...</option>
                             {% for d in destinatarios %}
-                                <option value="{{ d.id }}">{{ d.get_full_name|default:d.username }} ({{ d.get_tipo_usuario_display }})</option>
+                            <option value="{{ d.id }}">
+                                {{ d.get_full_name|default:d.username }} 
+                                {% if d.tipo_usuario == 'morador' %}
+                                    - {{ d.morador.bloco|default:"" }} {{ d.morador.apartamento|default:"" }}
+                                {% else %}
+                                    ({{ d.get_tipo_usuario_display }})
+                                {% endif %}
+                            </option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold text-secondary">Mensagem</label>
-                        <textarea name="conteudo" class="form-control border-0 bg-light" rows="4" required placeholder="Digite sua mensagem aqui..."></textarea>
+                        <label>Mensagem</label>
+                        <textarea name="conteudo" class="form-control" rows="4" required></textarea>
                     </div>
                 </div>
-                <div class="modal-footer border-0 pb-4 px-4 pt-0">
-                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">
-                        <i class="bi bi-send me-2"></i>Enviar
-                    </button>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Enviar</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<style>
-    /* Estilos para o chat no hover do botão de responder */
-    .position-relative:hover .btn-reply {
-        opacity: 1 !important;
-    }
-    .translate-middle-x-n100 { transform: translateX(-150%) translateY(-50%) !important; }
-    .translate-middle-x-100 { transform: translateX(150%) translateY(-50%) !important; }
-</style>
-
-<script>
-    function scrollToEnd() {
-        const chatMessages = document.getElementById('chatMessages');
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    function abrirConversa(userId, userName) {
-        // Esconder splash inicial
-        document.getElementById('emptyChatState').classList.add('d-none');
-        
-        // Atualizar header
-        document.getElementById('chatNome').textContent = userName;
-        document.getElementById('chatStatus').style.display = 'block';
-        
-        // Configurar input
-        document.getElementById('chatInputArea').style.display = 'block';
-        document.getElementById('chatDestinatarioId').value = userId;
-        
-        // Esconder todos os threads e mostrar só o selecionado
-        document.querySelectorAll('.chat-Thread').forEach(el => el.classList.add('d-none'));
-        const thread = document.getElementById('thread-' + userId);
-        if(thread) {
-            thread.classList.remove('d-none');
-            thread.classList.add('d-flex');
-        }
-        
-        // Limpar respostas pendentes
-        cancelarResposta();
-        
-        // Scroll to bottom
-        setTimeout(scrollToEnd, 50);
-    }
-
-    function prepararResposta(msgId, conteudo, remetenteName) {
-        document.getElementById('chatRespostaAId').value = msgId;
-        document.getElementById('replyName').textContent = remetenteName;
-        document.getElementById('replyText').textContent = conteudo;
-        
-        const container = document.getElementById('replyContainer');
-        container.classList.remove('d-none');
-        container.classList.add('d-flex');
-        
-        document.querySelector('input[name="conteudo"]').focus();
-    }
-
-    function cancelarResposta() {
-        document.getElementById('chatRespostaAId').value = '';
-        
-        const container = document.getElementById('replyContainer');
-        container.classList.add('d-none');
-        container.classList.remove('d-flex');
-    }
-    
-    // Auto-scroll on load se tiver conversa aberta (aqui nao vai ter onload pq é click-based)
-</script>
+<div class="card card-custom">
+    <div class="card-body p-0">
+        <ul class="nav nav-tabs" id="chatTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active fw-bold text-dark" id="conversas-tab" data-bs-toggle="tab" data-bs-target="#conversas-pane" type="button" role="tab" aria-controls="conversas-pane" aria-selected="true">
+                    Minhas Conversas
+                </button>
+            </li>
+        </ul>
+        <div class="tab-content" id="chatTabContent">
+            <!-- Aba Conversas Ativas -->
+            <div class="tab-pane fade show active" id="conversas-pane" role="tabpanel" aria-labelledby="conversas-tab" tabindex="0">
+                <div class="accordion accordion-flush" id="accordionConversas">
+                    {% for contato, msgs in conversas.items %}
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="heading-{{ contato.id }}">
+                            <button class="accordion-button collapsed d-flex justify-content-between align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{ contato.id }}" aria-expanded="false" aria-controls="collapse-{{ contato.id }}">
+                                <div>
+                                    <i class="bi bi-person-circle text-primary me-2 fs-5"></i>
+                                    <span class="fw-bold">{{ contato.get_full_name|default:contato.username }}</span>
+                                    {% if contato.tipo_usuario == 'morador' %}
+                                        <small class="text-muted ms-1">- {{ contato.morador.bloco|default:"" }} {{ contato.morador.apartamento|default:"" }}</small>
+                                    {% endif %}
+                                </div>
+                                {% with nao_lidas=0 %}
+                                    {% for m in msgs %}
+                                        {% if m.destinatario == request.user and not m.lida %}
+                                            <span class="badge bg-danger rounded-pill ms-2"><i class="bi bi-envelope-fill"></i> Nova</span>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endwith %}
+                            </button>
+                        </h2>
+                        <div id="collapse-{{ contato.id }}" class="accordion-collapse collapse" aria-labelledby="heading-{{ contato.id }}" data-bs-parent="#accordionConversas">
+                            <div class="accordion-body p-0 bg-light position-relative" style="background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');">
+                                <div class="chat-messages p-3" style="max-height: 400px; overflow-y: auto;">
+                                    {% for m in msgs %}
+                                        {% if m.remetente == request.user %}
+                                        <!-- Mensagem Enviada (Direita, Verde) -->
+                                        <div class="d-flex justify-content-end mb-3">
+                                            <div class="msg-balloon bg-success text-white p-2 rounded-3 shadow-sm" style="max-width: 75%; border-bottom-right-radius: 0;">
+                                                <p class="mb-1 text-break" style="font-size: 0.9rem;">{{ m.conteudo }}</p>
+                                                <div class="text-end" style="font-size: 0.7rem; color: rgba(255,255,255,0.8);">
+                                                    {{ m.data_envio|date:"H:i" }}
+                                                    {% if m.lida %}<i class="bi bi-check2-all ms-1 text-warning"></i>{% else %}<i class="bi bi-check2 ms-1"></i>{% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% else %}
+                                        <!-- Mensagem Recebida (Esquerda, Branca) -->
+                                        <div class="d-flex justify-content-start mb-3">
+                                            <div class="msg-balloon bg-white text-dark p-2 rounded-3 shadow-sm" style="max-width: 75%; border-bottom-left-radius: 0;">
+                                                <p class="mb-1 text-break" style="font-size: 0.9rem;">{{ m.conteudo }}</p>
+                                                <div class="text-end text-muted" style="font-size: 0.7rem;">
+                                                    {{ m.data_envio|date:"d/m H:i" }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <div class="card-footer bg-white p-2 border-top">
+                                    <form method="POST" action="{% url 'mensagens_portaria' %}" class="d-flex align-items-center">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="destinatario" value="{{ contato.id }}">
+                                        <input type="text" name="conteudo" class="form-control rounded-pill border-0 bg-light me-2" placeholder="Digite uma mensagem..." required autocomplete="off">
+                                        <button type="submit" class="btn btn-primary rounded-circle shadow-sm" style="width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center;">
+                                            <i class="bi bi-send-fill"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-chat-square-text text-secondary" style="font-size: 3rem; opacity: 0.5;"></i>
+                        <h6 class="mt-3 fw-bold text-dark">Nenhuma conversa ativa</h6>
+                        <p class="small">Clique em 'Nova Mensagem' para iniciar.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

@@ -38,8 +38,10 @@
         <div class="mb-4">
             <label class="form-label text-muted small fw-semibold">ANEXO</label>
             <div class="bg-light rounded-3 p-3 text-center">
-                {% if 'image' in solicitacao.arquivo.url %}
-                    <img src="{{ solicitacao.arquivo.url }}" class="img-fluid rounded-3 shadow" style="max-height: 300px;">
+                {% if 'image' in solicitacao.arquivo.url or '.jpg' in solicitacao.arquivo.url or '.png' in solicitacao.arquivo.url or '.jpeg' in solicitacao.arquivo.url or '.webp' in solicitacao.arquivo.url or '.JPG' in solicitacao.arquivo.url or '.PNG' in solicitacao.arquivo.url %}
+                    <a href="{{ solicitacao.arquivo.url }}" target="_blank">
+                        <img src="{{ solicitacao.arquivo.url }}" class="img-fluid rounded-3 shadow mt-2" style="max-width: 100%; max-height: 300px; cursor: pointer;">
+                    </a>
                 {% elif 'video' in solicitacao.arquivo.url %}
                     <video controls class="rounded-3 shadow" style="max-width: 100%; max-height: 300px;">
                         <source src="{{ solicitacao.arquivo.url }}">

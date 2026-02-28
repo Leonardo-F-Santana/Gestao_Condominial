@@ -231,6 +231,7 @@ def nova_solicitacao(request):
                 descricao=descricao,
                 morador=morador,
                 criado_por=request.user,
+                condominio=morador.condominio,
             )
             if arquivo:
                 sol_kwargs['arquivo'] = arquivo
