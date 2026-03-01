@@ -625,47 +625,51 @@ def areas_comuns_sindico(request):
     if not condominio:
         return redirect('sindico_home')
 
-    if request.method == 'POST':
-        action = request.POST.get('action')
+    try:
+        if request.method == 'POST':
+            action = request.POST.get('action')
 
-        if action == 'criar':
-            nome = request.POST.get('nome', '').strip()
-            descricao = request.POST.get('descricao', '')
-            capacidade = request.POST.get('capacidade', 0)
-            horario_abertura = request.POST.get('horario_abertura', '08:00')
-            horario_fechamento = request.POST.get('horario_fechamento', '22:00')
-            imagem = request.FILES.get('imagem')
+            if action == 'criar':
+                nome = request.POST.get('nome', '').strip()
+                descricao = request.POST.get('descricao', '')
+                capacidade = request.POST.get('capacidade', 0)
+                horario_abertura = request.POST.get('horario_abertura') or '08:00'
+                horario_fechamento = request.POST.get('horario_fechamento') or '22:00'
+                imagem = request.FILES.get('imagem')
 
-            if nome:
-                area = AreaComum.objects.create(
-                    condominio=condominio,
-                    nome=nome,
-                    descricao=descricao,
-                    capacidade=int(capacidade) if capacidade else 0,
-                    horario_abertura=horario_abertura,
-                    horario_fechamento=horario_fechamento,
-                )
-                if imagem:
-                    area.imagem = imagem
-                    area.save()
-                messages.success(request, f'Área "{nome}" cadastrada com sucesso!')
-            else:
-                messages.error(request, 'Informe o nome da área.')
+                if nome:
+                    area = AreaComum.objects.create(
+                        condominio=condominio,
+                        nome=nome,
+                        descricao=descricao,
+                        capacidade=int(capacidade) if capacidade else 0,
+                        horario_abertura=horario_abertura,
+                        horario_fechamento=horario_fechamento,
+                    )
+                    if imagem:
+                        area.imagem = imagem
+                        area.save()
+                    messages.success(request, f'Área "{nome}" cadastrada com sucesso!')
+                else:
+                    messages.error(request, 'Informe o nome da área.')
 
-        elif action == 'editar':
-            area_id = request.POST.get('area_id')
-            area = get_object_or_404(AreaComum, id=area_id, condominio=condominio)
-            area.nome = request.POST.get('nome', area.nome)
-            area.descricao = request.POST.get('descricao', area.descricao)
-            area.capacidade = int(request.POST.get('capacidade', area.capacidade) or 0)
-            area.horario_abertura = request.POST.get('horario_abertura', area.horario_abertura)
-            area.horario_fechamento = request.POST.get('horario_fechamento', area.horario_fechamento)
-            area.ativo = request.POST.get('ativo') == 'on'
-            if request.FILES.get('imagem'):
-                area.imagem = request.FILES['imagem']
-            area.save()
-            messages.success(request, f'Área "{area.nome}" atualizada!')
+            elif action == 'editar':
+                area_id = request.POST.get('area_id')
+                area = get_object_or_404(AreaComum, id=area_id, condominio=condominio)
+                area.nome = request.POST.get('nome', area.nome)
+                area.descricao = request.POST.get('descricao', area.descricao)
+                area.capacidade = int(request.POST.get('capacidade') or area.capacidade or 0)
+                area.horario_abertura = request.POST.get('horario_abertura') or area.horario_abertura
+                area.horario_fechamento = request.POST.get('horario_fechamento') or area.horario_fechamento
+                area.ativo = request.POST.get('ativo') == 'on'
+                if request.FILES.get('imagem'):
+                    area.imagem = request.FILES['imagem']
+                area.save()
+                messages.success(request, f'Área "{area.nome}" atualizada!')
 
+            return redirect('sindico_areas_comuns')
+    except Exception as e:
+        messages.error(request, f"Erro interno ao salvar: {str(e)}")
         return redirect('sindico_areas_comuns')
 
     areas = AreaComum.objects.filter(condominio=condominio)
@@ -714,28 +718,32 @@ def reservas_sindico(request):
 
     # Criar área comum direto da tela de reservas
     if request.method == 'POST' and request.POST.get('action') == 'criar_area':
-        nome = request.POST.get('nome', '').strip()
-        descricao = request.POST.get('descricao', '')
-        capacidade = request.POST.get('capacidade', 0)
-        horario_abertura = request.POST.get('horario_abertura', '08:00')
-        horario_fechamento = request.POST.get('horario_fechamento', '22:00')
-        imagem = request.FILES.get('imagem')
+        try:
+            nome = request.POST.get('nome', '').strip()
+            descricao = request.POST.get('descricao', '')
+            capacidade = request.POST.get('capacidade', 0)
+            horario_abertura = request.POST.get('horario_abertura') or '08:00'
+            horario_fechamento = request.POST.get('horario_fechamento') or '22:00'
+            imagem = request.FILES.get('imagem')
 
-        if nome:
-            area = AreaComum.objects.create(
-                condominio=condominio,
-                nome=nome,
-                descricao=descricao,
-                capacidade=int(capacidade) if capacidade else 0,
-                horario_abertura=horario_abertura,
-                horario_fechamento=horario_fechamento,
-            )
-            if imagem:
-                area.imagem = imagem
-                area.save()
-            messages.success(request, f'Área "{nome}" cadastrada com sucesso!')
-        else:
-            messages.error(request, 'Informe o nome da área.')
+            if nome:
+                area = AreaComum.objects.create(
+                    condominio=condominio,
+                    nome=nome,
+                    descricao=descricao,
+                    capacidade=int(capacidade) if capacidade else 0,
+                    horario_abertura=horario_abertura,
+                    horario_fechamento=horario_fechamento,
+                )
+                if imagem:
+                    area.imagem = imagem
+                    area.save()
+                messages.success(request, f'Área "{nome}" cadastrada com sucesso!')
+            else:
+                messages.error(request, 'Informe o nome da área.')
+        except Exception as e:
+            messages.error(request, f"Erro interno ao cadastrar área: {str(e)}")
+            
         return redirect('sindico_reservas')
 
     reservas_list = Reserva.objects.filter(
