@@ -132,6 +132,32 @@ def portal_home(request):
 def minhas_cobrancas(request):
     """Lista de boletos e cobranças do morador"""
     morador = request.morador
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'avisar_pagamento':
+            cobranca_id = request.POST.get('cobranca_id')
+            cobranca = get_object_or_404(Cobranca, id=cobranca_id, morador=morador)
+            
+            comprovante = request.FILES.get('comprovante')
+            if comprovante:
+                cobranca.comprovante = comprovante
+                
+            cobranca.status = 'EM_ANALISE'
+            cobranca.save()
+            
+            # Notificar o 1º Síndico daquele condomínio
+            sindico = Sindico.objects.filter(condominio=morador.condominio).first()
+            if sindico and sindico.usuario:
+                Notificacao.objects.create(
+                    usuario=sindico.usuario,
+                    tipo='geral',
+                    mensagem=f'O morador {morador.nome} ({morador.bloco}-{morador.apartamento}) informou o pagamento de uma cobrança.',
+                    link='/sindico/financeiro/'
+                )
+            messages.success(request, 'Aviso de pagamento enviado com sucesso. O síndico analisará o comprovante.')
+            return redirect('morador_cobrancas')
+
     cobrancas_list = Cobranca.objects.filter(
         morador=morador,
         condominio=morador.condominio

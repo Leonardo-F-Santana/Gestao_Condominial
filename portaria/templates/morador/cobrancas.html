@@ -9,50 +9,126 @@
     </h4>
 </div>
 
-<div class="glass-card mb-4 card-animate">
-    <div class="table-responsive p-3">
-        <table class="table align-middle table-hover">
-            <thead>
-                <tr>
-                    <th class="text-secondary fw-semibold">Descrição</th>
-                    <th class="text-secondary fw-semibold">Vencimento</th>
-                    <th class="text-secondary fw-semibold">Valor</th>
-                    <th class="text-secondary fw-semibold">Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for c in cobrancas %}
-                <tr>
-                    <td>
-                        <span class="fw-bold text-dark">{{ c.descricao }}</span><br>
-                        <small class="text-muted">Gerado em: {{ c.data_criacao|date:"d/m/Y" }}</small>
-                    </td>
-                    <td>{{ c.data_vencimento|date:"d/m/Y" }}</td>
-                    <td class="fw-bold" style="color: var(--primary-dark);">R$ {{ c.valor }}</td>
-                    <td>
+<div class="row">
+    {% for c in cobrancas %}
+    <div class="col-12 mb-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100 card-animate" style="background: rgba(255, 255, 255, 0.95);">
+            <div class="card-body p-4">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                    <!-- Detalhes -->
+                    <div class="flex-grow-1">
+                        <h5 class="fw-bold mb-1 text-dark">{{ c.descricao }}</h5>
+                        <p class="text-muted small mb-2"><i class="bi bi-calendar-event me-1"></i> Vence em: <strong>{{ c.data_vencimento|date:"d/m/Y" }}</strong></p>
+                        <p class="text-muted small mb-0">Gerado em: {{ c.data_criacao|date:"d/m/Y" }}</p>
+                    </div>
+                    
+                    <!-- Valor e Status -->
+                    <div class="text-md-end text-start">
+                        <h4 class="fw-bold mb-2" style="color: var(--primary-dark);">R$ {{ c.valor }}</h4>
                         {% if c.status == 'PAGO' %}
                             <span class="badge bg-success rounded-pill px-3 py-2"><i class="bi bi-check-circle me-1"></i>Pago</span>
                         {% elif c.status == 'ATRASADO' %}
                             <span class="badge bg-danger rounded-pill px-3 py-2"><i class="bi bi-x-circle me-1"></i>Atrasado</span>
+                        {% elif c.status == 'EM_ANALISE' %}
+                            <span class="badge bg-warning text-dark rounded-pill px-3 py-2"><i class="bi bi-search me-1"></i>Em Análise</span>
                         {% elif c.status == 'PENDENTE' %}
-                            <span class="badge bg-warning text-dark rounded-pill px-3 py-2"><i class="bi bi-clock-history me-1"></i>Pendente</span>
+                            <span class="badge bg-primary rounded-pill px-3 py-2"><i class="bi bi-clock-history me-1"></i>Pendente</span>
                         {% else %}
                             <span class="badge bg-secondary rounded-pill px-3 py-2">Cancelado</span>
                         {% endif %}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="4" class="text-center text-muted py-5">
-                        <i class="bi bi-receipt" style="font-size: 2.5rem; opacity: 0.5;"></i>
-                        <p class="mt-2 mb-0 fw-semibold">Nenhuma cobrança registrada.</p>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                    </div>
+                    
+                    <!-- Ações -->
+                    <div class="mt-3 mt-md-0 d-flex align-items-center justify-content-md-end border-top border-md-top-0 pt-3 pt-md-0 ps-md-3" style="min-width: 140px;">
+                        {% if c.status == 'PENDENTE' or c.status == 'ATRASADO' %}
+                        <button class="btn btn-primary rounded-pill w-100 fw-semibold px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#pagarModal{{ c.id }}">
+                            <i class="bi bi-wallet2 me-1"></i> Pagar
+                        </button>
+                        {% elif c.status == 'EM_ANALISE' %}
+                        <span class="text-muted small text-center w-100 fw-medium bg-light p-2 rounded-3"><i class="bi bi-info-circle text-primary me-1"></i> Em conferência</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+    {% empty %}
+    <div class="col-12 text-center text-muted py-5 glass-card">
+        <i class="bi bi-receipt text-white" style="font-size: 3.5rem; opacity: 0.7;"></i>
+        <p class="mt-3 mb-0 fw-semibold text-white fs-5">Nenhuma cobrança registrada.</p>
+    </div>
+    {% endfor %}
 </div>
+
+<!-- Renderizando os Modais Fora da Hierarquia de Layout Secundária (Evita o Bug do Backdrop) -->
+{% for c in cobrancas %}
+    {% if c.status == 'PENDENTE' or c.status == 'ATRASADO' %}
+    <div class="modal fade" id="pagarModal{{ c.id }}" tabindex="-1" aria-labelledby="pagarModalLabel{{ c.id }}" aria-hidden="true" style="z-index: 1060;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+                <div class="modal-header border-0 text-white" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); padding: 1.5rem;">
+                    <h5 class="modal-title fw-bold" id="pagarModalLabel{{ c.id }}"><i class="bi bi-receipt"></i> Detalhes da Cobrança</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    <h5 class="text-center fw-bold mb-3 d-flex flex-column" style="color: var(--primary-dark);">
+                        <span class="text-muted small fw-normal">Valor do Documento</span>
+                        R$ {{ c.valor }}
+                    </h5>
+                    <p class="text-center text-muted small mb-4 fw-medium">{{ c.descricao }} • Vence em: <span class="text-dark">{{ c.data_vencimento|date:"d/m/Y" }}</span></p>
+
+                    {% if c.arquivo_boleto %}
+                    <div class="card border-0 shadow-sm mb-3 rounded-4">
+                        <div class="card-body text-center p-3">
+                            <h6 class="fw-bold mb-2">Boleto Bancário</h6>
+                            <p class="small text-muted mb-3">Baixe o PDF para realizar o pagamento.</p>
+                            <a href="{{ c.arquivo_boleto.url }}" target="_blank" class="btn btn-outline-primary rounded-pill w-100 fw-semibold">
+                                <i class="bi bi-download me-1"></i> Baixar Arquivo
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if c.chave_pix %}
+                    <div class="card border-0 shadow-sm mb-4 rounded-4">
+                        <div class="card-body text-center p-3">
+                            <h6 class="fw-bold mb-2 text-success"><i class="bi bi-qr-code me-1"></i> PIX Copia e Cola</h6>
+                            <p class="small text-muted mb-2">Use a chave abaixo no app do seu banco:</p>
+                            <div class="input-group">
+                                <input type="text" class="form-control text-center bg-white fw-medium font-monospace" value="{{ c.chave_pix }}" id="chavePix{{ c.id }}" readonly>
+                                <button class="btn btn-success px-3 fw-bold" type="button" onclick="copiarPix('{{ c.id }}')"><i class="bi bi-clipboard"></i> Copiar</button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if not c.arquivo_boleto and not c.chave_pix %}
+                    <div class="alert alert-info text-center small rounded-3 border-0 shadow-sm">
+                        <i class="bi bi-info-circle-fill fs-5 mb-1 d-block"></i> Nenhuma chave PIX ou boleto foi anexado a esta cobrança. Entre em contato com a administração.
+                    </div>
+                    {% endif %}
+
+                    <hr class="my-4 border-secondary opacity-25">
+                    
+                    <h6 class="fw-bold text-center mb-3">Já realizou o pagamento?</h6>
+                    <form method="POST" action="{% url 'morador_cobrancas' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="avisar_pagamento">
+                        <input type="hidden" name="cobranca_id" value="{{ c.id }}">
+                        <div class="mb-3 px-2">
+                            <label class="form-label small text-muted fw-semibold">Anexar Comprovante (Opcional)</label>
+                            <input type="file" name="comprovante" class="form-control form-control-sm rounded-3 bg-white" accept=".pdf,image/*">
+                        </div>
+                        <button type="submit" class="btn btn-success rounded-pill w-100 fw-bold py-2 shadow-sm" onclick="return confirm('Confirmar aviso de pagamento para o síndico?');">
+                            <i class="bi bi-check-circle me-1"></i> Informar Pagamento
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+{% endfor %}
 
 {% if cobrancas.has_other_pages %}
 <nav aria-label="Navegação de cobranças">
@@ -76,4 +152,19 @@
 </nav>
 {% endif %}
 
+{% endblock %}
+
+{% block scripts %}
+<script>
+function copiarPix(id) {
+    var input = document.getElementById("chavePix" + id);
+    input.select();
+    input.setSelectionRange(0, 99999); 
+    navigator.clipboard.writeText(input.value).then(function() {
+        alert("Chave PIX copiada para a área de transferência!");
+    }).catch(function() {
+        alert("Falha ao copiar a chave PIX.");
+    });
+}
+</script>
 {% endblock %}

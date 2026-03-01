@@ -102,18 +102,18 @@
         .logo-container {
             width: 80px;
             height: 80px;
-            background: white;
-            border-radius: 20px;
+            background: transparent;
+            border-radius: 0;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 1rem;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            box-shadow: none;
         }
 
         .logo-container img {
-            width: 50px;
-            height: 50px;
+            width: 80px;
+            height: 80px;
             object-fit: contain;
         }
 
@@ -245,7 +245,7 @@
         <div class="card card-login">
             <div class="card-header-custom">
                 <div class="logo-container">
-                    <img src="/img/logo.ico" alt="Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <img src="{% static 'img/ks tech.jpg' %}" alt="Logo KS Tech" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                     <span class="logo-fallback" style="display: none;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="#3A89C9" class="bi bi-buildings" viewBox="0 0 16 16">
                           <path d="M14.763.075A.5.5 0 0 1 15 .5v15a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5V14h-1v1.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V10a.5.5 0 0 1 .342-.474L6 7.64V4.5a.5.5 0 0 1 .276-.447l8-4a.5.5 0 0 1 .487.022M6 8.694 1 10.36V15h5zM7 15h2v-1.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 .5.5V15h2V1.309l-7 3.5z"/>

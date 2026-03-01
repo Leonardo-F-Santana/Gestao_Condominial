@@ -111,6 +111,7 @@ class Cobranca(models.Model):
     """Gestão de pagamentos e taxas do condomínio"""
     STATUS_CHOICES = [
         ('PENDENTE', '🟡 Pendente'),
+        ('EM_ANALISE', '🟠 Em Análise'),
         ('PAGO', '🟢 Pago'),
         ('ATRASADO', '🔴 Atrasado'),
         ('CANCELADO', '⚫ Cancelado'),
@@ -125,6 +126,11 @@ class Cobranca(models.Model):
     data_vencimento = models.DateField(verbose_name="Data de Vencimento")
     data_pagamento = models.DateField(null=True, blank=True, verbose_name="Data do Pagamento")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDENTE', verbose_name="Status")
+    
+    arquivo_boleto = models.FileField(upload_to='cobrancas/boletos/', null=True, blank=True, verbose_name="Arquivo do Boleto")
+    comprovante = models.FileField(upload_to='cobrancas/comprovantes/', null=True, blank=True, verbose_name="Comprovante de Pagamento")
+    chave_pix = models.CharField(max_length=255, null=True, blank=True, verbose_name="Chave PIX ou Link")
+    
     data_criacao = models.DateTimeField(auto_now_add=True, verbose_name="Gerado em")
 
     def __str__(self):

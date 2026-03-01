@@ -78,6 +78,26 @@
             color: white;
         }
 
+        .topbar-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.12);
+            color: white;
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            font-size: 1.25rem;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .topbar-icon:hover {
+            background: rgba(255,255,255,0.25);
+            color: white;
+            transform: translateY(-1px);
+        }
+
         /* ===== MAIN ===== */
         .main-container {
             padding: 1rem;
@@ -440,17 +460,18 @@
     <!-- Top Bar -->
     <header class="topbar">
         <div class="d-flex justify-content-between align-items-center" style="max-width: 600px; margin: 0 auto;">
-            <span class="topbar-brand">SÍNDICO</span>
-            <div class="d-flex align-items-center gap-2">
+            <span class="topbar-brand">
                 {% if condominio %}
-                <a href="{% url 'sindico_home' %}" class="topbar-condo">
-                    <i class="bi bi-building"></i> {{ condominio.nome|truncatechars:18 }}
-                </a>
+                <span class="text-white fw-bold"><i class="bi bi-buildings me-1"></i> {{ condominio.nome|truncatechars:15 }}</span>
+                {% else %}
+                SÍNDICO
                 {% endif %}
-                <a href="{% url 'alterar_senha' %}" class="topbar-condo">
+            </span>
+            <div class="d-flex align-items-center gap-2">
+                <a href="{% url 'alterar_senha' %}" class="topbar-icon" title="Alterar Senha">
                     <i class="bi bi-key"></i>
                 </a>
-                <a href="{% url 'sindico_mensagens' %}" class="topbar-condo position-relative">
+                <a href="{% url 'sindico_mensagens' %}" class="topbar-icon position-relative" title="Mensagens">
                     <i class="bi bi-chat-dots"></i>
                     {% if mensagens_nao_lidas > 0 %}
                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.55rem; padding: 0.2rem 0.35rem; transform: translate(-30%, -30%) !important;">
@@ -458,18 +479,60 @@
                     </span>
                     {% endif %}
                 </a>
-                <a href="{% url 'sindico_ocorrencias' %}" class="topbar-condo">
-                    <i class="bi bi-journal-x"></i>
+                <a href="{% url 'sindico_financeiro' %}" class="topbar-icon position-relative" title="Cobranças">
+                    <i class="bi bi-cash-coin"></i>
+                    <span id="badge-cobrancas-top" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.55rem; padding: 0.2rem 0.35rem; transform: translate(-30%, -30%) !important; display: none;"></span>
                 </a>
-                <form action="{% url 'logout' %}" method="post" class="d-inline">
+                <button class="topbar-icon border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuSindico" aria-controls="menuSindico" title="Menu Principal">
+                    <i class="bi bi-list"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Offcanvas Menu Sindico -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="menuSindico" aria-labelledby="menuSindicoLabel" style="background: var(--navy); color: white; width: 280px; box-shadow: -5px 0 25px rgba(0,0,0,0.5);">
+        <div class="offcanvas-header border-bottom border-light border-opacity-10 opacity-100">
+            <h5 class="offcanvas-title fw-bold text-white" id="menuSindicoLabel"><i class="bi bi-grid-fill me-2 text-primary"></i>Menu Principal</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body p-0">
+            <div class="list-group list-group-flush rounded-0 mt-2 pb-5">
+                <a href="{% url 'sindico_painel' %}" class="list-group-item list-group-item-action bg-transparent text-white border-0 py-3 fw-medium">
+                    <i class="bi bi-grid-1x2 me-3 fs-5 align-middle text-primary"></i> Painel Inicial
+                </a>
+                <a href="{% url 'sindico_financeiro' %}" class="list-group-item list-group-item-action bg-transparent text-white border-0 py-3 fw-medium d-flex align-items-center">
+                    <i class="bi bi-cash-coin me-3 fs-5 text-success"></i> 
+                    <span class="flex-grow-1">Cobranças / Financeiro</span>
+                    <span id="badge-cobrancas-menu" class="badge bg-danger rounded-pill ms-2" style="display: none;"></span>
+                </a>
+                <a href="{% url 'sindico_ocorrencias' %}" class="list-group-item list-group-item-action bg-transparent text-white border-0 py-3 fw-medium">
+                    <i class="bi bi-journal-x me-3 fs-5 align-middle text-danger"></i> Livro Negro / Ocorrências
+                </a>
+                <a href="{% url 'sindico_visitantes' %}" class="list-group-item list-group-item-action bg-transparent text-white border-0 py-3 fw-medium">
+                    <i class="bi bi-person-badge me-3 fs-5 align-middle text-info"></i> Visitantes e Portaria
+                </a>
+                <a href="{% url 'sindico_encomendas' %}" class="list-group-item list-group-item-action bg-transparent text-white border-0 py-3 fw-medium">
+                    <i class="bi bi-box-seam me-3 fs-5 align-middle text-warning"></i> Gestão de Encomendas
+                </a>
+                <a href="{% url 'sindico_areas_comuns' %}" class="list-group-item list-group-item-action bg-transparent text-white border-0 py-3 fw-medium">
+                    <i class="bi bi-tree me-3 fs-5 align-middle text-success"></i> Áreas Comuns
+                </a>
+                
+                <hr class="border-light border-opacity-10 my-2">
+                
+                <a href="{% url 'alterar_senha' %}" class="list-group-item list-group-item-action bg-transparent text-white border-0 py-3 fw-medium">
+                    <i class="bi bi-key me-3 fs-5 align-middle text-secondary"></i> Alterar Senha
+                </a>
+                <form action="{% url 'logout' %}" method="post" class="m-0 p-0">
                     {% csrf_token %}
-                    <button type="submit" class="topbar-condo border-0" style="color: #f87171; background: rgba(255,255,255,0.12); cursor: pointer;">
-                        <i class="bi bi-power"></i>
+                    <button type="submit" class="list-group-item list-group-item-action bg-transparent border-0 py-3 w-100 text-start fw-bold" style="color: #fca5a5;">
+                        <i class="bi bi-power me-3 fs-5 align-middle"></i> Sair do Sistema
                     </button>
                 </form>
             </div>
         </div>
-    </header>
+    </div>
 
     <!-- Main -->
     <main class="main-container">
@@ -518,6 +581,23 @@
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/static/sw.js').catch(() => {});
         }
+        
+        document.addEventListener("DOMContentLoaded", function() {
+            var cobrancasAnalise = [
+                {% if condominio %}
+                {% for c in condominio.cobrancas.all %}
+                    {% if c.status == 'EM_ANALISE' %}1,{% endif %}
+                {% endfor %}
+                {% endif %}
+            ];
+            var count = cobrancasAnalise.length;
+            if (count > 0) {
+                var bTop = document.getElementById('badge-cobrancas-top');
+                var bMenu = document.getElementById('badge-cobrancas-menu');
+                if (bTop) { bTop.textContent = count; bTop.style.display = 'block'; }
+                if (bMenu) { bMenu.textContent = count; bMenu.style.display = 'block'; }
+            }
+        });
     </script>
     {% block scripts %}{% endblock %}
 </body>

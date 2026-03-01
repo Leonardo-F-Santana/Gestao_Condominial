@@ -413,6 +413,7 @@
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'morador_cobrancas' %}active{% endif %}" href="{% url 'morador_cobrancas' %}">
                             <i class="bi bi-receipt"></i> Cobranças
+                            <span id="badge-cobrancas-top" class="badge bg-danger rounded-pill ms-1" style="display: none;"></span>
                         </a>
                     </li>
                 </ul>
@@ -454,7 +455,10 @@
             <span>Início</span>
         </a>
         <a href="{% url 'morador_cobrancas' %}" class="{% if 'cobrancas' in request.resolver_match.url_name %}active{% endif %}">
-            <i class="bi bi-receipt{% if 'cobrancas' in request.resolver_match.url_name %}-cutoff{% endif %}"></i>
+            <span class="icon-badge-wrapper">
+                <i class="bi bi-receipt{% if 'cobrancas' in request.resolver_match.url_name %}-cutoff{% endif %}"></i>
+                <span id="badge-cobrancas-bottom" class="notification-badge" style="display: none;"></span>
+            </span>
             <span>Cobranças</span>
         </a>
         <a href="{% url 'morador_reservas' %}" class="{% if 'reserva' in request.resolver_match.url_name or 'areas' in request.resolver_match.url_name %}active{% endif %}">
@@ -537,6 +541,23 @@
                 console.log('Falha ao registrar Service Worker:', err);
             });
         }
+        
+        document.addEventListener("DOMContentLoaded", function() {
+            var pendingCobrancas = [
+                {% if morador %}
+                {% for c in morador.cobrancas.all %}
+                    {% if c.status == 'PENDENTE' or c.status == 'ATRASADO' %}1,{% endif %}
+                {% endfor %}
+                {% endif %}
+            ];
+            var count = pendingCobrancas.length;
+            if (count > 0) {
+                var bTop = document.getElementById('badge-cobrancas-top');
+                var bBottom = document.getElementById('badge-cobrancas-bottom');
+                if (bTop) { bTop.textContent = count; bTop.style.display = 'inline-block'; }
+                if (bBottom) { bBottom.textContent = count; bBottom.style.display = 'block'; }
+            }
+        });
     </script>
     {% block scripts %}{% endblock %}
 </body>

@@ -16,7 +16,7 @@
                 <h5 class="modal-title">Gerar Nova Cobrança</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="{% url 'sindico_financeiro' %}">
+            <form method="POST" action="{% url 'sindico_financeiro' %}" enctype="multipart/form-data">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="criar_cobranca">
                 <div class="modal-body">
@@ -33,13 +33,24 @@
                         <label>Descrição</label>
                         <input type="text" name="descricao" class="form-control" value="Taxa Condominial" required>
                     </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label>Valor (R$)</label>
+                            <input type="number" step="0.01" name="valor" class="form-control" required placeholder="0.00">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label>Data de Vencimento</label>
+                            <input type="date" name="data_vencimento" class="form-control" required>
+                        </div>
+                    </div>
+                    <hr>
                     <div class="mb-3">
-                        <label>Valor (R$)</label>
-                        <input type="number" step="0.01" name="valor" class="form-control" required placeholder="0.00">
+                        <label>Arquivo do Boleto (PDF/Imagem) <small class="text-muted">- Opcional</small></label>
+                        <input type="file" name="arquivo_boleto" class="form-control" accept=".pdf,image/*">
                     </div>
                     <div class="mb-3">
-                        <label>Data de Vencimento</label>
-                        <input type="date" name="data_vencimento" class="form-control" required>
+                        <label>Chave PIX ou Link de Pagamento <small class="text-muted">- Opcional</small></label>
+                        <input type="text" name="chave_pix" class="form-control" placeholder="CNPJ, Celular, E-mail ou URL...">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -51,59 +62,72 @@
     </div>
 </div>
 
-<div class="card card-custom">
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table align-middle">
-                <thead>
-                    <tr>
-                        <th>Morador</th>
-                        <th>Descrição</th>
-                        <th>Vencimento</th>
-                        <th>Valor</th>
-                        <th>Status</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for c in cobrancas %}
-                    <tr>
-                        <td>{{ c.morador }}</td>
-                        <td>{{ c.descricao }}</td>
-                        <td>{{ c.data_vencimento|date:"d/m/Y" }}</td>
-                        <td>R$ {{ c.valor }}</td>
-                        <td>
-                            {% if c.status == 'PAGO' %}
-                                <span class="badge bg-success">Pago</span>
-                            {% elif c.status == 'ATRASADO' %}
-                                <span class="badge bg-danger">Atrasado</span>
-                            {% elif c.status == 'PENDENTE' %}
-                                <span class="badge bg-warning text-dark">Pendente</span>
-                            {% else %}
-                                <span class="badge bg-secondary">Cancelado</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if c.status != 'PAGO' and c.status != 'CANCELADO' %}
-                            <form method="POST" action="{% url 'sindico_financeiro' %}" style="display:inline;">
-                                {% csrf_token %}
-                                <input type="hidden" name="action" value="marcar_pago">
-                                <input type="hidden" name="cobranca_id" value="{{ c.id }}">
-                                <button type="submit" class="btn btn-sm btn-outline-success" onclick="return confirm('Confirmar pagamento?');">
-                                    <i class="bi bi-check-circle"></i> Marcar Pago
-                                </button>
-                            </form>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6" class="text-center text-muted py-4">Nenhuma cobrança registrada neste condomínio.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+<div class="row">
+    {% for c in cobrancas %}
+    <div class="col-12 mb-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100" style="background: rgba(255, 255, 255, 0.95); transition: transform 0.2s;">
+            <div class="card-body p-4">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                    <!-- Detalhes -->
+                    <div class="flex-grow-1">
+                        <h5 class="fw-bold mb-1 text-dark">{{ c.descricao }}</h5>
+                        <p class="text-muted small mb-2"><i class="bi bi-person me-1"></i> Morador: <strong>{{ c.morador }}</strong></p>
+                        <p class="text-muted small mb-0"><i class="bi bi-calendar-event me-1"></i> Vence em: <strong>{{ c.data_vencimento|date:"d/m/Y" }}</strong></p>
+                    </div>
+                    
+                    <!-- Valor e Status -->
+                    <div class="text-md-end text-start">
+                        <h4 class="fw-bold mb-2 text-primary">R$ {{ c.valor }}</h4>
+                        {% if c.status == 'PAGO' %}
+                            <span class="badge bg-success rounded-pill px-3 py-2"><i class="bi bi-check-circle me-1"></i>Pago</span>
+                        {% elif c.status == 'ATRASADO' %}
+                            <span class="badge bg-danger rounded-pill px-3 py-2"><i class="bi bi-x-circle me-1"></i>Atrasado</span>
+                        {% elif c.status == 'EM_ANALISE' %}
+                            <span class="badge bg-warning text-dark rounded-pill px-3 py-2"><i class="bi bi-search me-1"></i>Em Análise</span>
+                        {% elif c.status == 'PENDENTE' %}
+                            <span class="badge bg-primary rounded-pill px-3 py-2"><i class="bi bi-clock-history me-1"></i>Pendente</span>
+                        {% else %}
+                            <span class="badge bg-secondary rounded-pill px-3 py-2">Cancelado</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Ações -->
+                    <div class="mt-3 mt-md-0 d-flex flex-wrap align-items-center justify-content-md-end gap-2 border-top border-md-top-0 pt-3 pt-md-0 ps-md-3" style="min-width: 180px;">
+                        {% if c.comprovante %}
+                            <a href="{{ c.comprovante.url }}" target="_blank" class="btn btn-outline-info rounded-pill px-3 py-2 fw-semibold shadow-sm w-100" title="Ver Comprovante Anexado">
+                                <i class="bi bi-file-earmark-check me-1"></i> Comprovante
+                            </a>
+                        {% endif %}
+                        
+                        {% if c.status == 'EM_ANALISE' %}
+                        <form method="POST" action="{% url 'sindico_financeiro' %}" class="w-100">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="aprovar_pagamento">
+                            <input type="hidden" name="cobranca_id" value="{{ c.id }}">
+                            <button type="submit" class="btn btn-success rounded-pill w-100 fw-bold py-2 shadow-sm" onclick="return confirm('Aprovar e liquidar esta cobrança?');">
+                                <i class="bi bi-check-all me-1"></i> Aprovar
+                            </button>
+                        </form>
+                        {% elif c.status == 'PENDENTE' or c.status == 'ATRASADO' %}
+                        <form method="POST" action="{% url 'sindico_financeiro' %}" class="w-100 mt-1">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="marcar_pago">
+                            <input type="hidden" name="cobranca_id" value="{{ c.id }}">
+                            <button type="submit" class="btn btn-outline-success rounded-pill w-100 fw-semibold py-2 shadow-sm" onclick="return confirm('Confirmar baixa manual dessa cobrança?');">
+                                <i class="bi bi-currency-dollar me-1"></i> Baixar Manual
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+    {% empty %}
+    <div class="col-12 text-center text-muted py-5">
+        <i class="bi bi-cash-coin" style="font-size: 3.5rem; opacity: 0.3;"></i>
+        <p class="mt-3 mb-0 fw-semibold fs-5">Nenhuma cobrança registrada neste condomínio.</p>
+    </div>
+    {% endfor %}
 </div>
 {% endblock %}

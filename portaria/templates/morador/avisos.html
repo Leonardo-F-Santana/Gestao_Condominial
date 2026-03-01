@@ -47,11 +47,11 @@
              data-titulo="{{ aviso.titulo|lower }}"
              data-conteudo="{{ aviso.conteudo|lower|truncatechars:200 }}"
              data-data="{{ aviso.data_publicacao|date:'Y-m-d' }}">
-            <div class="d-flex justify-content-between align-items-start mb-2">
-                <h6 class="mb-0 fw-bold" style="color: #44403c;">
+            <div class="d-flex justify-content-between align-items-center mb-2 gap-2">
+                <h6 class="mb-0 fw-bold text-break" style="color: #44403c; flex: 1; min-width: 0;">
                     <i class="bi bi-chat-square-text" style="color: var(--primary);"></i> {{ aviso.titulo }}
                 </h6>
-                <div class="d-flex align-items-center gap-2">
+                <div class="d-flex align-items-center gap-2 flex-shrink-0">
                     <small class="text-muted">{{ aviso.data_publicacao|date:"d/m/Y" }}</small>
                     <i class="bi bi-chevron-down text-muted toggle-icon" style="transition: transform 0.3s;"></i>
                 </div>

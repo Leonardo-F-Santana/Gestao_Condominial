@@ -677,14 +677,19 @@ def areas_comuns_sindico(request):
 
 @login_required
 def excluir_area_sindico(request, area_id):
-    """Excluir área comum"""
+    """Exclui uma área comum garantindo a permissão do síndico"""
+    if not is_sindico(request.user):
+        return redirect('home')
+        
     condominio = get_condominio_ativo(request)
     if not condominio:
         return redirect('sindico_home')
+        
     area = get_object_or_404(AreaComum, id=area_id, condominio=condominio)
-    nome = area.nome
+    nome_area = area.nome
     area.delete()
-    messages.success(request, f'Área "{nome}" excluída!')
+    messages.success(request, f'A área "{nome_area}" foi excluída com sucesso.')
+    
     return redirect('sindico_areas_comuns')
 
 
@@ -832,27 +837,44 @@ def financeiro_sindico(request):
             descricao = request.POST.get('descricao', '').strip()
             valor = request.POST.get('valor', '0').replace(',', '.')
             data_vencimento = request.POST.get('data_vencimento')
+            arquivo_boleto = request.FILES.get('arquivo_boleto')
+            chave_pix = request.POST.get('chave_pix', '').strip()
             
             if morador_id and descricao and valor and data_vencimento:
                 morador = get_object_or_404(Morador, id=morador_id, condominio=condominio)
-                Cobranca.objects.create(
+                cobranca = Cobranca(
                     condominio=condominio,
                     morador=morador,
                     descricao=descricao,
                     valor=valor,
                     data_vencimento=data_vencimento
                 )
+                if arquivo_boleto:
+                    cobranca.arquivo_boleto = arquivo_boleto
+                if chave_pix:
+                    cobranca.chave_pix = chave_pix
+                cobranca.save()
                 messages.success(request, f'Cobrança "{descricao}" gerada para {morador.nome}.')
             else:
                 messages.error(request, 'Preencha todos os campos obrigatórios da cobrança.')
                 
-        elif action == 'marcar_pago':
+        elif action == 'marcar_pago' or action == 'aprovar_pagamento':
             cobranca_id = request.POST.get('cobranca_id')
             cobranca = get_object_or_404(Cobranca, id=cobranca_id, condominio=condominio)
             cobranca.status = 'PAGO'
             cobranca.data_pagamento = timezone.now().date()
             cobranca.save()
-            messages.success(request, f'Cobrança "{cobranca.descricao}" marcada como paga.')
+            
+            # Notificar morador
+            if action == 'aprovar_pagamento' and cobranca.morador.usuario:
+                Notificacao.objects.create(
+                    usuario=cobranca.morador.usuario,
+                    tipo='geral',
+                    mensagem=f'Seu pagamento da cobrança "{cobranca.descricao}" foi APROVADO! ✅',
+                    link='/morador/cobrancas/'
+                )
+                
+            messages.success(request, f'Cobrança "{cobranca.descricao}" liquidada/marcada como paga.')
             
         return redirect('sindico_financeiro')
 

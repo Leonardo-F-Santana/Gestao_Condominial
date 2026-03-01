@@ -22,7 +22,7 @@
 <div class="card-section">
     <div class="card-section-body">
         {% for area in areas %}
-        <div class="list-row" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#modalEditar{{ area.id }}">
+        <div class="list-row d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
             <div>
                 <div class="d-flex align-items-center gap-2">
                     <span class="list-row-name">{{ area.nome }}</span>
@@ -40,7 +40,16 @@
                 <div class="list-row-sub">{{ area.descricao|truncatechars:80 }}</div>
                 {% endif %}
             </div>
-            <i class="bi bi-chevron-right" style="color: var(--slate-300);"></i>
+            
+            <!-- Ações Inline (Lápis e Lixeira) -->
+            <div class="d-flex gap-2 mt-2 mt-md-0">
+                <button class="btn btn-sm btn-outline-primary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#modalEditar{{ area.id }}" title="Editar {{ area.nome }}">
+                    <i class="bi bi-pencil"></i> Editar
+                </button>
+                <a href="{% url 'sindico_excluir_area' area.id %}" class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="return confirm('Tem certeza que deseja excluir esta área?');" title="Excluir {{ area.nome }}">
+                    <i class="bi bi-trash"></i> Excluir
+                </a>
+            </div>
         </div>
 
         <!-- Modal Editar -->
@@ -90,12 +99,8 @@
                                 <label class="form-check-label" for="ativo{{ area.id }}">Disponível para reservas</label>
                             </div>
                         </div>
-                        <div class="modal-footer d-flex gap-2">
-                            <button type="submit" class="btn-exec flex-grow-1">Salvar</button>
-                            <a href="{% url 'sindico_excluir_area' area.id %}" class="btn-exec" style="background: var(--red);"
-                               onclick="return confirm('Excluir esta área?')">
-                                <i class="bi bi-trash"></i>
-                            </a>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn-exec w-100">Salvar Modificações</button>
                         </div>
                     </form>
                 </div>
