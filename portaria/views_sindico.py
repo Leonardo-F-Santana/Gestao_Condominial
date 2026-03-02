@@ -296,6 +296,55 @@ def moradores_sindico(request):
     ctx = sindico_context(request, {'moradores': moradores}, active_page='moradores')
     return render(request, 'sindico/moradores.html', ctx)
 
+@login_required
+def sindico_morador_editar(request, id):
+    if not is_sindico(request.user) or request.method != 'POST':
+        return redirect('home')
+    
+    condominio = get_condominio_ativo(request)
+    if not condominio:
+        return redirect('sindico_home')
+        
+    morador = get_object_or_404(Morador, id=id, condominio=condominio)
+    
+    # Atualiza dados
+    morador.nome = request.POST.get('nome', morador.nome).strip()
+    morador.bloco = request.POST.get('bloco', morador.bloco).strip()
+    morador.apartamento = request.POST.get('apartamento', morador.apartamento).strip()
+    morador.telefone = request.POST.get('telefone', morador.telefone).strip()
+    morador.email = request.POST.get('email', morador.email).strip()
+    
+    # Atualiza o First Name do User associado, se existir
+    if morador.usuario:
+        if morador.nome:
+            morador.usuario.first_name = morador.nome.split()[0]
+        if morador.email:
+            morador.usuario.email = morador.email
+        morador.usuario.save()
+
+    morador.save()
+    messages.success(request, f"Morador '{morador.nome}' atualizado com sucesso!")
+    return redirect('sindico_moradores')
+
+@login_required
+def sindico_morador_excluir(request, id):
+    if not is_sindico(request.user) or request.method != 'POST':
+        return redirect('home')
+    
+    condominio = get_condominio_ativo(request)
+    if not condominio:
+        return redirect('sindico_home')
+        
+    morador = get_object_or_404(Morador, id=id, condominio=condominio)
+    nome = morador.nome
+    
+    # Se tiver um usuário (login) vinculado, o excluímos também para liberar o username
+    if morador.usuario:
+        morador.usuario.delete()
+        
+    morador.delete()
+    messages.success(request, f"Morador '{nome}' excluído com sucesso!")
+    return redirect('sindico_moradores')
 
 # ==========================================
 # RESET DE SENHA (pelo síndico)

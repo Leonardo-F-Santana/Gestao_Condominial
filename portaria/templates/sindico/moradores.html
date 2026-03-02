@@ -74,6 +74,12 @@ function copiarLink() {
                 {% endif %}
             </div>
             <div class="d-flex gap-1">
+                <button class="btn-exec btn-exec-sm" style="background: var(--slate-500);" title="Editar" data-bs-toggle="modal" data-bs-target="#modalEditar{{ m.id }}">
+                    <i class="bi bi-pencil"></i>
+                </button>
+                <button class="btn-exec btn-exec-sm" style="background: var(--red);" title="Excluir" data-bs-toggle="modal" data-bs-target="#modalExcluir{{ m.id }}">
+                    <i class="bi bi-trash"></i>
+                </button>
                 <button class="btn-exec btn-exec-sm" style="background: var(--navy-light);" data-bs-toggle="modal" data-bs-target="#modalSenha{{ m.id }}" title="Resetar senha">
                     <i class="bi bi-key"></i>
                 </button>
@@ -120,6 +126,83 @@ function copiarLink() {
                         <div class="modal-footer">
                             <button type="button" class="btn-exec-outline" data-bs-dismiss="modal">Cancelar</button>
                             <button type="submit" class="btn-exec">Salvar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Modal Editar Morador -->
+        <div class="modal fade" id="modalEditar{{ m.id }}" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="bi bi-pencil"></i> Editar Morador</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <!-- Endpoint customizado do síndico em vez do Admin -->
+                    <form class="form-admin-ajax" data-url="{% url 'sindico_morador_editar' m.id %}" onsubmit="submitAdminAjax(event, this, 'Editar')">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                        
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Nome Completo *</label>
+                                <input type="text" name="nome" class="form-control" value="{{ m.nome|default:'' }}" required>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" name="email" class="form-control" value="{{ m.email|default:'' }}">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label">Telefone</label>
+                                    <input type="text" name="telefone" class="form-control" value="{{ m.telefone|default:'' }}">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6">
+                                    <label class="form-label">Bloco / Torre</label>
+                                    <input type="text" name="bloco" class="form-control" value="{{ m.bloco|default:'' }}">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label">Apartamento *</label>
+                                    <input type="text" name="apartamento" class="form-control" value="{{ m.apartamento|default:'' }}" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn-exec-outline" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn-exec">
+                                <span class="btn-text">Salvar Edição</span>
+                                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Excluir Morador -->
+        <div class="modal fade" id="modalExcluir{{ m.id }}" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered modal-sm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title text-danger"><i class="bi bi-trash"></i> Excluir Morador</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form class="form-admin-ajax" data-url="{% url 'sindico_morador_excluir' m.id %}" onsubmit="submitAdminAjax(event, this, 'Excluir')">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                        
+                        <div class="modal-body text-center">
+                            <p>Tem certeza que deseja excluir permanentemente o morador <strong>{{ m.nome }}</strong> (Apto {{ m.apartamento }})?</p>
+                            <small class="text-danger">Esta ação não pode ser desfeita.</small>
+                        </div>
+                        <div class="modal-footer justify-content-center">
+                            <button type="button" class="btn-exec-outline" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn-exec" style="background: var(--red);">
+                                <span class="btn-text">Sim, Excluir</span>
+                                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -233,4 +316,148 @@ function copiarLink() {
         </div>
     </div>
 </div>
+
+<!-- REMOVIDO: Iframe Admin por incompatibilidade com Unfold e bloqueios de navegação -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+async function submitAdminAjax(event, form, acaoTitle) {
+    event.preventDefault();
+    const btn = form.querySelector('button[type="submit"]');
+    const btnText = btn.querySelector('.btn-text');
+    const spinner = btn.querySelector('.spinner-border');
+    
+    // Status visual
+    btn.disabled = true;
+    spinner.classList.remove('d-none');
+    btnText.innerText = acaoTitle === 'Excluir' ? 'Excluindo...' : 'Salvando...';
+
+    const url = form.getAttribute('data-url');
+    const formData = new FormData(form);
+    
+    // Se o CPF estiver em branco, remove do payload para que o Django backend não falhe na validação "'' is not a valid CPF" ou Unique constraints
+    if (formData.has('cpf') && formData.get('cpf').trim() === '') {
+        formData.delete('cpf');
+    }
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin',
+            headers: {
+                // Necessário para o Django aceitar a requisição AJAX corretamente sem bloquear
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        // Como agora enviamos para nossa própria View, o Django apenas fará o processamento 
+        // e retornará um Redirect (302) para a própria lista de Moradores (com a mensagem de sucesso na session).
+        if (response.redirected) {
+            window.location.reload();
+        } else if (response.ok) {
+            window.location.reload();
+        } else {
+            // Em caso de erro 500 do servidor ou erro nosso
+            alert(`Ocorreu um erro HTTP ${response.status} no servidor ao tentar ${acaoTitle.toLowerCase()} o morador.`);
+        }
+    } catch (error) {
+        console.error("Erro na requisição AJAX:", error);
+        alert(`Erro de conexão ao tentar ${acaoTitle.toLowerCase()} o morador.`);
+    } finally {
+        btn.disabled = false;
+        spinner.classList.add('d-none');
+        btnText.innerText = acaoTitle === 'Excluir' ? 'Sim, Excluir' : 'Salvar Edição';
+    }
+}
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('#modalImportar form');
+    if (!form) return;
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const fileInput = form.querySelector('input[type="file"]');
+        if (!fileInput.files || !fileInput.files.length) {
+            return form.submit();
+        }
+        
+        const file = fileInput.files[0];
+        const btnSubmit = form.querySelector('button[type="submit"]');
+        const origText = btnSubmit.innerHTML;
+        btnSubmit.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Processando...';
+        btnSubmit.disabled = true;
+
+        try {
+            let processedRows = [];
+            const fileName = file.name.toLowerCase();
+            
+            if (fileName.endsWith('.csv')) {
+                let text = await file.text();
+                text = text.replace(/^\uFEFF/, '');
+                let lines = text.split(/\r?\n/);
+                let delimiter = text.includes(';') ? ';' : ',';
+                // Regex rudimentar para garantir divisão, mas como vamos limpar vírgulas, não há problema de aspas
+                processedRows = lines.map(line => line.split(delimiter).map(cell => cell.replace(/^["']|["']$/g, '').trim()));
+            } else {
+                const data = await file.arrayBuffer();
+                const workbook = XLSX.read(data, {type: 'array'});
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                processedRows = XLSX.utils.sheet_to_json(worksheet, {header: 1, defval: ""});
+            }
+            
+            let csvContent = "";
+            let dataCount = 0;
+            
+            for (let i = 0; i < processedRows.length; i++) {
+                let row = processedRows[i];
+                if (!row || row.length === 0 || (row.length === 1 && !row[0])) continue;
+                
+                while(row.length < 5) row.push("");
+                
+                const cleanRow = row.map(cell => {
+                    if (cell === null || cell === undefined) return "";
+                    let str = String(cell).trim();
+                    str = str.replace(/;/g, ' ').replace(/,/g, ' '); 
+                    return str;
+                });
+                
+                // Força o envio com header seguro
+                if (i === 0) {
+                    csvContent += cleanRow.join(";") + "\n";
+                } else {
+                    if (cleanRow[0] || cleanRow[1]) {
+                        csvContent += cleanRow.join(";") + "\n";
+                        dataCount++;
+                    }
+                }
+            }
+            
+            if (dataCount === 0) {
+                alert("Nenhum dado válido encontrado no arquivo. Verifique se as colunas 'Nome' e 'Apartamento' estão preenchidas no arquivo.");
+                btnSubmit.innerHTML = origText;
+                btnSubmit.disabled = false;
+                return;
+            }
+
+            const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8-sig;' });
+            const newFile = new File([blob], "import_fixed.csv", { type: 'text/csv', lastModified: new Date().getTime() });
+            
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(newFile);
+            fileInput.files = dataTransfer.files;
+            
+            form.submit();
+            
+        } catch (error) {
+            console.error("Erro ao processar arquivo:", error);
+            alert("Erro ao ler o arquivo. Se for Excel, certifique-se de que não está corrompido ou protegido.");
+            btnSubmit.innerHTML = origText;
+            btnSubmit.disabled = false;
+        }
+    });
+});
+</script>
 {% endblock %}
