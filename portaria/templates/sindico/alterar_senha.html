@@ -1,0 +1,39 @@
+{% extends 'sindico/base_sindico.html' %}
+
+{% block title %}Alterar Senha - Portal do Síndico{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold text-dark mb-1">
+            <i class="bi bi-shield-lock-fill text-primary me-2"></i>Segurança
+        </h4>
+        <p class="text-muted mb-0">Altere sua senha de acesso</p>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0 rounded-4">
+    <div class="card-body p-4">
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Nova Senha</label>
+                <input type="password" name="nova_senha" class="form-control" placeholder="Mínimo 6 caracteres" required>
+            </div>
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Confirmar Nova Senha</label>
+                <input type="password" name="confirmar_senha" class="form-control" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 mb-3 py-2 fw-semibold" style="border-radius: 0.5rem;">
+                <i class="bi bi-save me-2"></i> Alterar Senha
+            </button>
+            
+            <a href="{% url 'editar_perfil_sindico' %}" class="btn btn-outline-secondary w-100 py-2 fw-semibold" style="border-radius: 0.5rem;">
+                <i class="bi bi-arrow-left me-2"></i> Voltar ao Perfil
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

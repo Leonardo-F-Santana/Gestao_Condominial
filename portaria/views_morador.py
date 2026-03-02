@@ -614,3 +614,22 @@ def salvar_push_subscription(request):
     
     return JsonResponse({'status': 'invalid method'}, status=405)
 
+from .forms import MoradorPerfilForm
+
+@morador_required
+def editar_perfil_morador(request):
+    """Edição de perfil restrita ao próprio morador logado"""
+    morador = request.morador
+    if request.method == 'POST':
+        form = MoradorPerfilForm(request.POST, instance=morador, user=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Perfil atualizado com sucesso!')
+            return redirect('editar_perfil_morador')
+    else:
+        form = MoradorPerfilForm(instance=morador, user=request.user)
+    
+    context = morador_context(request, {
+        'form': form,
+    }, active_page='perfil')
+    return render(request, 'morador/editar_perfil.html', context)

@@ -30,8 +30,8 @@
                 {% endif %}
             </span>
             <div class="d-flex align-items-center gap-2">
-                <a href="{% url 'alterar_senha' %}" class="topbar-icon" title="Alterar Senha">
-                    <i class="bi bi-key"></i>
+                <a href="{% url 'editar_perfil_sindico' %}" class="topbar-icon" title="Editar Perfil">
+                    <i class="bi bi-person"></i>
                 </a>
                 <a href="{% url 'sindico_mensagens' %}" class="topbar-icon position-relative" title="Mensagens">
                     <i class="bi bi-chat-dots"></i>
@@ -83,8 +83,8 @@
                 
                 <hr class="border-light border-opacity-10 my-2">
                 
-                <a href="{% url 'alterar_senha' %}" class="list-group-item list-group-item-action bg-transparent text-white border-0 py-3 fw-medium">
-                    <i class="bi bi-key me-3 fs-5 align-middle text-secondary"></i> Alterar Senha
+                <a href="{% url 'editar_perfil_sindico' %}" class="list-group-item list-group-item-action bg-transparent text-white border-0 py-3 fw-medium">
+                    <i class="bi bi-person me-3 fs-5 align-middle text-secondary"></i> Editar Perfil
                 </a>
                 <form action="{% url 'logout' %}" method="post" class="m-0 p-0">
                     {% csrf_token %}

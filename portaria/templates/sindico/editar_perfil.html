@@ -1,0 +1,50 @@
+{% extends 'sindico/base_sindico.html' %}
+
+{% block title %}Editar Perfil - Portal do Síndico{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold text-dark mb-1">
+            <i class="bi bi-person-fill text-primary me-2"></i>Meu Perfil
+        </h4>
+        <p class="text-muted mb-0">Atualize suas informações de contato</p>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0 rounded-4">
+    <div class="card-body p-4">
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Condomínio</label>
+                {{ form.condominio }}
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Usuário (Login)</label>
+                {{ form.username }}
+                {% if form.username.errors %}<div class="text-danger small">{{ form.username.errors }}</div>{% endif %}
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Telefone (Editável)</label>
+                {{ form.telefone }}
+                {% if form.telefone.errors %}<div class="text-danger small">{{ form.telefone.errors }}</div>{% endif %}
+            </div>
+            <div class="mb-4">
+                <label class="form-label fw-semibold">E-mail (Editável)</label>
+                {{ form.email }}
+                {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors }}</div>{% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 mb-3 py-2 fw-semibold" style="border-radius: 0.5rem;">
+                <i class="bi bi-save me-2"></i> Salvar Alterações
+            </button>
+            
+            <a href="{% url 'alterar_senha' %}" class="btn btn-outline-secondary w-100 py-2 fw-semibold" style="border-radius: 0.5rem;">
+                <i class="bi bi-key me-2"></i> Alterar Minha Senha
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

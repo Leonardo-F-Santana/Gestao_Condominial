@@ -44,7 +44,8 @@ from portaria.views_morador import (
     mensagens,
     ocorrencias,
     salvar_push_subscription,
-    minhas_cobrancas
+    minhas_cobrancas,
+    editar_perfil_morador
 )
 
 # Views do Portal do Síndico
@@ -76,7 +77,8 @@ from portaria.views_sindico import (
     financeiro_sindico,
     mensagens_sindico,
     ocorrencias_sindico,
-    alterar_status_ocorrencia
+    alterar_status_ocorrencia,
+    editar_perfil_sindico
 )
 
 urlpatterns = [
@@ -147,6 +149,7 @@ urlpatterns = [
     path('morador/reservas/<int:reserva_id>/cancelar/', cancelar_reserva, name='morador_cancelar_reserva'),
     path('morador/ocorrencias/', ocorrencias, name='morador_ocorrencias'),
     path('morador/financeiro/', minhas_cobrancas, name='morador_cobrancas'),
+    path('morador/perfil/editar/', editar_perfil_morador, name='editar_perfil_morador'),
     path('api/push/subscribe/', salvar_push_subscription, name='salvar_push_subscription'),
     
     # --- Portal do Síndico ---
@@ -178,6 +181,7 @@ urlpatterns = [
     path('sindico/mensagens/', mensagens_sindico, name='sindico_mensagens'),
     path('sindico/ocorrencias/', ocorrencias_sindico, name='sindico_ocorrencias'),
     path('sindico/ocorrencias/<int:ocorrencia_id>/status/', alterar_status_ocorrencia, name='sindico_alterar_status_ocorrencia'),
+    path('sindico/perfil/editar/', editar_perfil_sindico, name='editar_perfil_sindico'),
     # Compatibilidade com rota antiga
     path('sindico/condominio/<int:condominio_id>/', dashboard_condominio, name='sindico_dashboard'),
 ]

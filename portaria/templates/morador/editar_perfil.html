@@ -1,0 +1,58 @@
+{% extends 'morador/base_morador.html' %}
+
+{% block title %}Editar Perfil - Portal do Morador{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h4 class="fw-bold mb-1" style="color: #57534e;">
+        <i class="bi bi-person-fill" style="color: var(--primary);"></i> Meu Perfil
+    </h4>
+    <p class="text-muted mb-0 small">Atualize suas informações de contato</p>
+</div>
+
+<div class="glass-card">
+    <div class="card-body p-4">
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <label class="form-label fw-semibold" style="color: #57534e;">Condomínio</label>
+                {{ form.condominio }}
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-semibold" style="color: #57534e;">Bloco</label>
+                    {{ form.bloco }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-semibold" style="color: #57534e;">Apartamento</label>
+                    {{ form.apartamento }}
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold" style="color: #57534e;">Usuário (Login)</label>
+                {{ form.username }}
+                {% if form.username.errors %}<div class="text-danger small">{{ form.username.errors }}</div>{% endif %}
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold" style="color: #57534e;">Telefone (Editável)</label>
+                {{ form.telefone }}
+                {% if form.telefone.errors %}<div class="text-danger small">{{ form.telefone.errors }}</div>{% endif %}
+            </div>
+            <div class="mb-4">
+                <label class="form-label fw-semibold" style="color: #57534e;">E-mail (Editável)</label>
+                {{ form.email }}
+                {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors }}</div>{% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-gradient w-100 mb-3" style="border-radius: 50rem;">
+                <i class="bi bi-save me-2"></i> Salvar Alterações
+            </button>
+            
+            <a href="{% url 'alterar_senha' %}" class="btn btn-outline-secondary w-100 rounded-pill">
+                <i class="bi bi-key me-2"></i> Alterar Minha Senha
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

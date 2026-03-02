@@ -158,3 +158,76 @@ class CustomUserCreationForm(BaseUserCreationForm):
     class Meta(BaseUserCreationForm.Meta):
         model = User
         fields = ('username', 'tipo_usuario', 'condominio')
+
+from .models import Morador, Sindico
+
+class MoradorPerfilForm(forms.ModelForm):
+    username = forms.CharField(label="Usuário (Login)", required=True)
+    email = forms.EmailField(label="E-mail", required=False)
+
+    class Meta:
+        model = Morador
+        fields = ['telefone', 'apartamento', 'bloco', 'condominio']
+        widgets = {
+            'telefone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(00) 00000-0000'}),
+            'apartamento': forms.TextInput(attrs={'class': 'form-control'}),
+            'bloco': forms.TextInput(attrs={'class': 'form-control'}),
+            'condominio': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        if self.user:
+            self.fields['username'].initial = self.user.username
+            self.fields['username'].widget.attrs.update({'class': 'form-control'})
+            self.fields['email'].initial = self.user.email
+            self.fields['email'].widget.attrs.update({'class': 'form-control'})
+        self.fields['apartamento'].disabled = True
+        self.fields['bloco'].disabled = True
+        self.fields['condominio'].disabled = True
+
+    def save(self, commit=True):
+        morador = super().save(commit=False)
+        if self.user:
+            self.user.username = self.cleaned_data['username']
+            self.user.email = self.cleaned_data['email']
+            morador.email = self.cleaned_data['email']
+            if commit:
+                self.user.save()
+        if commit:
+            morador.save()
+        return morador
+
+class SindicoPerfilForm(forms.ModelForm):
+    username = forms.CharField(label="Usuário (Login)", required=True)
+    email = forms.EmailField(label="E-mail", required=False)
+
+    class Meta:
+        model = Sindico
+        fields = ['telefone', 'condominio']
+        widgets = {
+            'telefone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(00) 00000-0000'}),
+            'condominio': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        if self.user:
+            self.fields['username'].initial = self.user.username
+            self.fields['username'].widget.attrs.update({'class': 'form-control'})
+            self.fields['email'].initial = self.user.email
+            self.fields['email'].widget.attrs.update({'class': 'form-control'})
+        self.fields['condominio'].disabled = True
+
+    def save(self, commit=True):
+        sindico = super().save(commit=False)
+        if self.user:
+            self.user.username = self.cleaned_data['username']
+            self.user.email = self.cleaned_data['email']
+            if commit:
+                self.user.save()
+        if commit:
+            sindico.save()
+        return sindico

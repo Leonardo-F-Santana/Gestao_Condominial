@@ -1,0 +1,224 @@
+﻿python : Traceback (most recent 
+call last):
+No linha:1 caractere:26
++ .\venv\Scripts\activate; python 
+manage.py check 2>&1 | Out-File 
+-Enco ...
++                          
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : Not 
+   Specified: (Traceback (most r  
+  ecent call last)::String) [],   
+  RemoteException
+    + FullyQualifiedErrorId : Nat 
+   iveCommandError
+ 
+  File "C:\Users\disci\Desktop\ges
+tao_condominio\venv\Lib\site-packa
+ges\django\core\checks\urls.py", 
+line 136, in 
+check_custom_error_handlers
+    handler = resolver.resolve_err
+or_handler(status_code)
+  File "C:\Users\disci\Desktop\ges
+tao_condominio\venv\Lib\site-packa
+ges\django\urls\resolvers.py", 
+line 743, in resolve_error_handler
+    callback = 
+getattr(self.urlconf_module, 
+"handler%s" % view_type, None)
+                       
+^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\disci\Desktop\ges
+tao_condominio\venv\Lib\site-packa
+ges\django\utils\functional.py", 
+line 47, in __get__
+    res = 
+instance.__dict__[self.name] = 
+self.func(instance)
+                                  
+       ~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\disci\Desktop\ges
+tao_condominio\venv\Lib\site-packa
+ges\django\urls\resolvers.py", 
+line 722, in urlconf_module
+    return 
+import_module(self.urlconf_name)
+  File "C:\Users\disci\Python\Lib\
+importlib\__init__.py", line 88, 
+in import_module
+    return _bootstrap._gcd_import(
+name[level:], package, level)
+           ~~~~~~~~~~~~~~~~~~~~~~^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen 
+importlib._bootstrap>", line 
+1387, in _gcd_import
+  File "<frozen 
+importlib._bootstrap>", line 
+1360, in _find_and_load
+  File "<frozen 
+importlib._bootstrap>", line 
+1331, in _find_and_load_unlocked
+  File "<frozen 
+importlib._bootstrap>", line 935, 
+in _load_unlocked
+  File "<frozen 
+importlib._bootstrap_external>", 
+line 1026, in exec_module
+  File "<frozen 
+importlib._bootstrap>", line 488, 
+in _call_with_frames_removed
+  File "C:\Users\disci\Desktop\ges
+tao_condominio\setup\urls.py", 
+line 52, in <module>
+    from portaria.views_sindico 
+import (
+    ...<29 lines>...
+    )
+ImportError: cannot import name 
+'editar_perfil_sindico' from 
+'portaria.views_sindico' (C:\Users
+\disci\Desktop\gestao_condominio\p
+ortaria\views_sindico.py)
+
+During handling of the above 
+exception, another exception 
+occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\disci\Desktop\ges
+tao_condominio\manage.py", line 
+22, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\disci\Desktop\ges
+tao_condominio\manage.py", line 
+18, in main
+    execute_from_command_line(sys.
+argv)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+^^^^^
+  File "C:\Users\disci\Desktop\ges
+tao_condominio\venv\Lib\site-packa
+ges\django\core\management\__init_
+_.py", line 443, in 
+execute_from_command_line
+    utility.execute()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\disci\Desktop\ges
+tao_condominio\venv\Lib\site-packa
+ges\django\core\management\__init_
+_.py", line 437, in execute
+    self.fetch_command(subcommand)
+.run_from_argv(self.argv)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\disci\Desktop\ges
+tao_condominio\venv\Lib\site-packa
+ges\django\core\management\base.py
+", line 420, in run_from_argv
+    self.execute(*args, 
+**cmd_options)
+    
+~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\disci\Desktop\ges
+tao_condominio\venv\Lib\site-packa
+ges\django\core\management\base.py
+", line 464, in execute
+    output = self.handle(*args, 
+**options)
+  File "C:\Users\disci\Desktop\ges
+tao_condominio\venv\Lib\site-packa
+ges\django\core\management\command
+s\check.py", line 81, in handle
+    self.check(
+    ~~~~~~~~~~^
+        app_configs=app_configs,
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+        
+databases=options["databases"],
+        
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\disci\Desktop\ges
+tao_condominio\venv\Lib\site-packa
+ges\django\core\management\base.py
+", line 496, in check
+    all_issues = 
+checks.run_checks(
+        app_configs=app_configs,
+    ...<2 lines>...
+        databases=databases,
+    )
+  File "C:\Users\disci\Desktop\ges
+tao_condominio\venv\Lib\site-packa
+ges\django\core\checks\registry.py
+", line 89, in run_checks
+    new_errors = 
+check(app_configs=app_configs, 
+databases=databases)
+  File "C:\Users\disci\Desktop\ges
+tao_condominio\venv\Lib\site-packa
+ges\django\core\checks\urls.py", 
+line 138, in 
+check_custom_error_handlers
+    path = 
+getattr(resolver.urlconf_module, 
+"handler%s" % status_code)
+                   
+^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\disci\Desktop\ges
+tao_condominio\venv\Lib\site-packa
+ges\django\utils\functional.py", 
+line 47, in __get__
+    res = 
+instance.__dict__[self.name] = 
+self.func(instance)
+                                  
+       ~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\disci\Desktop\ges
+tao_condominio\venv\Lib\site-packa
+ges\django\urls\resolvers.py", 
+line 722, in urlconf_module
+    return 
+import_module(self.urlconf_name)
+  File "C:\Users\disci\Python\Lib\
+importlib\__init__.py", line 88, 
+in import_module
+    return _bootstrap._gcd_import(
+name[level:], package, level)
+           ~~~~~~~~~~~~~~~~~~~~~~^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen 
+importlib._bootstrap>", line 
+1387, in _gcd_import
+  File "<frozen 
+importlib._bootstrap>", line 
+1360, in _find_and_load
+  File "<frozen 
+importlib._bootstrap>", line 
+1331, in _find_and_load_unlocked
+  File "<frozen 
+importlib._bootstrap>", line 935, 
+in _load_unlocked
+  File "<frozen 
+importlib._bootstrap_external>", 
+line 1026, in exec_module
+  File "<frozen 
+importlib._bootstrap>", line 488, 
+in _call_with_frames_removed
+  File "C:\Users\disci\Desktop\ges
+tao_condominio\setup\urls.py", 
+line 52, in <module>
+    from portaria.views_sindico 
+import (
+    ...<29 lines>...
+    )
+ImportError: cannot import name 
+'editar_perfil_sindico' from 
+'portaria.views_sindico' (C:\Users
+\disci\Desktop\gestao_condominio\p
+ortaria\views_sindico.py)

@@ -153,6 +153,16 @@ def alterar_senha(request):
                 return redirect('sindico_home')
             return redirect('home')
     
+    tipo = getattr(request.user, 'tipo_usuario', '')
+    if tipo == 'morador':
+        from .views_morador import morador_context
+        context = morador_context(request, {}, active_page='perfil')
+        return render(request, 'morador/alterar_senha.html', context)
+    elif tipo == 'sindico':
+        from .views_sindico import sindico_context
+        context = sindico_context(request, {}, active_page='perfil')
+        return render(request, 'sindico/alterar_senha.html', context)
+
     return render(request, 'alterar_senha.html')
 
 

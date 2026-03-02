@@ -1077,3 +1077,32 @@ def alterar_status_ocorrencia(request, ocorrencia_id):
 
 
 
+
+
+from .forms import SindicoPerfilForm
+
+@login_required
+def editar_perfil_sindico(request):
+    """Edição de perfil restrita ao próprio síndico logado"""
+    if not is_sindico(request.user):
+        return redirect('home')
+        
+    try:
+        sindico = request.user.sindico
+    except AttributeError:
+        messages.error(request, 'Perfil de síndico não encontrado.')
+        return redirect('home')
+
+    if request.method == 'POST':
+        form = SindicoPerfilForm(request.POST, instance=sindico, user=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Perfil atualizado com sucesso!')
+            return redirect('editar_perfil_sindico')
+    else:
+        form = SindicoPerfilForm(instance=sindico, user=request.user)
+    
+    context = sindico_context(request, {
+        'form': form,
+    }, active_page='perfil')
+    return render(request, 'sindico/editar_perfil.html', context)

@@ -1,0 +1,37 @@
+{% extends 'morador/base_morador.html' %}
+
+{% block title %}Alterar Senha - Portal do Morador{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h4 class="fw-bold mb-1" style="color: #57534e;">
+        <i class="bi bi-shield-lock-fill" style="color: var(--primary);"></i> Segurança
+    </h4>
+    <p class="text-muted mb-0 small">Altere sua senha de acesso</p>
+</div>
+
+<div class="glass-card">
+    <div class="card-body p-4">
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <label class="form-label fw-semibold" style="color: #57534e;">Nova Senha</label>
+                <input type="password" name="nova_senha" class="form-control" placeholder="Mínimo 6 caracteres" required>
+            </div>
+            <div class="mb-4">
+                <label class="form-label fw-semibold" style="color: #57534e;">Confirmar Nova Senha</label>
+                <input type="password" name="confirmar_senha" class="form-control" required>
+            </div>
+
+            <button type="submit" class="btn btn-gradient w-100 mb-3" style="border-radius: 50rem;">
+                <i class="bi bi-save me-2"></i> Alterar Senha
+            </button>
+            
+            <a href="{% url 'editar_perfil_morador' %}" class="btn btn-outline-secondary w-100 rounded-pill">
+                <i class="bi bi-arrow-left me-2"></i> Voltar ao Perfil
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}
