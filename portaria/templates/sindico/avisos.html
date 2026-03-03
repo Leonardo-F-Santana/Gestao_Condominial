@@ -19,7 +19,7 @@
     <div class="card-section-body p-3">
         <div class="d-flex justify-content-between align-items-start mb-2">
             <div>
-                <h6 class="fw-bold mb-1" style="color: var(--navy); font-size: 0.9rem;">{{ aviso.titulo }}</h6>
+                <h6 class="fw-bold mb-1 text-navy txt-09"> {{ aviso.titulo }}</h6>
                 <div class="list-row-sub">{{ aviso.data_publicacao|date:"d/m/Y H:i" }}</div>
             </div>
             <div class="d-flex gap-1">
@@ -31,15 +31,15 @@
             </div>
         </div>
         
-        <div style="font-size: 0.82rem; color: var(--slate-700); margin-bottom: 0.5rem;">{{ aviso.conteudo|linebreaksbr|truncatechars_html:150 }}</div>
+        <div class="aviso-txt-content">{{ aviso.conteudo|linebreaksbr|truncatechars_html:150 }}</div>
         
         {% if aviso.imagem %}
-        <img src="{{ aviso.imagem.url }}" alt="{{ aviso.titulo }}" style="width: 100%; border-radius: 8px; margin-bottom: 0.5rem;">
+        <img src="{{ aviso.imagem.url }}" alt="{{ aviso.titulo }}" class="w-100 rounded-8 mb-2">
         {% endif %}
         
         {% if aviso.arquivo %}
         <div class="mb-2">
-            <a href="{{ aviso.arquivo.url }}" target="_blank" download class="btn-exec btn-exec-sm" style="font-size: 0.78rem;">
+            <a href="{{ aviso.arquivo.url }}" target="_blank" download class="btn-exec btn-exec-sm txt-078">
                 <i class="bi bi-paperclip"></i> {{ aviso.arquivo.name|cut:"avisos/anexos/" }}
             </a>
         </div>
@@ -50,7 +50,7 @@
         {% endif %}
 
         <div class="d-flex gap-2 mt-2">
-            <button class="btn-exec btn-exec-sm" style="background: var(--blue);" data-bs-toggle="modal" data-bs-target="#modalEditar{{ aviso.id }}">
+            <button class="btn-exec btn-exec-sm bg-blue" data-bs-toggle="modal" data-bs-target="#modalEditar{{ aviso.id }}">
                 <i class="bi bi-pencil"></i> Editar
             </button>
             <form method="post" action="{% url 'sindico_excluir_aviso' aviso.id %}" onsubmit="return confirm('Excluir este aviso?')">
@@ -80,14 +80,14 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Conteúdo *</label>
-                        <textarea name="conteudo" class="form-control" rows="5" required style="white-space: pre-wrap;">{{ aviso.conteudo }}</textarea>
+                        <textarea name="conteudo" class="form-control text-pre-wrap" rows="5" required>{{ aviso.conteudo }}</textarea>
                         <small class="text-muted">Pressione Enter para quebra de linha</small>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Imagem</label>
                         {% if aviso.imagem %}
                         <div class="mb-2">
-                            <img src="{{ aviso.imagem.url }}" style="width: 80px; border-radius: 6px;">
+                            <img src="{{ aviso.imagem.url }}" class="w-80 rounded-6">
                             <small class="text-muted d-block">Selecione nova imagem para substituir</small>
                         </div>
                         {% endif %}
@@ -151,7 +151,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Conteúdo *</label>
-                        <textarea name="conteudo" class="form-control" rows="5" placeholder="Descreva o aviso..." required style="white-space: pre-wrap;"></textarea>
+                        <textarea name="conteudo" class="form-control text-pre-wrap" rows="5" placeholder="Descreva o aviso..." required></textarea>
                         <small class="text-muted">Pressione Enter para quebra de linha</small>
                     </div>
                     <div class="mb-3">

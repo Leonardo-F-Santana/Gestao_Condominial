@@ -37,11 +37,11 @@
                 {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors }}</div>{% endif %}
             </div>
 
-            <button type="submit" class="btn btn-primary w-100 mb-3 py-2 fw-semibold" style="border-radius: 0.5rem;">
+            <button type="submit" class="btn btn-primary w-100 mb-3 py-2 fw-semibold rounded-8">
                 <i class="bi bi-save me-2"></i> Salvar Alterações
             </button>
             
-            <a href="{% url 'alterar_senha' %}" class="btn btn-outline-secondary w-100 py-2 fw-semibold" style="border-radius: 0.5rem;">
+            <a href="{% url 'alterar_senha' %}" class="btn btn-outline-secondary w-100 py-2 fw-semibold rounded-8">
                 <i class="bi bi-key me-2"></i> Alterar Minha Senha
             </a>
         </form>

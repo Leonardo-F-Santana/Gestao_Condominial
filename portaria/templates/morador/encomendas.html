@@ -4,8 +4,8 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="fw-bold mb-0" style="color: #57534e;">
-        <i class="bi bi-box-seam-fill" style="color: var(--primary);"></i> Minhas Encomendas
+    <h4 class="fw-bold mb-0 text-stone-600">
+        <i class="bi bi-box-seam-fill icon-primary"></i> Minhas Encomendas
     </h4>
 </div>
 
@@ -31,8 +31,8 @@
         <div class="list-group-item border-0 list-item-animated p-4">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
-                    <h6 class="mb-1 fw-bold" style="color: #44403c;">
-                        <i class="bi bi-box" style="color: var(--primary);"></i> {{ enc.volume }}
+                    <h6 class="mb-1 fw-bold text-stone-700">
+                        <i class="bi bi-box icon-primary"></i> {{ enc.volume }}
                     </h6>
                     {% if enc.destinatario_alternativo %}
                         <small class="text-muted">
@@ -69,7 +69,7 @@
                     </li>
                 {% endif %}
                 <li class="page-item active">
-                    <span class="page-link rounded-pill border-0" style="background: var(--primary);">{{ encomendas.number }}</span>
+                    <span class="page-link rounded-pill border-0 page-link-primary">{{ encomendas.number }}</span>
                 </li>
                 {% if encomendas.has_next %}
                     <li class="page-item">
@@ -85,7 +85,7 @@
     
     {% else %}
     <div class="card-body text-center py-5">
-        <div class="mb-3" style="font-size: 4rem;">📭</div>
+        <div class="mb-3 icon-4xl">📭</div>
         <h5 class="text-muted fw-bold">Nenhuma encomenda</h5>
         <p class="text-muted small mb-0">
             {% if status_filtro == 'entregues' %}

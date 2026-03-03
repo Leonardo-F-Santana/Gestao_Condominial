@@ -7,7 +7,7 @@
     <a href="{% url 'morador_solicitacoes' %}" class="btn btn-light btn-sm rounded-pill mb-3 shadow-sm">
         <i class="bi bi-arrow-left"></i> Voltar
     </a>
-    <h4 class="fw-bold mb-0" style="color: #57534e;">
+    <h4 class="fw-bold mb-0 text-stone-600">
         Solicitação #{{ solicitacao.id }}
     </h4>
 </div>
@@ -31,7 +31,7 @@
 
         <div class="mb-4">
             <label class="form-label text-muted small fw-semibold">DESCRIÇÃO</label>
-            <p class="mb-0" style="color: #44403c;">{{ solicitacao.descricao }}</p>
+            <p class="mb-0 text-stone-700">{{ solicitacao.descricao }}</p>
         </div>
 
         {% if solicitacao.arquivo %}
@@ -40,10 +40,10 @@
             <div class="bg-light rounded-3 p-3 text-center">
                 {% if 'image' in solicitacao.arquivo.url or '.jpg' in solicitacao.arquivo.url or '.png' in solicitacao.arquivo.url or '.jpeg' in solicitacao.arquivo.url or '.webp' in solicitacao.arquivo.url or '.JPG' in solicitacao.arquivo.url or '.PNG' in solicitacao.arquivo.url %}
                     <a href="{{ solicitacao.arquivo.url }}" target="_blank">
-                        <img src="{{ solicitacao.arquivo.url }}" class="img-fluid rounded-3 shadow mt-2" style="max-width: 100%; max-height: 300px; cursor: pointer;">
+                        <img src="{{ solicitacao.arquivo.url }}" class="img-fluid rounded-3 shadow mt-2 file-preview-img cursor-pointer">
                     </a>
                 {% elif 'video' in solicitacao.arquivo.url %}
-                    <video controls class="rounded-3 shadow" style="max-width: 100%; max-height: 300px;">
+                    <video controls class="rounded-3 shadow file-preview-vid">
                         <source src="{{ solicitacao.arquivo.url }}">
                     </video>
                 {% else %}
@@ -62,18 +62,18 @@
 </div>
 
 {% if solicitacao.resposta_admin %}
-<div class="glass-card" style="border-left: 4px solid #10b981;">
+<div class="glass-card panel-success-left">
     <div class="card-body p-4">
-        <h6 class="fw-bold mb-3" style="color: #57534e;">
-            <i class="bi bi-building" style="color: var(--primary);"></i> Resposta da Administração
+        <h6 class="fw-bold mb-3 text-stone-600">
+            <i class="bi bi-building icon-primary"></i> Resposta da Administração
         </h6>
-        <p class="mb-3" style="color: #44403c;">{{ solicitacao.resposta_admin }}</p>
+        <p class="mb-3 text-stone-700">{{ solicitacao.resposta_admin }}</p>
     </div>
 </div>
 {% else %}
 <div class="glass-card">
     <div class="card-body p-4 text-center">
-        <div class="mb-2" style="font-size: 2rem;">⏳</div>
+        <div class="mb-2 icon-2xl">⏳</div>
         <p class="mb-0 text-muted">Aguardando resposta da administração...</p>
     </div>
 </div>

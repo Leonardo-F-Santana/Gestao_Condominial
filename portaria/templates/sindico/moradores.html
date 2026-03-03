@@ -9,7 +9,7 @@
         <p class="page-subtitle">{{ moradores.count }} cadastrados</p>
     </div>
     <div class="d-flex gap-1">
-        <button class="btn-exec btn-exec-sm" data-bs-toggle="modal" data-bs-target="#modalImportar" style="background: var(--navy-light);">
+        <button class="btn-exec btn-exec-sm bg-navy-light" data-bs-toggle="modal" data-bs-target="#modalImportar">
             <i class="bi bi-upload"></i> Importar
         </button>
         <button class="btn-exec btn-exec-sm" data-bs-toggle="modal" data-bs-target="#modalNovo">
@@ -19,23 +19,23 @@
 </div>
 
 <!-- Link de Convite -->
-<div class="card-section" style="margin-bottom: 0.8rem;">
-    <div class="card-section-body" style="padding: 0.8rem 1rem;">
+<div class="card-section mb-08">
+    <div class="card-section-body p-08-1">
         <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
-            <div style="flex: 1; min-width: 0;">
-                <div style="font-size: 0.72rem; font-weight: 700; color: var(--navy); margin-bottom: 0.2rem;">
+            <div class="flex-grow-1 min-w-0">
+                <div class="link-convite-header">
                     <i class="bi bi-link-45deg"></i> LINK DE CADASTRO
                 </div>
-                <div id="linkConvite" style="font-size: 0.7rem; color: var(--slate-500); word-break: break-all;">
+                <div id="linkConvite" class="link-convite-url">
                     {{ request.scheme }}://{{ request.get_host }}/cadastro/{{ condominio.codigo_convite }}/
                 </div>
             </div>
             <div class="d-flex gap-1">
-                <button class="btn-exec btn-exec-sm" onclick="copiarLink()" style="font-size: 0.72rem;" title="Copiar link">
+                <button class="btn-exec btn-exec-sm txt-072" onclick="copiarLink()" title="Copiar link">
                     <i class="bi bi-clipboard" id="iconCopy"></i> Copiar
                 </button>
                 <a href="https://wa.me/?text=Cadastre-se%20no%20app%20do%20condomínio%20{{ condominio.nome|urlencode }}:%20{{ request.scheme }}://{{ request.get_host }}/cadastro/{{ condominio.codigo_convite }}/" 
-                   class="btn-exec btn-exec-sm" style="font-size: 0.72rem; background: #25D366; text-decoration: none;" target="_blank" title="Enviar por WhatsApp">
+                   class="btn-exec btn-exec-sm btn-whatsapp" target="_blank" title="Enviar por WhatsApp">
                     <i class="bi bi-whatsapp"></i>
                 </a>
             </div>
@@ -64,27 +64,27 @@ function copiarLink() {
                     {% if m.telefone %} · {{ m.telefone }}{% endif %}
                 </div>
                 {% if m.usuario %}
-                <div class="list-row-sub" style="color: var(--green);">
+                <div class="list-row-sub text-green">
                     <i class="bi bi-check-circle-fill"></i> Acesso: {{ m.usuario.username }}
                 </div>
                 {% else %}
-                <div class="list-row-sub" style="color: var(--slate-500);">
+                <div class="list-row-sub text-slate-500">
                     <i class="bi bi-x-circle"></i> Sem acesso ao app
                 </div>
                 {% endif %}
             </div>
             <div class="d-flex gap-1">
-                <button class="btn-exec btn-exec-sm" style="background: var(--slate-500);" title="Editar" data-bs-toggle="modal" data-bs-target="#modalEditar{{ m.id }}">
+                <button class="btn-exec btn-exec-sm bg-slate-500" title="Editar" data-bs-toggle="modal" data-bs-target="#modalEditar{{ m.id }}">
                     <i class="bi bi-pencil"></i>
                 </button>
-                <button class="btn-exec btn-exec-sm" style="background: var(--red);" title="Excluir" data-bs-toggle="modal" data-bs-target="#modalExcluir{{ m.id }}">
+                <button class="btn-exec btn-exec-sm bg-red" title="Excluir" data-bs-toggle="modal" data-bs-target="#modalExcluir{{ m.id }}">
                     <i class="bi bi-trash"></i>
                 </button>
-                <button class="btn-exec btn-exec-sm" style="background: var(--navy-light);" data-bs-toggle="modal" data-bs-target="#modalSenha{{ m.id }}" title="Resetar senha">
+                <button class="btn-exec btn-exec-sm bg-navy-light" data-bs-toggle="modal" data-bs-target="#modalSenha{{ m.id }}" title="Resetar senha">
                     <i class="bi bi-key"></i>
                 </button>
                 {% if m.telefone %}
-                <a href="tel:{{ m.telefone }}" class="btn-exec btn-exec-sm" style="background: var(--green);">
+                <a href="tel:{{ m.telefone }}" class="btn-exec btn-exec-sm bg-green">
                     <i class="bi bi-telephone"></i>
                 </a>
                 {% endif %}
@@ -96,7 +96,7 @@ function copiarLink() {
             <div class="modal-dialog modal-dialog-centered modal-sm">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" style="font-size: 0.85rem;">
+                        <h5 class="modal-title txt-085">
                             {% if m.usuario %}Resetar Senha{% else %}Criar Acesso{% endif %}
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -104,7 +104,7 @@ function copiarLink() {
                     <form method="post" action="{% url 'sindico_resetar_senha' m.id %}">
                         {% csrf_token %}
                         <div class="modal-body">
-                            <p style="font-size: 0.78rem; color: var(--slate-500);">
+                            <p class="txt-078 text-slate-500 mb-3">
                                 <strong>{{ m.nome }}</strong><br>
                                 {% if m.bloco %}Bl. {{ m.bloco }} · {% endif %}Apto {{ m.apartamento }}
                             </p>
@@ -114,7 +114,7 @@ function copiarLink() {
                                 <input type="text" name="username" class="form-control" placeholder="Ex: joao.silva" required>
                             </div>
                             {% else %}
-                            <p style="font-size: 0.72rem; color: var(--green);">
+                            <p class="txt-072 text-green mb-3">
                                 <i class="bi bi-person"></i> Login: <strong>{{ m.usuario.username }}</strong>
                             </p>
                             {% endif %}
@@ -199,7 +199,7 @@ function copiarLink() {
                         </div>
                         <div class="modal-footer justify-content-center">
                             <button type="button" class="btn-exec-outline" data-bs-dismiss="modal">Cancelar</button>
-                            <button type="submit" class="btn-exec" style="background: var(--red);">
+                            <button type="submit" class="btn-exec bg-red">
                                 <span class="btn-text">Sim, Excluir</span>
                                 <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                             </button>
@@ -252,7 +252,7 @@ function copiarLink() {
                     </div>
                     
                     <hr>
-                    <p class="form-label mb-2" style="color: var(--navy); font-weight: 700;">
+                    <p class="form-label mb-2 fw-bold text-navy">
                         <i class="bi bi-key"></i> Acesso ao App (opcional)
                     </p>
                     <div class="row">
@@ -288,11 +288,11 @@ function copiarLink() {
                 {% csrf_token %}
                 <input type="hidden" name="action" value="importar">
                 <div class="modal-body">
-                    <div class="alert alert-info py-2" style="font-size: 0.78rem; border-radius: 10px;">
+                    <div class="alert alert-info py-2 txt-078 rounded-10">
                         <i class="bi bi-info-circle me-1"></i>
                         <strong>Formato do arquivo:</strong><br>
                         A primeira linha deve ser o cabeçalho. As colunas devem seguir esta ordem:
-                        <div class="mt-1" style="font-family: monospace; font-size: 0.72rem;">
+                        <div class="mt-1 font-monospace txt-072">
                             Nome | Apartamento | Bloco | Telefone | Email
                         </div>
                         <div class="mt-1">

@@ -7,7 +7,7 @@
     <h4 class="fw-bold mb-1 text-white">
         <i class="bi bi-megaphone-fill"></i> Avisos do Condomínio
     </h4>
-    <p class="mb-0 small" style="color: rgba(255,255,255,0.85);">Fique por dentro das novidades</p>
+    <p class="mb-0 small text-white-85">Fique por dentro das novidades</p>
 </div>
 
 <!-- Filtros de Busca -->
@@ -37,19 +37,18 @@
     </div>
 </div>
 
-<div class="glass-card" style="overflow: visible;">
+<div class="glass-card overflow-visible">
     {% if avisos %}
-    <div class="list-group list-group-flush" id="listaAvisos" style="padding: 0.5rem;">
+    <div class="list-group list-group-flush p-05" id="listaAvisos">
         {% for aviso in avisos %}
-        <div class="list-group-item border-0 list-item-animated p-4 aviso-item"
-             style="cursor: pointer; border-left: 4px solid var(--primary) !important; border-radius: 12px; margin-bottom: 0.5rem; background: {% cycle 'rgba(58, 137, 201, 0.03)' 'rgba(255, 255, 255, 1)' %}; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: all 0.3s ease;"
+        <div class="list-group-item border-0 list-item-animated p-4 aviso-item {% cycle 'bg-even' 'bg-odd' %}"
              onclick="toggleAviso(this)"
              data-titulo="{{ aviso.titulo|lower }}"
              data-conteudo="{{ aviso.conteudo|lower|truncatechars:200 }}"
-             data-data="{{ aviso.data_publicacao|date:'Y-m-d' }}">
+              data-data="{{ aviso.data_publicacao|date:'Y-m-d' }}">
             <div class="d-flex justify-content-between align-items-center mb-2 gap-2">
-                <h6 class="mb-0 fw-bold text-break" style="color: #44403c; flex: 1; min-width: 0;">
-                    <i class="bi bi-chat-square-text" style="color: var(--primary);"></i> {{ aviso.titulo }}
+                <h6 class="mb-0 fw-bold text-break text-stone-700 aviso-title">
+                    <i class="bi bi-chat-square-text icon-primary"></i> {{ aviso.titulo }}
                 </h6>
                 <div class="d-flex align-items-center gap-2 flex-shrink-0">
                     <small class="text-muted">{{ aviso.data_publicacao|date:"d/m/Y" }}</small>
@@ -63,15 +62,12 @@
                 <div class="mb-2 text-muted">{{ aviso.conteudo|linebreaksbr }}</div>
                 {% if aviso.imagem %}
                 <div class="mb-2">
-                    <img src="{{ aviso.imagem.url }}" alt="{{ aviso.titulo }}" 
-                         style="width: 100%; max-width: 500px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                    <img src="{{ aviso.imagem.url }}" alt="{{ aviso.titulo }}" class="aviso-img">
                 </div>
                 {% endif %}
                 {% if aviso.arquivo %}
                 <div class="mb-2">
-                    <a href="{{ aviso.arquivo.url }}" target="_blank" download 
-                       class="btn btn-sm rounded-pill px-3" 
-                       style="background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; text-decoration: none;">
+                    <a href="{{ aviso.arquivo.url }}" target="_blank" download class="btn btn-sm rounded-pill px-3 aviso-link">
                         <i class="bi bi-download"></i> Baixar Anexo ({{ aviso.arquivo.name|cut:"avisos/anexos/" }})
                     </a>
                 </div>
@@ -88,7 +84,7 @@
     
     <!-- Msg sem resultados do filtro -->
     <div id="semResultados" class="card-body text-center py-4" style="display: none;">
-        <div class="mb-2" style="font-size: 2rem;">🔍</div>
+        <div class="mb-2 icon-xxl">🔍</div>
         <p class="text-muted small mb-0">Nenhum aviso encontrado com esses filtros.</p>
     </div>
     
@@ -104,7 +100,7 @@
                     </li>
                 {% endif %}
                 <li class="page-item active">
-                    <span class="page-link rounded-pill border-0" style="background: var(--primary);">{{ avisos.number }}</span>
+                    <span class="page-link rounded-pill border-0 page-link-primary">{{ avisos.number }}</span>
                 </li>
                 {% if avisos.has_next %}
                     <li class="page-item">
@@ -120,7 +116,7 @@
     
     {% else %}
     <div class="card-body text-center py-5">
-        <div class="mb-3" style="font-size: 4rem;">📢</div>
+        <div class="mb-3 icon-4xl">📢</div>
         <h5 class="text-muted fw-bold">Nenhum aviso</h5>
         <p class="text-muted small mb-0">Não há avisos publicados no momento.</p>
     </div>

@@ -4,8 +4,8 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="fw-bold mb-0" style="color: #57534e;">
-        <i class="bi bi-calendar-plus" style="color: var(--primary);"></i> {{ area.nome }}
+    <h4 class="fw-bold mb-0 text-stone-600">
+        <i class="bi bi-calendar-plus icon-primary"></i> {{ area.nome }}
     </h4>
     <a href="{% url 'morador_areas_disponiveis' %}" class="btn btn-light btn-sm rounded-pill px-3 shadow-sm">
         <i class="bi bi-arrow-left"></i> Voltar
@@ -34,7 +34,7 @@
 <!-- Formulário de Reserva -->
 <div class="glass-card mb-4 card-animate delay-1">
     <div class="card-body p-4">
-        <h6 class="fw-bold mb-3" style="color: var(--primary);">
+        <h6 class="fw-bold mb-3 icon-primary">
             <i class="bi bi-calendar-plus"></i> Solicitar Reserva
         </h6>
         <form method="post" id="formReserva">
@@ -51,7 +51,7 @@
             </div>
             <div class="mb-3">
                 <label class="form-label fw-semibold small text-muted">Observações</label>
-                <textarea name="observacoes" class="form-control" rows="2" style="border-radius: 14px;" placeholder="Informações adicionais (opcional)"></textarea>
+                <textarea name="observacoes" class="form-control textarea-rounded-14" rows="2" placeholder="Informações adicionais (opcional)"></textarea>
             </div>
             <button type="submit" id="btnSubmit" class="btn btn-gradient w-100">
                 <i class="bi bi-calendar-check me-2"></i> Solicitar Reserva
@@ -64,15 +64,15 @@
 {% if reservas_existentes %}
 <div class="glass-card card-animate delay-2">
     <div class="card-body p-3">
-        <h6 class="fw-bold mb-3 px-1" style="color: #57534e;">
-            <i class="bi bi-lock-fill" style="color: var(--danger);"></i> Datas Ocupadas
+        <h6 class="fw-bold mb-3 px-1 text-stone-600">
+            <i class="bi bi-lock-fill icon-danger"></i> Datas Ocupadas
         </h6>
         <div class="list-group list-group-flush">
             {% for r in reservas_existentes %}
             <div class="list-group-item border-0 list-item-animated py-3 px-2">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <span class="fw-semibold" style="color: #44403c;">{{ r.data|date:"d/m/Y" }}</span>
+                        <span class="fw-semibold text-stone-700">{{ r.data|date:"d/m/Y" }}</span>
                         <br><small class="text-muted">{{ r.horario_inicio|time:"H:i" }} – {{ r.horario_fim|time:"H:i" }}</small>
                     </div>
                     {% if r.status == 'PENDENTE' %}

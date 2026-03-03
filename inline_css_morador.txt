@@ -1,0 +1,130 @@
+﻿    <h4 class="fw-bold mb-1" style="color: #57534e;">
+        <i class="bi bi-shield-lock-fill" style="color: var(--primary);"></i> Segurança
+                <label class="form-label fw-semibold" style="color: #57534e;">Nova Senha</label>
+                <label class="form-label fw-semibold" style="color: #57534e;">Confirmar Nova Senha</label>
+            <button type="submit" class="btn btn-gradient w-100 mb-3" style="border-radius: 50rem;">
+    <h4 class="fw-bold mb-0" style="color: #57534e;">
+        <i class="bi bi-building" style="color: var(--primary);"></i> Áreas Disponíveis
+            <div class="mb-2" style="overflow: hidden; border-radius: 12px; max-height: 150px;">
+                <img src="{{ area.imagem.url }}" alt="{{ area.nome }}" style="width: 100%; height: 150px; object-fit: cover; border-radius: 12px;">
+                <div style="flex: 1;">
+                        <i class="bi bi-building me-2" style="color: var(--primary); font-size: 1.3rem;"></i>
+                        <span class="fw-bold" style="color: #44403c; font-size: 1rem;">{{ area.nome }}</span>
+                    <p class="mb-0 text-muted small mt-1" style="max-width: 260px;">{{ area.descricao|truncatechars:80 }}</p>
+                    <br><i class="bi bi-chevron-right text-muted mt-2" style="font-size: 1.2rem;"></i>
+        <div class="mb-3" style="font-size: 4rem;">🏢</div>
+    <p class="mb-0 small" style="color: rgba(255,255,255,0.85);">Fique por dentro das novidades</p>
+<div class="glass-card" style="overflow: visible;">
+    <div class="list-group list-group-flush" id="listaAvisos" style="padding: 0.5rem;">
+             style="cursor: pointer; border-left: 4px solid var(--primary) !important; border-radius: 12px; margin-bottom: 0.5rem; background: {% cycle 'rgba(58, 137, 201, 0.03)' 'rgba(255, 255, 255, 1)' %}; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: all 0.3s ease;"
+                <h6 class="mb-0 fw-bold text-break" style="color: #44403c; flex: 1; min-width: 0;">
+                    <i class="bi bi-chat-square-text" style="color: var(--primary);"></i> {{ aviso.titulo }}
+                    <i class="bi bi-chevron-down text-muted toggle-icon" style="transition: transform 0.3s;"></i>
+            <div class="aviso-full" style="display: none;">
+                         style="width: 100%; max-width: 500px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                       style="background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; text-decoration: none;">
+    <div id="semResultados" class="card-body text-center py-4" style="display: none;">
+        <div class="mb-2" style="font-size: 2rem;">🔍</div>
+                    <span class="page-link rounded-pill border-0" style="background: var(--primary);">{{ avisos.number }}</span>
+        <div class="mb-3" style="font-size: 4rem;">📢</div>
+                <img src="{{ condominio_atual.logo.url }}" alt="{{ condominio_atual.nome }}" class="brand-logo" onerror="this.style.display='none'" style="width: 28px; height: 28px; object-fit: contain;">
+                <img src="/img/logo.ico" alt="Logo" class="brand-logo" onerror="this.style.display='none'" style="width: 28px; height: 28px; object-fit: contain;">
+                            <span id="badge-cobrancas-top" class="badge bg-danger rounded-pill ms-1" style="display: none;"></span>
+                <span id="badge-cobrancas-bottom" class="notification-badge" style="display: none;"></span>
+        <div class="card border-0 shadow-sm rounded-4 h-100 card-animate" style="background: rgba(255, 255, 255, 0.95);">
+                        <h4 class="fw-bold mb-2" style="color: var(--primary-dark);">R$ {{ c.valor }}</h4>
+                    <div class="mt-3 mt-md-0 d-flex align-items-center justify-content-md-end border-top border-md-top-0 pt-3 pt-md-0 ps-md-3" style="min-width: 140px;">
+        <i class="bi bi-receipt text-white" style="font-size: 3.5rem; opacity: 0.7;"></i>
+    <div class="modal fade" id="pagarModal{{ c.id }}" tabindex="-1" aria-labelledby="pagarModalLabel{{ c.id }}" aria-hidden="true" style="z-index: 1060;">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+                <div class="modal-header border-0 text-white" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); padding: 1.5rem;">
+                    <h5 class="text-center fw-bold mb-3 d-flex flex-column" style="color: var(--primary-dark);">
+    <h4 class="fw-bold mb-1" style="color: #57534e;">
+        <i class="bi bi-person-fill" style="color: var(--primary);"></i> Meu Perfil
+                <label class="form-label fw-semibold" style="color: #57534e;">Condomínio</label>
+                    <label class="form-label fw-semibold" style="color: #57534e;">Bloco</label>
+                    <label class="form-label fw-semibold" style="color: #57534e;">Apartamento</label>
+                <label class="form-label fw-semibold" style="color: #57534e;">Usuário (Login)</label>
+                <label class="form-label fw-semibold" style="color: #57534e;">Telefone (Editável)</label>
+                <label class="form-label fw-semibold" style="color: #57534e;">E-mail (Editável)</label>
+            <button type="submit" class="btn btn-gradient w-100 mb-3" style="border-radius: 50rem;">
+    <h4 class="fw-bold mb-0" style="color: #57534e;">
+        <i class="bi bi-box-seam-fill" style="color: var(--primary);"></i> Minhas Encomendas
+                    <h6 class="mb-1 fw-bold" style="color: #44403c;">
+                        <i class="bi bi-box" style="color: var(--primary);"></i> {{ enc.volume }}
+                    <span class="page-link rounded-pill border-0" style="background: var(--primary);">{{ encomendas.number }}</span>
+        <div class="mb-3" style="font-size: 4rem;">📭</div>
+    <h4 class="fw-bold mb-0" style="color: #57534e;">
+        <i class="bi bi-calendar-plus" style="color: var(--primary);"></i> {{ area.nome }}
+        <h6 class="fw-bold mb-3" style="color: var(--primary);">
+                <small id="dataFeedback" class="text-danger" style="display: none;">
+                <small id="dataOk" class="text-success" style="display: none;">
+                <textarea name="observacoes" class="form-control" rows="2" style="border-radius: 14px;" placeholder="Informações adicionais (opcional)"></textarea>
+        <h6 class="fw-bold mb-3 px-1" style="color: #57534e;">
+            <i class="bi bi-lock-fill" style="color: var(--danger);"></i> Datas Ocupadas
+                        <span class="fw-semibold" style="color: #44403c;">{{ r.data|date:"d/m/Y" }}</span>
+                            <div class="accordion-body p-0 bg-light position-relative" style="background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');">
+                                <div class="chat-messages p-3" style="max-height: 400px; overflow-y: auto;">
+                                            <div class="msg-balloon bg-success text-white p-2 rounded-3 shadow-sm" style="max-width: 75%; border-bottom-right-radius: 0;">
+                                                <p class="mb-1 text-break" style="font-size: 0.9rem;">{{ m.conteudo }}</p>
+                                                <div class="text-end" style="font-size: 0.7rem; color: rgba(255,255,255,0.8);">
+                                            <div class="msg-balloon bg-white text-dark p-2 rounded-3 shadow-sm" style="max-width: 75%; border-bottom-left-radius: 0;">
+                                                <p class="mb-1 text-break" style="font-size: 0.9rem;">{{ m.conteudo }}</p>
+                                                <div class="text-end text-muted" style="font-size: 0.7rem;">
+                                        <button type="submit" class="btn btn-primary rounded-circle shadow-sm" style="width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-chat-square-text text-secondary" style="font-size: 3rem; opacity: 0.5;"></i>
+    <h4 class="fw-bold mb-1" style="color: #57534e;">
+        <i class="bi bi-plus-circle-fill" style="color: var(--primary);"></i> Nova Solicitação
+                <label class="form-label fw-semibold" style="color: #57534e;">
+                <label class="form-label fw-semibold" style="color: #57534e;">
+                    style="border-radius: 16px;" required></textarea>
+                <label class="form-label fw-semibold" style="color: #57534e;">
+                <div id="filePreview" class="mt-3" style="display: none;">
+                    <img id="imagePreview" src="" class="img-fluid rounded-3 shadow" style="max-height: 200px; display: none;">
+                    <video id="videoPreview" controls class="rounded-3 shadow" style="max-width: 100%; max-height: 200px; display: none;"></video>
+        <h6 class="fw-bold mb-3" style="color: #57534e;">
+                <p class="card-text text-secondary mb-0" style="white-space: pre-wrap;">{{ o.descricao }}</p>
+        <i class="bi bi-journal-x" style="font-size: 3rem;"></i>
+    <p class="mb-0 small" style="color: rgba(255,255,255,0.85);">
+        <h6 class="fw-bold mb-3" style="color: #57534e;">
+        <h6 class="mb-0 fw-bold" style="color: #57534e;">
+            <i class="bi bi-megaphone-fill" style="color: var(--primary);"></i> Avisos
+        <a href="{% url 'morador_avisos' %}" class="text-decoration-none small fw-semibold" style="color: var(--primary);">
+                    <h6 class="mb-1 fw-semibold" style="color: #44403c;">{{ aviso.titulo }}</h6>
+        <h6 class="mb-0 fw-bold" style="color: #57534e;">
+        <a href="{% url 'morador_solicitacoes' %}" class="text-decoration-none small fw-semibold" style="color: var(--primary);">
+    <h4 class="fw-bold mb-0" style="color: #57534e;">
+        <i class="bi bi-calendar-check-fill" style="color: var(--primary);"></i> Minhas Reservas
+        <div class="list-group-item border-0 list-item-animated p-4" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#modalRes{{ r.id }}">
+                <div style="flex: 1; min-width: 0;">
+                        <span class="badge bg-light text-dark rounded-pill fw-semibold" style="white-space: nowrap;">
+                <div class="ms-3" style="white-space: nowrap; flex-shrink: 0; align-self: center;">
+                    <span class="page-link rounded-pill border-0" style="background: var(--primary);">{{ reservas.number }}</span>
+        <div class="mb-3" style="font-size: 4rem;">📅</div>
+        <div class="modal-content" style="border-radius: 20px; border: none;">
+                    <i class="bi bi-calendar-check" style="color: var(--primary);"></i> {{ r.area.nome }}
+                        <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">DATA</label>
+                        <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">INÍCIO</label>
+                        <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">FIM</label>
+                    <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">STATUS</label>
+                    <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">OBSERVAÇÕES</label>
+                    <div class="p-3 rounded-3" style="background: #f8fafc; font-size: 0.9rem;">{{ r.observacoes }}</div>
+                    <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">MOTIVO DA RECUSA</label>
+                    <div class="p-3 rounded-3" style="background: #fef2f2; border-left: 3px solid var(--danger); font-size: 0.9rem;">{{ r.motivo_recusa }}</div>
+                    <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">SOLICITADO EM</label>
+                    <button type="submit" class="btn w-100 rounded-pill fw-bold" style="background: linear-gradient(135deg, #f87171, #ef4444); color: white;"
+    <h4 class="fw-bold mb-0" style="color: #57534e;">
+        <i class="bi bi-clipboard2-check-fill" style="color: var(--primary);"></i> Minhas Solicitações
+                <div style="flex: 1;">
+                    <p class="mb-0 text-truncate fw-medium" style="max-width: 220px; color: #44403c;">{{ sol.descricao }}</p>
+                    <span class="page-link rounded-pill border-0" style="background: var(--primary);">{{ solicitacoes.number }}</span>
+        <div class="mb-3" style="font-size: 4rem;">📝</div>
+    <h4 class="fw-bold mb-0" style="color: #57534e;">
+            <p class="mb-0" style="color: #44403c;">{{ solicitacao.descricao }}</p>
+                        <img src="{{ solicitacao.arquivo.url }}" class="img-fluid rounded-3 shadow mt-2" style="max-width: 100%; max-height: 300px; cursor: pointer;">
+                    <video controls class="rounded-3 shadow" style="max-width: 100%; max-height: 300px;">
+<div class="glass-card" style="border-left: 4px solid #10b981;">
+        <h6 class="fw-bold mb-3" style="color: #57534e;">
+            <i class="bi bi-building" style="color: var(--primary);"></i> Resposta da Administração
+        <p class="mb-3" style="color: #44403c;">{{ solicitacao.resposta_admin }}</p>
+        <div class="mb-2" style="font-size: 2rem;">⏳</div>

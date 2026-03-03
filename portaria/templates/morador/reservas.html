@@ -4,8 +4,8 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="fw-bold mb-0" style="color: #57534e;">
-        <i class="bi bi-calendar-check-fill" style="color: var(--primary);"></i> Minhas Reservas
+    <h4 class="fw-bold mb-0 text-stone-600">
+        <i class="bi bi-calendar-check-fill icon-primary"></i> Minhas Reservas
     </h4>
     <a href="{% url 'morador_areas_disponiveis' %}" class="btn btn-light btn-sm rounded-pill px-3 shadow-sm">
         <i class="bi bi-plus-lg"></i> Nova
@@ -42,11 +42,11 @@
     {% if reservas %}
     <div class="list-group list-group-flush">
         {% for r in reservas %}
-        <div class="list-group-item border-0 list-item-animated p-4" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#modalRes{{ r.id }}">
+        <div class="list-group-item border-0 list-item-animated p-4 cursor-pointer" data-bs-toggle="modal" data-bs-target="#modalRes{{ r.id }}">
             <div class="d-flex justify-content-between align-items-center">
-                <div style="flex: 1; min-width: 0;">
+                <div class="flex-grow-1 min-w-0">
                     <div class="d-flex align-items-center mb-1 flex-wrap gap-1">
-                        <span class="badge bg-light text-dark rounded-pill fw-semibold" style="white-space: nowrap;">
+                        <span class="badge bg-light text-dark rounded-pill fw-semibold text-nowrap">
                             <i class="bi bi-building"></i> {{ r.area.nome }}
                         </span>
                         <small class="text-muted">{{ r.data|date:"d/m/Y" }}</small>
@@ -55,7 +55,7 @@
                         <i class="bi bi-clock"></i> {{ r.horario_inicio|time:"H:i" }} – {{ r.horario_fim|time:"H:i" }}
                     </p>
                 </div>
-                <div class="ms-3" style="white-space: nowrap; flex-shrink: 0; align-self: center;">
+                <div class="ms-3 align-self-center text-nowrap flex-shrink-0">
                     {% if r.status == 'PENDENTE' %}
                         <span class="badge badge-pending rounded-pill px-3">Pendente</span>
                     {% elif r.status == 'APROVADA' %}
@@ -83,7 +83,7 @@
                     </li>
                 {% endif %}
                 <li class="page-item active">
-                    <span class="page-link rounded-pill border-0" style="background: var(--primary);">{{ reservas.number }}</span>
+                    <span class="page-link rounded-pill border-0 page-link-primary">{{ reservas.number }}</span>
                 </li>
                 {% if reservas.has_next %}
                     <li class="page-item">
@@ -99,7 +99,7 @@
 
     {% else %}
     <div class="card-body text-center py-5">
-        <div class="mb-3" style="font-size: 4rem;">📅</div>
+        <div class="mb-3 icon-4xl">📅</div>
         <h5 class="text-muted fw-bold">Nenhuma reserva</h5>
         <p class="text-muted small mb-3">Você ainda não fez nenhuma reserva de área comum.</p>
         <a href="{% url 'morador_areas_disponiveis' %}" class="btn btn-gradient">
@@ -114,30 +114,30 @@
 {% for r in reservas %}
 <div class="modal fade" id="modalRes{{ r.id }}" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 20px; border: none;">
+        <div class="modal-content modal-rounded-20">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold">
-                    <i class="bi bi-calendar-check" style="color: var(--primary);"></i> {{ r.area.nome }}
+                <h5 class="modal-title fw-bold icon-primary">
+                    <i class="bi bi-calendar-check"></i> {{ r.area.nome }}
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="row g-3 mb-3">
                     <div class="col-4">
-                        <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">DATA</label>
+                        <label class="form-label text-muted small fw-semibold mb-1 label-uppercase-xs">DATA</label>
                         <div class="fw-semibold">{{ r.data|date:"d/m/Y" }}</div>
                     </div>
                     <div class="col-4">
-                        <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">INÍCIO</label>
+                        <label class="form-label text-muted small fw-semibold mb-1 label-uppercase-xs">INÍCIO</label>
                         <div class="fw-semibold">{{ r.horario_inicio|time:"H:i" }}</div>
                     </div>
                     <div class="col-4">
-                        <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">FIM</label>
+                        <label class="form-label text-muted small fw-semibold mb-1 label-uppercase-xs">FIM</label>
                         <div class="fw-semibold">{{ r.horario_fim|time:"H:i" }}</div>
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">STATUS</label>
+                    <label class="form-label text-muted small fw-semibold mb-1 label-uppercase-xs">STATUS</label>
                     <div>
                         {% if r.status == 'PENDENTE' %}
                             <span class="badge badge-pending rounded-pill px-3">Pendente</span>
@@ -152,18 +152,18 @@
                 </div>
                 {% if r.observacoes %}
                 <div class="mb-3">
-                    <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">OBSERVAÇÕES</label>
-                    <div class="p-3 rounded-3" style="background: #f8fafc; font-size: 0.9rem;">{{ r.observacoes }}</div>
+                    <label class="form-label text-muted small fw-semibold mb-1 label-uppercase-xs">OBSERVAÇÕES</label>
+                    <div class="p-3 rounded-3 obs-box">{{ r.observacoes }}</div>
                 </div>
                 {% endif %}
                 {% if r.motivo_recusa %}
                 <div class="mb-3">
-                    <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">MOTIVO DA RECUSA</label>
-                    <div class="p-3 rounded-3" style="background: #fef2f2; border-left: 3px solid var(--danger); font-size: 0.9rem;">{{ r.motivo_recusa }}</div>
+                    <label class="form-label text-muted small fw-semibold mb-1 label-uppercase-xs">MOTIVO DA RECUSA</label>
+                    <div class="p-3 rounded-3 reason-box">{{ r.motivo_recusa }}</div>
                 </div>
                 {% endif %}
                 <div class="mb-3">
-                    <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">SOLICITADO EM</label>
+                    <label class="form-label text-muted small fw-semibold mb-1 label-uppercase-xs">SOLICITADO EM</label>
                     <div class="small">{{ r.data_criacao|date:"d/m/Y H:i" }}</div>
                 </div>
 
@@ -171,7 +171,7 @@
                 <hr>
                 <form method="post" action="{% url 'morador_cancelar_reserva' r.id %}">
                     {% csrf_token %}
-                    <button type="submit" class="btn w-100 rounded-pill fw-bold" style="background: linear-gradient(135deg, #f87171, #ef4444); color: white;"
+                    <button type="submit" class="btn w-100 rounded-pill fw-bold btn-cancel-gradient"
                             onclick="return confirm('Tem certeza que deseja cancelar esta reserva?')">
                         <i class="bi bi-x-circle me-2"></i> Cancelar Reserva
                     </button>

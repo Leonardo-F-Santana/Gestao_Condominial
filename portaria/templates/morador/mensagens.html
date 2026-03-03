@@ -76,14 +76,14 @@
                         </h2>
                         <div id="collapse-{{ contato.id }}" class="accordion-collapse collapse" aria-labelledby="heading-{{ contato.id }}" data-bs-parent="#accordionConversas">
                             <div class="accordion-body p-0 bg-light position-relative" style="background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');">
-                                <div class="chat-messages p-3" style="max-height: 400px; overflow-y: auto;">
+                                <div class="chat-messages p-3 chat-messages-container">
                                     {% for m in msgs %}
                                         {% if m.remetente == request.user %}
                                         <!-- Mensagem Enviada (Direita, Verde) -->
                                         <div class="d-flex justify-content-end mb-3">
-                                            <div class="msg-balloon bg-success text-white p-2 rounded-3 shadow-sm" style="max-width: 75%; border-bottom-right-radius: 0;">
+                                            <div class="msg-balloon bg-success text-white p-2 rounded-3 shadow-sm msg-balloon-sent">
                                                 <p class="mb-1 text-break" style="font-size: 0.9rem;">{{ m.conteudo }}</p>
-                                                <div class="text-end" style="font-size: 0.7rem; color: rgba(255,255,255,0.8);">
+                                                <div class="text-end msg-date-sent">
                                                     {{ m.data_envio|date:"H:i" }}
                                                     {% if m.lida %}<i class="bi bi-check2-all ms-1 text-warning"></i>{% else %}<i class="bi bi-check2 ms-1"></i>{% endif %}
                                                 </div>
@@ -92,9 +92,9 @@
                                         {% else %}
                                         <!-- Mensagem Recebida (Esquerda, Branca) -->
                                         <div class="d-flex justify-content-start mb-3">
-                                            <div class="msg-balloon bg-white text-dark p-2 rounded-3 shadow-sm" style="max-width: 75%; border-bottom-left-radius: 0;">
+                                            <div class="msg-balloon bg-white text-dark p-2 rounded-3 shadow-sm msg-balloon-received">
                                                 <p class="mb-1 text-break" style="font-size: 0.9rem;">{{ m.conteudo }}</p>
-                                                <div class="text-end text-muted" style="font-size: 0.7rem;">
+                                                <div class="text-end text-muted msg-date-received">
                                                     {{ m.data_envio|date:"d/m H:i" }}
                                                 </div>
                                             </div>
@@ -107,7 +107,7 @@
                                         {% csrf_token %}
                                         <input type="hidden" name="destinatario_id" value="{{ contato.id }}">
                                         <input type="text" name="conteudo" class="form-control rounded-pill border-0 bg-light me-2" placeholder="Digite uma mensagem..." required autocomplete="off">
-                                        <button type="submit" class="btn btn-primary rounded-circle shadow-sm" style="width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center;">
+                                        <button type="submit" class="btn btn-primary rounded-circle shadow-sm btn-circle-40">
                                             <i class="bi bi-send-fill"></i>
                                         </button>
                                     </form>
@@ -117,7 +117,7 @@
                     </div>
                     {% empty %}
                     <div class="text-center py-5 text-muted">
-                        <i class="bi bi-chat-square-text text-secondary" style="font-size: 3rem; opacity: 0.5;"></i>
+                        <i class="bi bi-chat-square-text text-secondary icon-opacity-50"></i>
                         <h6 class="mt-3 fw-bold text-dark">Você não possui mensagens</h6>
                         <p class="small">Clique em 'Nova Mensagem' para iniciar.</p>
                     </div>

@@ -12,7 +12,7 @@
 <div class="card-section">
     <div class="card-section-body">
         {% for s in solicitacoes %}
-        <div class="list-row" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#modal{{ s.id }}">
+        <div class="list-row cursor-pointer" data-bs-toggle="modal" data-bs-target="#modal{{ s.id }}">
             <div>
                 <div class="d-flex align-items-center gap-2">
                     <span class="list-row-name">{{ s.get_tipo_display }}</span>
@@ -20,10 +20,10 @@
                         {{ s.get_status_display }}
                     </span>
                 </div>
-                <div class="list-row-sub">{% if s.criado_por_id and s.criado_por_id != s.morador.usuario_id %}{{ s.morador.nome|default:"Anônimo" }} · {{ s.data_criacao|date:"d/m/Y H:i" }} · <span style="color: var(--blue); font-weight: 600;">Porteiro {{ s.criado_por.get_full_name|default:s.criado_por.username }}</span>{% else %}{{ s.morador.nome|default:"Anônimo" }} · {{ s.data_criacao|date:"d/m/Y H:i" }}{% endif %}</div>
+                <div class="list-row-sub">{% if s.criado_por_id and s.criado_por_id != s.morador.usuario_id %}{{ s.morador.nome|default:"Anônimo" }} · {{ s.data_criacao|date:"d/m/Y H:i" }} · <span class="text-blue fw-semibold">Porteiro {{ s.criado_por.get_full_name|default:s.criado_por.username }}</span>{% else %}{{ s.morador.nome|default:"Anônimo" }} · {{ s.data_criacao|date:"d/m/Y H:i" }}{% endif %}</div>
                 <div class="list-row-sub">{{ s.descricao|truncatechars:60 }}</div>
             </div>
-            <i class="bi bi-chevron-right" style="color: var(--slate-300);"></i>
+            <i class="bi bi-chevron-right text-slate-300"></i>
         </div>
 
         <!-- Modal Detalhe -->
@@ -36,31 +36,31 @@
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label class="form-label" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--slate-500);">Solicitante</label>
-                            <div class="fw-semibold" style="font-size: 0.9rem;">{{ s.morador.nome|default:"Anônimo" }}</div>
+                            <label class="form-label label-uppercase-sm text-slate-500">Solicitante</label>
+                            <div class="fw-semibold txt-09">{{ s.morador.nome|default:"Anônimo" }}</div>
                             {% if s.criado_por_id and s.criado_por_id != s.morador.usuario_id %}
-                            <div class="mt-1" style="font-size: 0.78rem; color: var(--blue); font-weight: 600;">
+                            <div class="mt-1 txt-078 text-blue fw-semibold">
                                 <i class="bi bi-person-badge me-1"></i>Registrado por Porteiro {{ s.criado_por.get_full_name|default:s.criado_por.username }}
                             </div>
                             {% endif %}
                         </div>
                         <div class="mb-3">
-                            <label class="form-label" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--slate-500);">Data</label>
-                            <div style="font-size: 0.85rem;">{{ s.data_criacao|date:"d/m/Y H:i" }}</div>
+                            <label class="form-label label-uppercase-sm text-slate-500">Data</label>
+                            <div class="txt-085">{{ s.data_criacao|date:"d/m/Y H:i" }}</div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--slate-500);">Descrição</label>
-                            <div style="font-size: 0.85rem; background: var(--slate-100); padding: 0.7rem; border-radius: 8px;">{{ s.descricao }}</div>
+                            <label class="form-label label-uppercase-sm text-slate-500">Descrição</label>
+                            <div class="txt-085 bg-slate-100 p-2-5 rounded-8">{{ s.descricao }}</div>
                         </div>
                         
                         {% if s.arquivo %}
                         <div class="mb-3">
                             {% if '.jpg' in s.arquivo.url or '.png' in s.arquivo.url or '.jpeg' in s.arquivo.url or '.webp' in s.arquivo.url or '.JPG' in s.arquivo.url or '.PNG' in s.arquivo.url or 'image' in s.arquivo.url %}
                                 <a href="{{ s.arquivo.url }}" target="_blank">
-                                    <img src="{{ s.arquivo.url }}" class="img-fluid rounded-3 shadow mt-2" style="max-width: 100%; max-height: 300px; cursor: pointer;">
+                                    <img src="{{ s.arquivo.url }}" class="img-fluid rounded-3 shadow mt-2 solicitacao-img-preview">
                                 </a>
                             {% else %}
-                                <a href="{{ s.arquivo.url }}" target="_blank" class="btn-exec btn-exec-sm" style="background: var(--blue);">
+                                <a href="{{ s.arquivo.url }}" target="_blank" class="btn-exec btn-exec-sm bg-blue">
                                     <i class="bi bi-paperclip"></i> Ver Anexo
                                 </a>
                             {% endif %}
@@ -69,8 +69,8 @@
 
                         {% if s.resposta_admin %}
                         <div class="mb-3">
-                            <label class="form-label" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--slate-500);">Resposta Atual</label>
-                            <div style="font-size: 0.85rem; background: #d1fae5; padding: 0.7rem; border-radius: 8px; border-left: 3px solid var(--green);">{{ s.resposta_admin }}</div>
+                            <label class="form-label label-uppercase-sm text-slate-500">Resposta Atual</label>
+                            <div class="txt-085 reason-box-success">{{ s.resposta_admin }}</div>
                         </div>
                         {% endif %}
 

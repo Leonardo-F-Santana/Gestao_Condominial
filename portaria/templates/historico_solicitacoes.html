@@ -77,7 +77,7 @@
                 <tbody>
                     {% for sol in solicitacoes %}
                         <tr>
-                            <td style="min-width: 100px;">
+                            <td class="min-w-100">
                                 <strong>{{ sol.data_criacao|date:"d/m/Y" }}</strong>
                                 <br><small class="text-muted">{{ sol.data_criacao|date:"H:i" }}</small>
                             </td>
@@ -92,7 +92,7 @@
                                     <span class="text-muted fst-italic">Área Comum / Geral</span>
                                 {% endif %}
                             </td>
-                            <td style="max-width: 300px;">
+                            <td class="max-w-300">
                                 {{ sol.descricao }}
                             </td>
                             <td>
@@ -107,7 +107,7 @@
                                 {% endif %}
                                 
                                 {% if sol.data_conclusao %}
-                                    <br><small class="text-muted" style="font-size: 0.7rem;">em {{ sol.data_conclusao|date:"d/m" }}</small>
+                                    <br><small class="text-muted fs-07">em {{ sol.data_conclusao|date:"d/m" }}</small>
                                 {% endif %}
                             </td>
                             <td>

@@ -10,30 +10,30 @@
 
 <!-- Ações -->
 <div class="mb-4 d-flex gap-2 flex-wrap">
-    <a href="{% url 'sindico_areas_comuns' %}" class="btn-exec" style="background: var(--slate-600);">
+    <a href="{% url 'sindico_areas_comuns' %}" class="btn-exec bg-slate-600">
         <i class="bi bi-building"></i> Áreas Comuns
     </a>
-    <button class="btn-exec" style="background: var(--green);" data-bs-toggle="modal" data-bs-target="#modalNovaArea">
+    <button class="btn-exec bg-green" data-bs-toggle="modal" data-bs-target="#modalNovaArea">
         <i class="bi bi-plus-lg"></i> Nova Área
     </button>
 </div>
 
 <!-- Filtros -->
 <div class="mb-3 d-flex gap-2 flex-wrap">
-    <a href="{% url 'sindico_reservas' %}" class="btn-exec btn-exec-sm"
-       style="{% if not status_filtro %}background: var(--navy);{% else %}background: var(--slate-400);{% endif %}">
+    <a href="{% url 'sindico_reservas' %}" class="btn-exec btn-exec-sm 
+        {% if not status_filtro %}bg-navy{% else %}bg-slate-400{% endif %}">
         Todas
     </a>
-    <a href="?status=PENDENTE" class="btn-exec btn-exec-sm"
-       style="{% if status_filtro == 'PENDENTE' %}background: var(--orange);{% else %}background: var(--slate-400);{% endif %}">
+    <a href="?status=PENDENTE" class="btn-exec btn-exec-sm 
+        {% if status_filtro == 'PENDENTE' %}bg-orange{% else %}bg-slate-400{% endif %}">
         🟡 Pendentes
     </a>
-    <a href="?status=APROVADA" class="btn-exec btn-exec-sm"
-       style="{% if status_filtro == 'APROVADA' %}background: var(--green);{% else %}background: var(--slate-400);{% endif %}">
+    <a href="?status=APROVADA" class="btn-exec btn-exec-sm 
+        {% if status_filtro == 'APROVADA' %}bg-green{% else %}bg-slate-400{% endif %}">
         🟢 Aprovadas
     </a>
-    <a href="?status=RECUSADA" class="btn-exec btn-exec-sm"
-       style="{% if status_filtro == 'RECUSADA' %}background: var(--red);{% else %}background: var(--slate-400);{% endif %}">
+    <a href="?status=RECUSADA" class="btn-exec btn-exec-sm 
+        {% if status_filtro == 'RECUSADA' %}bg-red{% else %}bg-slate-400{% endif %}">
         🔴 Recusadas
     </a>
 </div>
@@ -42,7 +42,7 @@
 <div class="card-section">
     <div class="card-section-body">
         {% for r in reservas %}
-        <div class="list-row" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#modalRes{{ r.id }}">
+        <div class="list-row cursor-pointer" data-bs-toggle="modal" data-bs-target="#modalRes{{ r.id }}">
             <div>
                 <div class="d-flex align-items-center gap-2">
                     <span class="list-row-name">{{ r.area.nome }}</span>
@@ -57,7 +57,7 @@
                 <div class="list-row-sub">{{ r.observacoes|truncatechars:50 }}</div>
                 {% endif %}
             </div>
-            <i class="bi bi-chevron-right" style="color: var(--slate-300);"></i>
+            <i class="bi bi-chevron-right text-slate-300"></i>
         </div>
 
         <!-- Modal Detalhe -->
@@ -70,37 +70,37 @@
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label class="form-label" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--slate-500);">Morador</label>
-                            <div class="fw-semibold" style="font-size: 0.9rem;">{{ r.morador.nome }}</div>
+                            <label class="form-label label-uppercase-sm text-slate-500">Morador</label>
+                            <div class="fw-semibold txt-09">{{ r.morador.nome }}</div>
                         </div>
                         <div class="row mb-3">
                             <div class="col-4">
-                                <label class="form-label" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--slate-500);">Data</label>
-                                <div style="font-size: 0.85rem;">{{ r.data|date:"d/m/Y" }}</div>
+                                <label class="form-label label-uppercase-sm text-slate-500">Data</label>
+                                <div class="txt-085">{{ r.data|date:"d/m/Y" }}</div>
                             </div>
                             <div class="col-4">
-                                <label class="form-label" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--slate-500);">Início</label>
-                                <div style="font-size: 0.85rem;">{{ r.horario_inicio|time:"H:i" }}</div>
+                                <label class="form-label label-uppercase-sm text-slate-500">Início</label>
+                                <div class="txt-085">{{ r.horario_inicio|time:"H:i" }}</div>
                             </div>
                             <div class="col-4">
-                                <label class="form-label" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--slate-500);">Fim</label>
-                                <div style="font-size: 0.85rem;">{{ r.horario_fim|time:"H:i" }}</div>
+                                <label class="form-label label-uppercase-sm text-slate-500">Fim</label>
+                                <div class="txt-085">{{ r.horario_fim|time:"H:i" }}</div>
                             </div>
                         </div>
                         {% if r.observacoes %}
                         <div class="mb-3">
-                            <label class="form-label" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--slate-500);">Observações</label>
-                            <div style="font-size: 0.85rem; background: var(--slate-100); padding: 0.7rem; border-radius: 8px;">{{ r.observacoes }}</div>
+                            <label class="form-label label-uppercase-sm text-slate-500">Observações</label>
+                            <div class="txt-085 bg-slate-100 p-2-5 rounded-8">{{ r.observacoes }}</div>
                         </div>
                         {% endif %}
                         <div class="mb-3">
-                            <label class="form-label" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--slate-500);">Solicitado em</label>
-                            <div style="font-size: 0.85rem;">{{ r.data_criacao|date:"d/m/Y H:i" }}</div>
+                            <label class="form-label label-uppercase-sm text-slate-500">Solicitado em</label>
+                            <div class="txt-085">{{ r.data_criacao|date:"d/m/Y H:i" }}</div>
                         </div>
                         {% if r.motivo_recusa %}
                         <div class="mb-3">
-                            <label class="form-label" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--slate-500);">Motivo da Recusa</label>
-                            <div style="font-size: 0.85rem; background: #fee2e2; padding: 0.7rem; border-radius: 8px; border-left: 3px solid var(--red);">{{ r.motivo_recusa }}</div>
+                            <label class="form-label label-uppercase-sm text-slate-500">Motivo da Recusa</label>
+                            <div class="txt-085 reason-box-sindico">{{ r.motivo_recusa }}</div>
                         </div>
                         {% endif %}
 
@@ -109,11 +109,11 @@
                         <div class="d-flex gap-2">
                             <form method="post" action="{% url 'sindico_aprovar_reserva' r.id %}" class="flex-grow-1">
                                 {% csrf_token %}
-                                <button type="submit" class="btn-exec w-100" style="background: var(--green);">
+                                <button type="submit" class="btn-exec w-100 bg-green">
                                     <i class="bi bi-check-lg"></i> Aprovar
                                 </button>
                             </form>
-                            <button class="btn-exec" style="background: var(--red);" data-bs-toggle="collapse" data-bs-target="#recusa{{ r.id }}">
+                            <button class="btn-exec bg-red" data-bs-toggle="collapse" data-bs-target="#recusa{{ r.id }}">
                                 <i class="bi bi-x-lg"></i> Recusar
                             </button>
                         </div>
@@ -123,7 +123,7 @@
                                 <div class="mb-2">
                                     <textarea name="motivo" class="form-control" rows="2" placeholder="Motivo da recusa (opcional)"></textarea>
                                 </div>
-                                <button type="submit" class="btn-exec w-100" style="background: var(--red);">Confirmar Recusa</button>
+                                <button type="submit" class="btn-exec w-100 bg-red">Confirmar Recusa</button>
                             </form>
                         </div>
                         {% endif %}
@@ -180,7 +180,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn-exec w-100" style="background: var(--green);">
+                    <button type="submit" class="btn-exec w-100 bg-green">
                         <i class="bi bi-check-lg"></i> Cadastrar Área
                     </button>
                 </div>

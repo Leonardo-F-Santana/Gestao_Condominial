@@ -22,9 +22,9 @@
         <div class="container">
             <a class="navbar-brand" href="{% url 'morador_home' %}">
                 {% if condominio_atual and condominio_atual.logo %}
-                <img src="{{ condominio_atual.logo.url }}" alt="{{ condominio_atual.nome }}" class="brand-logo" onerror="this.style.display='none'" style="width: 28px; height: 28px; object-fit: contain;">
+                <img src="{{ condominio_atual.logo.url }}" alt="{{ condominio_atual.nome }}" class="brand-logo brand-logo-img" onerror="this.style.display='none'">
                 {% else %}
-                <img src="/img/logo.ico" alt="Logo" class="brand-logo" onerror="this.style.display='none'" style="width: 28px; height: 28px; object-fit: contain;">
+                <img src="/img/logo.ico" alt="Logo" class="brand-logo brand-logo-img" onerror="this.style.display='none'">
                 {% endif %}
                 <span class="brand-text">{% if condominio_atual %}{{ condominio_atual.nome }}{% else %}Splash Residence Club{% endif %}</span>
             </a>
@@ -74,7 +74,7 @@
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'morador_cobrancas' %}active{% endif %}" href="{% url 'morador_cobrancas' %}">
                             <i class="bi bi-receipt"></i> Cobranças
-                            <span id="badge-cobrancas-top" class="badge bg-danger rounded-pill ms-1" style="display: none;"></span>
+                            <span id="badge-cobrancas-top" class="badge bg-danger rounded-pill ms-1 d-none"></span>
                         </a>
                     </li>
                 </ul>
@@ -118,7 +118,7 @@
         <a href="{% url 'morador_cobrancas' %}" class="{% if 'cobrancas' in request.resolver_match.url_name %}active{% endif %}">
             <span class="icon-badge-wrapper">
                 <i class="bi bi-receipt{% if 'cobrancas' in request.resolver_match.url_name %}-cutoff{% endif %}"></i>
-                <span id="badge-cobrancas-bottom" class="notification-badge" style="display: none;"></span>
+                <span id="badge-cobrancas-bottom" class="notification-badge d-none"></span>
             </span>
             <span>Cobranças</span>
         </a>

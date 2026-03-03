@@ -12,7 +12,7 @@
 <div class="row">
     {% for c in cobrancas %}
     <div class="col-12 mb-3">
-        <div class="card border-0 shadow-sm rounded-4 h-100 card-animate" style="background: rgba(255, 255, 255, 0.95);">
+        <div class="card border-0 shadow-sm rounded-4 h-100 card-animate card-95-white">
             <div class="card-body p-4">
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                     <!-- Detalhes -->
@@ -24,7 +24,7 @@
                     
                     <!-- Valor e Status -->
                     <div class="text-md-end text-start">
-                        <h4 class="fw-bold mb-2" style="color: var(--primary-dark);">R$ {{ c.valor }}</h4>
+                        <h4 class="fw-bold mb-2 text-primary-dark">R$ {{ c.valor }}</h4>
                         {% if c.status == 'PAGO' %}
                             <span class="badge bg-success rounded-pill px-3 py-2"><i class="bi bi-check-circle me-1"></i>Pago</span>
                         {% elif c.status == 'ATRASADO' %}
@@ -39,7 +39,7 @@
                     </div>
                     
                     <!-- Ações -->
-                    <div class="mt-3 mt-md-0 d-flex align-items-center justify-content-md-end border-top border-md-top-0 pt-3 pt-md-0 ps-md-3" style="min-width: 140px;">
+                    <div class="mt-3 mt-md-0 d-flex align-items-center justify-content-md-end border-top border-md-top-0 pt-3 pt-md-0 ps-md-3 min-w-140">
                         {% if c.status == 'PENDENTE' or c.status == 'ATRASADO' %}
                         <button class="btn btn-primary rounded-pill w-100 fw-semibold px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#pagarModal{{ c.id }}">
                             <i class="bi bi-wallet2 me-1"></i> Pagar
@@ -54,7 +54,7 @@
     </div>
     {% empty %}
     <div class="col-12 text-center text-muted py-5 glass-card">
-        <i class="bi bi-receipt text-white" style="font-size: 3.5rem; opacity: 0.7;"></i>
+        <i class="bi bi-receipt text-white icon-receipt-bg"></i>
         <p class="mt-3 mb-0 fw-semibold text-white fs-5">Nenhuma cobrança registrada.</p>
     </div>
     {% endfor %}
@@ -63,15 +63,15 @@
 <!-- Renderizando os Modais Fora da Hierarquia de Layout Secundária (Evita o Bug do Backdrop) -->
 {% for c in cobrancas %}
     {% if c.status == 'PENDENTE' or c.status == 'ATRASADO' %}
-    <div class="modal fade" id="pagarModal{{ c.id }}" tabindex="-1" aria-labelledby="pagarModalLabel{{ c.id }}" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal fade modal-z-index" id="pagarModal{{ c.id }}" tabindex="-1" aria-labelledby="pagarModalLabel{{ c.id }}" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
-                <div class="modal-header border-0 text-white" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); padding: 1.5rem;">
+            <div class="modal-content border-0 shadow-lg modal-rounded-16">
+                <div class="modal-header border-0 text-white modal-header-gradient">
                     <h5 class="modal-title fw-bold" id="pagarModalLabel{{ c.id }}"><i class="bi bi-receipt"></i> Detalhes da Cobrança</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4 bg-light">
-                    <h5 class="text-center fw-bold mb-3 d-flex flex-column" style="color: var(--primary-dark);">
+                    <h5 class="text-center fw-bold mb-3 d-flex flex-column text-primary-dark">
                         <span class="text-muted small fw-normal">Valor do Documento</span>
                         R$ {{ c.valor }}
                     </h5>

@@ -58,13 +58,13 @@
                 {% if o.infrator %}
                 <p class="mb-2"><strong>Infrator/Referência:</strong> {{ o.infrator }}</p>
                 {% endif %}
-                <p class="card-text text-secondary mb-0" style="white-space: pre-wrap;">{{ o.descricao }}</p>
+                <p class="card-text text-secondary mb-0 text-pre-wrap">{{ o.descricao }}</p>
             </div>
         </div>
     </div>
     {% empty %}
     <div class="col-12 text-center py-5 text-muted">
-        <i class="bi bi-journal-x" style="font-size: 3rem;"></i>
+        <i class="bi bi-journal-x icon-3xl"></i>
         <h5 class="mt-3">Nenhuma ocorrência registrada</h5>
         <p>Você não possui nenhum registro no livro negro.</p>
     </div>

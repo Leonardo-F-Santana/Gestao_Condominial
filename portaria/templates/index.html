@@ -6,7 +6,7 @@
     
     <!-- Saudação -->
     <div class="mb-4">
-        <h2 class="fw-bold mb-1" style="color: #1e293b;">
+        <h2 class="fw-bold mb-1 text-slate-800">
             <span id="saudacao-icon">👋</span> Olá, {{ user.username }}!
         </h2>
         <p class="text-muted mb-0">Painel de Controle da Portaria</p>
@@ -94,7 +94,7 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="fw-bold">Morador Selecionado <span class="text-danger">*</span></label>
-                                <select name="morador_responsavel" id="vis_select_morador" class="form-select" required readonly style="background-color: #e9ecef; pointer-events: none;">
+                                <select name="morador_responsavel" id="vis_select_morador" class="form-select select-readonly" required readonly>
                                     <option value="" disabled selected>--- Aguardando Filtro ---</option>
                                     {% for morador in todos_moradores %}
                                         <option value="{{ morador.id }}" data-bloco="{{ morador.bloco }}" data-apto="{{ morador.apartamento }}">{{ morador.bloco }} - {{ morador.apartamento }} | {{ morador.nome }}</option>
@@ -194,7 +194,7 @@
                         <div class="row">
                             <div class="col-md-6 mb-2">
                                 <label class="fw-bold">Morador Responsável <span class="text-danger">*</span></label>
-                                <select name="morador_encomenda" id="select_morador_final" class="form-select" required readonly style="background-color: #e9ecef; pointer-events: none;">
+                                <select name="morador_encomenda" id="select_morador_final" class="form-select select-readonly" required readonly>
                                     <option value="" selected disabled>--- Aguardando Filtro ---</option>
                                     {% for morador in todos_moradores %}
                                         <option value="{{ morador.id }}" data-bloco="{{ morador.bloco }}" data-apto="{{ morador.apartamento }}">{{ morador.bloco }} - {{ morador.apartamento }} | {{ morador.nome }}</option>
@@ -289,10 +289,10 @@
                             <div class="col-md-8 mb-3">
                                 <label>Morador (Opcional)</label>
                                 <div class="d-flex gap-2 mb-2">
-                                    <select id="sol_filtro_bloco" class="form-select form-select-sm" style="width:30%"><option value="">Bloco...</option></select>
-                                    <select id="sol_filtro_apto" class="form-select form-select-sm" style="width:30%" disabled><option value="">Apto...</option></select>
+                                    <select id="sol_filtro_bloco" class="form-select form-select-sm w-30"><option value="">Bloco...</option></select>
+                                    <select id="sol_filtro_apto" class="form-select form-select-sm w-30" disabled><option value="">Apto...</option></select>
                                 </div>
-                                <select name="morador_solicitacao" id="sol_select_morador" class="form-select" readonly style="background-color:#e9ecef;pointer-events:none;"><option value="">-- Área Comum --</option>
+                                <select name="morador_solicitacao" id="sol_select_morador" class="form-select select-readonly" readonly><option value="">-- Área Comum --</option>
                                     {% for morador in todos_moradores %}<option value="{{ morador.id }}" data-bloco="{{ morador.bloco }}" data-apto="{{ morador.apartamento }}">{{ morador.bloco }}-{{ morador.apartamento }} | {{ morador.nome }}</option>{% endfor %}
                                 </select>
                             </div>
@@ -325,7 +325,7 @@
                                         <br>
                                         {% if '.jpg' in sol.arquivo.url or '.png' in sol.arquivo.url or '.jpeg' in sol.arquivo.url or '.webp' in sol.arquivo.url or '.JPG' in sol.arquivo.url or '.PNG' in sol.arquivo.url or 'image' in sol.arquivo.url %}
                                             <a href="{{ sol.arquivo.url }}" target="_blank">
-                                                <img src="{{ sol.arquivo.url }}" class="img-fluid rounded-2 shadow-sm mt-1" style="max-height: 80px; max-width: 100%; cursor: pointer;">
+                                                <img src="{{ sol.arquivo.url }}" class="img-fluid rounded-2 shadow-sm mt-1 img-thumbnail-sm">
                                             </a>
                                         {% else %}
                                             <a href="{{ sol.arquivo.url }}" target="_blank" class="badge bg-secondary text-decoration-none mt-1"><i class="bi bi-paperclip"></i> Anexo</a>
