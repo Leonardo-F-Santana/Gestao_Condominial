@@ -436,3 +436,53 @@
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.15); }
         }
+
+/* ===== UTILITY CLASSES RE-ADDED FOR CSS ISOLATION ===== */
+.bg-blue { background-color: var(--blue) !important; color: white !important; }
+.bg-red { background-color: var(--red) !important; color: white !important; }
+.bg-green { background-color: var(--green) !important; color: white !important; }
+.bg-slate-500 { background-color: var(--slate-500) !important; color: white !important; }
+.bg-navy-light { background-color: var(--navy-light) !important; color: white !important; }
+
+.text-slate-400 { color: #94a3b8 !important; }
+.text-slate-500 { color: var(--slate-500) !important; }
+.text-navy { color: var(--navy) !important; }
+.text-green { color: var(--green) !important; }
+.text-red-300 { color: #fca5a5 !important; }
+.text-indigo-500 { color: #6366f1 !important; }
+.text-amber-500 { color: #f59e0b !important; }
+.text-emerald-500 { color: #10b981 !important; }
+.text-primary { color: var(--blue) !important; }
+.text-white-85 { color: rgba(255,255,255,0.85) !important; }
+
+.txt-095 { font-size: 0.95rem !important; }
+.txt-09 { font-size: 0.9rem !important; }
+.txt-085 { font-size: 0.85rem !important; }
+.txt-08 { font-size: 0.8rem !important; }
+.txt-078 { font-size: 0.78rem !important; }
+.txt-072 { font-size: 0.72rem !important; }
+
+.icon-1xl { font-size: 1.1rem !important; }
+.icon-2xl { font-size: 2rem !important; }
+.icon-3xl { font-size: 3rem !important; }
+
+.rounded-8 { border-radius: 8px !important; }
+.rounded-6 { border-radius: 6px !important; }
+.w-80 { width: 80px !important; }
+.max-w-600 { max-width: 600px !important; margin: 0 auto; }
+.text-pre-wrap { white-space: pre-wrap !important; }
+.min-w-0 { min-width: 0 !important; }
+.mb-08 { margin-bottom: 0.8rem !important; }
+.p-08-1 { padding: 0.8rem 1rem !important; }
+
+.auto-cols-2 { grid-template-columns: 1fr 1fr !important; }
+.chart-container { max-height: 300px; position: relative; }
+.card-section-link { font-size: 0.72rem; color: var(--blue); font-weight: 600; }
+.btn-whatsapp { font-size: 0.72rem; background: #25D366 !important; text-decoration: none !important; color: white !important; }
+.aviso-txt-content { font-size: 0.82rem; color: var(--slate-700); margin-bottom: 0.5rem; }
+.link-convite-header { font-size: 0.72rem; font-weight: 700; color: var(--navy); margin-bottom: 0.2rem; }
+.link-convite-url { font-size: 0.7rem; color: var(--slate-500); word-break: break-all; }
+
+.offcanvas-menu { background: var(--navy) !important; color: white !important; width: 280px !important; box-shadow: -5px 0 25px rgba(0,0,0,0.5) !important; }
+.topbar-container { max-width: 600px; margin: 0 auto; }
+.topbar-badge { font-size: 0.55rem; padding: 0.2rem 0.35rem; transform: translate(-30%, -30%) !important; }

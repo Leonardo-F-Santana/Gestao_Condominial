@@ -1,0 +1,1234 @@
+diff --git a/portaria/templates/morador/alterar_senha.html b/portaria/templates/morador/alterar_senha.html
+new file mode 100644
+index 0000000..7a28c26
+--- /dev/null
++++ b/portaria/templates/morador/alterar_senha.html
+@@ -0,0 +1,37 @@
++{% extends 'morador/base_morador.html' %}
++
++{% block title %}Alterar Senha - Portal do Morador{% endblock %}
++
++{% block content %}
++<div class="mb-4">
++    <h4 class="fw-bold mb-1" style="color: #57534e;">
++        <i class="bi bi-shield-lock-fill" style="color: var(--primary);"></i> Segurança
++    </h4>
++    <p class="text-muted mb-0 small">Altere sua senha de acesso</p>
++</div>
++
++<div class="glass-card">
++    <div class="card-body p-4">
++        <form method="POST">
++            {% csrf_token %}
++            
++            <div class="mb-3">
++                <label class="form-label fw-semibold" style="color: #57534e;">Nova Senha</label>
++                <input type="password" name="nova_senha" class="form-control" placeholder="Mínimo 6 caracteres" required>
++            </div>
++            <div class="mb-4">
++                <label class="form-label fw-semibold" style="color: #57534e;">Confirmar Nova Senha</label>
++                <input type="password" name="confirmar_senha" class="form-control" required>
++            </div>
++
++            <button type="submit" class="btn btn-gradient w-100 mb-3" style="border-radius: 50rem;">
++                <i class="bi bi-save me-2"></i> Alterar Senha
++            </button>
++            
++            <a href="{% url 'editar_perfil_morador' %}" class="btn btn-outline-secondary w-100 rounded-pill">
++                <i class="bi bi-arrow-left me-2"></i> Voltar ao Perfil
++            </a>
++        </form>
++    </div>
++</div>
++{% endblock %}
+diff --git a/portaria/templates/morador/areas_disponiveis.html b/portaria/templates/morador/areas_disponiveis.html
+index 954edf0..fab39ee 100644
+--- a/portaria/templates/morador/areas_disponiveis.html
++++ b/portaria/templates/morador/areas_disponiveis.html
+@@ -4,8 +4,8 @@
+ 
+ {% block content %}
+ <div class="d-flex justify-content-between align-items-center mb-4">
+-    <h4 class="fw-bold mb-0" style="color: #57534e;">
+-        <i class="bi bi-building" style="color: var(--primary);"></i> Áreas Disponíveis
++    <h4 class="fw-bold mb-0 text-stone-600">
++        <i class="bi bi-building icon-primary"></i> Áreas Disponíveis
+     </h4>
+     <a href="{% url 'morador_reservas' %}" class="btn btn-light btn-sm rounded-pill px-3 shadow-sm">
+         <i class="bi bi-calendar-check"></i> Minhas Reservas
+@@ -18,17 +18,17 @@
+         {% for area in areas %}
+         <a href="{% url 'morador_fazer_reserva' area.id %}" class="list-group-item list-group-item-action border-0 list-item-animated p-3">
+             {% if area.imagem %}
+-            <div class="mb-2" style="overflow: hidden; border-radius: 12px; max-height: 150px;">
+-                <img src="{{ area.imagem.url }}" alt="{{ area.nome }}" style="width: 100%; height: 150px; object-fit: cover; border-radius: 12px;">
++            <div class="mb-2 card-image-box">
++                <img src="{{ area.imagem.url }}" alt="{{ area.nome }}" class="image-cover-150">
+             </div>
+             {% endif %}
+             <div class="d-flex justify-content-between align-items-start">
+-                <div style="flex: 1;">
++                <div class="flex-1">
+                     <div class="d-flex align-items-center mb-2">
+                         {% if not area.imagem %}
+-                        <i class="bi bi-building me-2" style="color: var(--primary); font-size: 1.3rem;"></i>
++                        <i class="bi bi-building me-2 icon-primary icon-lg"></i>
+                         {% endif %}
+-                        <span class="fw-bold" style="color: #44403c; font-size: 1rem;">{{ area.nome }}</span>
++                        <span class="fw-bold text-stone-700 fs-6">{{ area.nome }}</span>
+                     </div>
+                     <div class="d-flex flex-wrap gap-2 mb-1">
+                         <span class="badge bg-light text-dark rounded-pill fw-semibold">
+@@ -39,12 +39,12 @@
+                         </span>
+                     </div>
+                     {% if area.descricao %}
+-                    <p class="mb-0 text-muted small mt-1" style="max-width: 260px;">{{ area.descricao|truncatechars:80 }}</p>
++                    <p class="mb-0 text-muted small mt-1 text-truncate-80">{{ area.descricao|truncatechars:80 }}</p>
+                     {% endif %}
+                 </div>
+                 <div class="text-end ms-2">
+                     <span class="badge badge-done rounded-pill px-3">Disponível</span>
+-                    <br><i class="bi bi-chevron-right text-muted mt-2" style="font-size: 1.2rem;"></i>
++                    <br><i class="bi bi-chevron-right text-muted mt-2 icon-muted-lg"></i>
+                 </div>
+             </div>
+         </a>
+@@ -52,7 +52,7 @@
+     </div>
+     {% else %}
+     <div class="card-body text-center py-5">
+-        <div class="mb-3" style="font-size: 4rem;">🏢</div>
++        <div class="mb-3 icon-4xl">🏢</div>
+         <h5 class="text-muted fw-bold">Nenhuma área disponível</h5>
+         <p class="text-muted small mb-0">O síndico ainda não cadastrou espaços reserváveis.</p>
+     </div>
+diff --git a/portaria/templates/morador/avisos.html b/portaria/templates/morador/avisos.html
+index d16304f..d8df81d 100644
+--- a/portaria/templates/morador/avisos.html
++++ b/portaria/templates/morador/avisos.html
+@@ -7,7 +7,7 @@
+     <h4 class="fw-bold mb-1 text-white">
+         <i class="bi bi-megaphone-fill"></i> Avisos do Condomínio
+     </h4>
+-    <p class="mb-0 small" style="color: rgba(255,255,255,0.85);">Fique por dentro das novidades</p>
++    <p class="mb-0 small text-white-85">Fique por dentro das novidades</p>
+ </div>
+ 
+ <!-- Filtros de Busca -->
+@@ -37,19 +37,18 @@
+     </div>
+ </div>
+ 
+-<div class="glass-card" style="overflow: visible;">
++<div class="glass-card overflow-visible">
+     {% if avisos %}
+-    <div class="list-group list-group-flush" id="listaAvisos" style="padding: 0.5rem;">
++    <div class="list-group list-group-flush p-05" id="listaAvisos">
+         {% for aviso in avisos %}
+-        <div class="list-group-item border-0 list-item-animated p-4 aviso-item"
+-             style="cursor: pointer; border-left: 4px solid var(--primary) !important; border-radius: 12px; margin-bottom: 0.5rem; background: {% cycle 'rgba(58, 137, 201, 0.03)' 'rgba(255, 255, 255, 1)' %}; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: all 0.3s ease;"
++        <div class="list-group-item border-0 list-item-animated p-4 aviso-item {% cycle 'bg-even' 'bg-odd' %}"
+              onclick="toggleAviso(this)"
+              data-titulo="{{ aviso.titulo|lower }}"
+              data-conteudo="{{ aviso.conteudo|lower|truncatechars:200 }}"
+-             data-data="{{ aviso.data_publicacao|date:'Y-m-d' }}">
++              data-data="{{ aviso.data_publicacao|date:'Y-m-d' }}">
+             <div class="d-flex justify-content-between align-items-center mb-2 gap-2">
+-                <h6 class="mb-0 fw-bold text-break" style="color: #44403c; flex: 1; min-width: 0;">
+-                    <i class="bi bi-chat-square-text" style="color: var(--primary);"></i> {{ aviso.titulo }}
++                <h6 class="mb-0 fw-bold text-break text-stone-700 aviso-title">
++                    <i class="bi bi-chat-square-text icon-primary"></i> {{ aviso.titulo }}
+                 </h6>
+                 <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                     <small class="text-muted">{{ aviso.data_publicacao|date:"d/m/Y" }}</small>
+@@ -63,15 +62,12 @@
+                 <div class="mb-2 text-muted">{{ aviso.conteudo|linebreaksbr }}</div>
+                 {% if aviso.imagem %}
+                 <div class="mb-2">
+-                    <img src="{{ aviso.imagem.url }}" alt="{{ aviso.titulo }}" 
+-                         style="width: 100%; max-width: 500px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
++                    <img src="{{ aviso.imagem.url }}" alt="{{ aviso.titulo }}" class="aviso-img">
+                 </div>
+                 {% endif %}
+                 {% if aviso.arquivo %}
+                 <div class="mb-2">
+-                    <a href="{{ aviso.arquivo.url }}" target="_blank" download 
+-                       class="btn btn-sm rounded-pill px-3" 
+-                       style="background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; text-decoration: none;">
++                    <a href="{{ aviso.arquivo.url }}" target="_blank" download class="btn btn-sm rounded-pill px-3 aviso-link">
+                         <i class="bi bi-download"></i> Baixar Anexo ({{ aviso.arquivo.name|cut:"avisos/anexos/" }})
+                     </a>
+                 </div>
+@@ -88,7 +84,7 @@
+     
+     <!-- Msg sem resultados do filtro -->
+     <div id="semResultados" class="card-body text-center py-4" style="display: none;">
+-        <div class="mb-2" style="font-size: 2rem;">🔍</div>
++        <div class="mb-2 icon-xxl">🔍</div>
+         <p class="text-muted small mb-0">Nenhum aviso encontrado com esses filtros.</p>
+     </div>
+     
+@@ -104,7 +100,7 @@
+                     </li>
+                 {% endif %}
+                 <li class="page-item active">
+-                    <span class="page-link rounded-pill border-0" style="background: var(--primary);">{{ avisos.number }}</span>
++                    <span class="page-link rounded-pill border-0 page-link-primary">{{ avisos.number }}</span>
+                 </li>
+                 {% if avisos.has_next %}
+                     <li class="page-item">
+@@ -120,7 +116,7 @@
+     
+     {% else %}
+     <div class="card-body text-center py-5">
+-        <div class="mb-3" style="font-size: 4rem;">📢</div>
++        <div class="mb-3 icon-4xl">📢</div>
+         <h5 class="text-muted fw-bold">Nenhum aviso</h5>
+         <p class="text-muted small mb-0">Não há avisos publicados no momento.</p>
+     </div>
+diff --git a/portaria/templates/morador/base_morador.html b/portaria/templates/morador/base_morador.html
+index 99cd190..82b4f93 100644
+--- a/portaria/templates/morador/base_morador.html
++++ b/portaria/templates/morador/base_morador.html
+@@ -14,346 +14,7 @@
+     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+-    <style>
+-        :root {
+-            /* 🌊 Paleta Azul Personalizada */
+-            --primary: #3A89C9;
+-            --primary-dark: #2d6fa3;
+-            --primary-light: #9CC4E4;
+-            --secondary: #5ba3d9;
+-            --accent: #9CC4E4;
+-            --success: #10b981;
+-            --warning: #f59e0b;
+-            --danger: #ef4444;
+-            
+-            /* Cores de texto para contraste */
+-            --text-on-blue: #ffffff;
+-            --text-on-blue-muted: rgba(255,255,255,0.85);
+-        }
+-
+-        * {
+-            font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+-        }
+-
+-        body {
+-            min-height: 100vh;
+-            /* Gradiente com suas cores específicas */
+-            background: linear-gradient(-45deg, 
+-                #3A89C9,   /* Azul escuro */
+-                #5ba3d9,   /* Azul médio */
+-                #9CC4E4,   /* Azul claro */
+-                #3A89C9    /* Azul escuro */
+-            );
+-            background-size: 400% 400%;
+-            animation: gradientBG 20s ease infinite;
+-            overflow-x: hidden;
+-        }
+-
+-        @keyframes gradientBG {
+-            0% { background-position: 0% 50%; }
+-            50% { background-position: 100% 50%; }
+-            100% { background-position: 0% 50%; }
+-        }
+-
+-        /* Navbar */
+-        .navbar-glass {
+-            background: rgba(255, 255, 255, 0.95) !important;
+-            backdrop-filter: blur(20px);
+-            -webkit-backdrop-filter: blur(20px);
+-            box-shadow: 0 4px 20px rgba(14, 165, 233, 0.15);
+-        }
+-
+-        .navbar-brand {
+-            font-weight: 800;
+-            font-size: 1.1rem;
+-            display: flex;
+-            align-items: center;
+-            gap: 10px;
+-        }
+-
+-        .brand-logo {
+-            height: 40px;
+-            width: auto;
+-            border-radius: 8px;
+-        }
+-
+-        .brand-text {
+-            color: var(--primary-dark);
+-            font-weight: 800;
+-            font-size: 1.15rem;
+-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+-            -webkit-background-clip: text;
+-            -webkit-text-fill-color: transparent;
+-            background-clip: text;
+-        }
+-
+-        .nav-link {
+-            color: #64748b !important;
+-            font-weight: 600;
+-            padding: 0.6rem 1rem !important;
+-            border-radius: 12px;
+-            margin: 0 4px;
+-            transition: all 0.25s ease;
+-        }
+-
+-        .nav-link:hover, .nav-link.active {
+-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+-            color: white !important;
+-            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.4);
+-        }
+-
+-        /* Main Container */
+-        .main-container {
+-            padding: 1.5rem 1rem;
+-            padding-bottom: 100px;
+-            min-height: calc(100vh - 70px);
+-        }
+-
+-        /* Cards */
+-        .glass-card {
+-            background: rgba(255, 255, 255, 0.95);
+-            backdrop-filter: blur(10px);
+-            border: none;
+-            border-radius: 20px;
+-            box-shadow: 0 8px 32px rgba(14, 165, 233, 0.12);
+-            transition: all 0.3s ease;
+-            overflow: hidden;
+-        }
+-
+-        .glass-card:hover {
+-            transform: translateY(-3px);
+-            box-shadow: 0 12px 40px rgba(14, 165, 233, 0.2);
+-        }
+-
+-        /* Stat Cards */
+-        .stat-card {
+-            padding: 1rem 0.5rem;
+-            text-align: center;
+-            position: relative;
+-        }
+-
+-        .stat-card::before {
+-            content: '';
+-            position: absolute;
+-            top: 0;
+-            left: 0;
+-            right: 0;
+-            height: 4px;
+-            background: linear-gradient(90deg, #0ea5e9, #06b6d4, #22d3ee, #38bdf8, #0284c7, #0ea5e9);
+-            background-size: 400% 100%;
+-            animation: gradientMove 3s ease infinite;
+-        }
+-
+-        @keyframes gradientMove {
+-            0% { background-position: 0% 50%; }
+-            50% { background-position: 100% 50%; }
+-            100% { background-position: 0% 50%; }
+-        }
+-
+-        .stat-card .icon {
+-            font-size: 1.8rem;
+-            margin-bottom: 0.25rem;
+-            animation: bounce 2s ease-in-out infinite;
+-        }
+-
+-        @keyframes bounce {
+-            0%, 100% { transform: translateY(0); }
+-            50% { transform: translateY(-8px); }
+-        }
+-
+-        .stat-card .number {
+-            font-size: 1.6rem;
+-            font-weight: 800;
+-            color: var(--primary-dark);
+-        }
+-
+-        .stat-card .label {
+-            color: #64748b;
+-            font-weight: 600;
+-            font-size: 0.75rem;
+-        }
+-
+-        /* Buttons */
+-        .btn-gradient {
+-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+-            border: none;
+-            border-radius: 14px;
+-            padding: 0.9rem 2rem;
+-            font-weight: 700;
+-            color: white;
+-            transition: all 0.25s ease;
+-        }
+-
+-        .btn-gradient:hover {
+-            transform: translateY(-2px);
+-            box-shadow: 0 8px 25px rgba(14, 165, 233, 0.5);
+-            color: white;
+-        }
+-
+-        /* Bottom Navigation */
+-        .bottom-nav {
+-            position: fixed;
+-            bottom: 0;
+-            left: 0;
+-            right: 0;
+-            background: rgba(255, 255, 255, 0.98);
+-            backdrop-filter: blur(20px);
+-            padding: 0.8rem 0.5rem;
+-            box-shadow: 0 -4px 20px rgba(14, 165, 233, 0.12);
+-            display: flex;
+-            justify-content: space-around;
+-            z-index: 1000;
+-        }
+-
+-        .bottom-nav a {
+-            display: flex;
+-            flex-direction: column;
+-            align-items: center;
+-            color: #94a3b8;
+-            text-decoration: none;
+-            padding: 0.5rem 1rem;
+-            border-radius: 16px;
+-            transition: all 0.25s ease;
+-            position: relative;
+-        }
+-
+-        .bottom-nav a i {
+-            font-size: 1.5rem;
+-        }
+-
+-        .bottom-nav a span {
+-            font-size: 0.7rem;
+-            font-weight: 600;
+-            margin-top: 4px;
+-        }
+-
+-        .bottom-nav a.active {
+-            color: var(--primary);
+-        }
+-
+-        /* Floating Action Button */
+-        .bottom-nav .fab-button {
+-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+-            color: white !important;
+-            width: 54px;
+-            height: 54px;
+-            border-radius: 50%;
+-            display: flex;
+-            align-items: center;
+-            justify-content: center;
+-            margin-top: -28px;
+-            box-shadow: 0 4px 20px rgba(14, 165, 233, 0.5);
+-            animation: pulse 2s ease-in-out infinite;
+-        }
+-
+-        @keyframes pulse {
+-            0%, 100% { box-shadow: 0 4px 20px rgba(14, 165, 233, 0.5); }
+-            50% { box-shadow: 0 4px 30px rgba(14, 165, 233, 0.8); }
+-        }
+-
+-        .bottom-nav .fab-button i {
+-            font-size: 1.6rem;
+-        }
+-
+-        .bottom-nav .fab-button span {
+-            display: none;
+-        }
+-
+-        /* Badges com cores atualizadas */
+-        .badge-pending { 
+-            background: linear-gradient(135deg, #fbbf24, #f59e0b); 
+-            color: white;
+-        }
+-        .badge-progress { 
+-            background: linear-gradient(135deg, var(--primary), var(--secondary)); 
+-            color: white;
+-        }
+-        .badge-done { 
+-            background: linear-gradient(135deg, #34d399, #10b981); 
+-            color: white;
+-        }
+-        .badge-cancelled { 
+-            background: linear-gradient(135deg, #f87171, #ef4444); 
+-            color: white;
+-        }
+-
+-        /* List Items */
+-        .list-item-animated {
+-            transition: all 0.2s ease;
+-            border-left: 3px solid transparent;
+-        }
+-
+-        .list-item-animated:hover {
+-            background: #f0f9ff;
+-            border-left-color: var(--primary);
+-        }
+-
+-        /* Card Animation */
+-        .card-animate {
+-            animation: slideUp 0.5s ease-out forwards;
+-            opacity: 0;
+-        }
+-
+-        @keyframes slideUp {
+-            from { opacity: 0; transform: translateY(15px); }
+-            to { opacity: 1; transform: translateY(0); }
+-        }
+-
+-        .card-animate.delay-1 { animation-delay: 0.1s; }
+-        .card-animate.delay-2 { animation-delay: 0.2s; }
+-
+-        .alert {
+-            border: none;
+-            border-radius: 16px;
+-        }
+-
+-        @media (min-width: 768px) {
+-            .bottom-nav { display: none; }
+-            .main-container { padding-bottom: 2rem; }
+-        }
+-
+-        ::-webkit-scrollbar { width: 6px; }
+-        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.2); }
+-        ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 3px; }
+-
+-        .notification-badge {
+-            position: absolute;
+-            top: -6px;
+-            right: -10px;
+-            background: #ef4444;
+-            color: white;
+-            font-size: 0.65rem;
+-            padding: 2px 6px;
+-            border-radius: 10px;
+-            font-weight: 700;
+-            animation: pulse 1.5s ease-in-out infinite;
+-            z-index: 10;
+-        }
+-
+-        .bottom-nav a {
+-            overflow: visible !important;
+-        }
+-
+-        .icon-badge-wrapper {
+-            position: relative;
+-            display: inline-block;
+-        }
+-
+-        /* Efeito de ondas no fundo */
+-        body::before {
+-            content: '';
+-            position: fixed;
+-            top: 0;
+-            left: 0;
+-            right: 0;
+-            bottom: 0;
+-            background: 
+-                radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+-                radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%);
+-            pointer-events: none;
+-            z-index: -1;
+-        }
+-    </style>
++    <link rel="stylesheet" href="{% static 'css/morador.css' %}">
+ </head>
+ <body>
+     {% include "includes/splash_screen.html" %}
+@@ -361,9 +22,9 @@
+         <div class="container">
+             <a class="navbar-brand" href="{% url 'morador_home' %}">
+                 {% if condominio_atual and condominio_atual.logo %}
+-                <img src="{{ condominio_atual.logo.url }}" alt="{{ condominio_atual.nome }}" class="brand-logo" onerror="this.style.display='none'" style="width: 28px; height: 28px; object-fit: contain;">
++                <img src="{{ condominio_atual.logo.url }}" alt="{{ condominio_atual.nome }}" class="brand-logo brand-logo-img" onerror="this.style.display='none'">
+                 {% else %}
+-                <img src="/img/logo.ico" alt="Logo" class="brand-logo" onerror="this.style.display='none'" style="width: 28px; height: 28px; object-fit: contain;">
++                <img src="/img/logo.ico" alt="Logo" class="brand-logo brand-logo-img" onerror="this.style.display='none'">
+                 {% endif %}
+                 <span class="brand-text">{% if condominio_atual %}{{ condominio_atual.nome }}{% else %}Splash Residence Club{% endif %}</span>
+             </a>
+@@ -413,7 +74,7 @@
+                     <li class="nav-item">
+                         <a class="nav-link {% if request.resolver_match.url_name == 'morador_cobrancas' %}active{% endif %}" href="{% url 'morador_cobrancas' %}">
+                             <i class="bi bi-receipt"></i> Cobranças
+-                            <span id="badge-cobrancas-top" class="badge bg-danger rounded-pill ms-1" style="display: none;"></span>
++                            <span id="badge-cobrancas-top" class="badge bg-danger rounded-pill ms-1 d-none"></span>
+                         </a>
+                     </li>
+                 </ul>
+@@ -421,8 +82,8 @@
+                     <span class="text-muted d-none d-md-inline fw-semibold me-1">
+                         <i class="bi bi-person-circle"></i> {{ morador.nome|truncatewords:2 }}
+                     </span>
+-                    <a href="{% url 'alterar_senha' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 my-1">
+-                        <i class="bi bi-key"></i> Senha
++                    <a href="{% url 'editar_perfil_morador' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 my-1">
++                        <i class="bi bi-person"></i> Perfil
+                     </a>
+                     <form action="{% url 'logout' %}" method="post" class="d-inline">
+                         {% csrf_token %}
+@@ -457,7 +118,7 @@
+         <a href="{% url 'morador_cobrancas' %}" class="{% if 'cobrancas' in request.resolver_match.url_name %}active{% endif %}">
+             <span class="icon-badge-wrapper">
+                 <i class="bi bi-receipt{% if 'cobrancas' in request.resolver_match.url_name %}-cutoff{% endif %}"></i>
+-                <span id="badge-cobrancas-bottom" class="notification-badge" style="display: none;"></span>
++                <span id="badge-cobrancas-bottom" class="notification-badge d-none"></span>
+             </span>
+             <span>Cobranças</span>
+         </a>
+diff --git a/portaria/templates/morador/cobrancas.html b/portaria/templates/morador/cobrancas.html
+index 64fdb0f..6fa8e25 100644
+--- a/portaria/templates/morador/cobrancas.html
++++ b/portaria/templates/morador/cobrancas.html
+@@ -12,7 +12,7 @@
+ <div class="row">
+     {% for c in cobrancas %}
+     <div class="col-12 mb-3">
+-        <div class="card border-0 shadow-sm rounded-4 h-100 card-animate" style="background: rgba(255, 255, 255, 0.95);">
++        <div class="card border-0 shadow-sm rounded-4 h-100 card-animate card-95-white">
+             <div class="card-body p-4">
+                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                     <!-- Detalhes -->
+@@ -24,7 +24,7 @@
+                     
+                     <!-- Valor e Status -->
+                     <div class="text-md-end text-start">
+-                        <h4 class="fw-bold mb-2" style="color: var(--primary-dark);">R$ {{ c.valor }}</h4>
++                        <h4 class="fw-bold mb-2 text-primary-dark">R$ {{ c.valor }}</h4>
+                         {% if c.status == 'PAGO' %}
+                             <span class="badge bg-success rounded-pill px-3 py-2"><i class="bi bi-check-circle me-1"></i>Pago</span>
+                         {% elif c.status == 'ATRASADO' %}
+@@ -39,7 +39,7 @@
+                     </div>
+                     
+                     <!-- Ações -->
+-                    <div class="mt-3 mt-md-0 d-flex align-items-center justify-content-md-end border-top border-md-top-0 pt-3 pt-md-0 ps-md-3" style="min-width: 140px;">
++                    <div class="mt-3 mt-md-0 d-flex align-items-center justify-content-md-end border-top border-md-top-0 pt-3 pt-md-0 ps-md-3 min-w-140">
+                         {% if c.status == 'PENDENTE' or c.status == 'ATRASADO' %}
+                         <button class="btn btn-primary rounded-pill w-100 fw-semibold px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#pagarModal{{ c.id }}">
+                             <i class="bi bi-wallet2 me-1"></i> Pagar
+@@ -54,7 +54,7 @@
+     </div>
+     {% empty %}
+     <div class="col-12 text-center text-muted py-5 glass-card">
+-        <i class="bi bi-receipt text-white" style="font-size: 3.5rem; opacity: 0.7;"></i>
++        <i class="bi bi-receipt text-white icon-receipt-bg"></i>
+         <p class="mt-3 mb-0 fw-semibold text-white fs-5">Nenhuma cobrança registrada.</p>
+     </div>
+     {% endfor %}
+@@ -63,15 +63,15 @@
+ <!-- Renderizando os Modais Fora da Hierarquia de Layout Secundária (Evita o Bug do Backdrop) -->
+ {% for c in cobrancas %}
+     {% if c.status == 'PENDENTE' or c.status == 'ATRASADO' %}
+-    <div class="modal fade" id="pagarModal{{ c.id }}" tabindex="-1" aria-labelledby="pagarModalLabel{{ c.id }}" aria-hidden="true" style="z-index: 1060;">
++    <div class="modal fade modal-z-index" id="pagarModal{{ c.id }}" tabindex="-1" aria-labelledby="pagarModalLabel{{ c.id }}" aria-hidden="true">
+         <div class="modal-dialog modal-dialog-centered">
+-            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+-                <div class="modal-header border-0 text-white" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); padding: 1.5rem;">
++            <div class="modal-content border-0 shadow-lg modal-rounded-16">
++                <div class="modal-header border-0 text-white modal-header-gradient">
+                     <h5 class="modal-title fw-bold" id="pagarModalLabel{{ c.id }}"><i class="bi bi-receipt"></i> Detalhes da Cobrança</h5>
+                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                 </div>
+                 <div class="modal-body p-4 bg-light">
+-                    <h5 class="text-center fw-bold mb-3 d-flex flex-column" style="color: var(--primary-dark);">
++                    <h5 class="text-center fw-bold mb-3 d-flex flex-column text-primary-dark">
+                         <span class="text-muted small fw-normal">Valor do Documento</span>
+                         R$ {{ c.valor }}
+                     </h5>
+diff --git a/portaria/templates/morador/editar_perfil.html b/portaria/templates/morador/editar_perfil.html
+new file mode 100644
+index 0000000..6469437
+--- /dev/null
++++ b/portaria/templates/morador/editar_perfil.html
+@@ -0,0 +1,58 @@
++{% extends 'morador/base_morador.html' %}
++
++{% block title %}Editar Perfil - Portal do Morador{% endblock %}
++
++{% block content %}
++<div class="mb-4">
++    <h4 class="fw-bold mb-1 text-stone-600">
++        <i class="bi bi-person-fill icon-primary"></i> Meu Perfil
++    </h4>
++    <p class="text-muted mb-0 small">Atualize suas informações de contato</p>
++</div>
++
++<div class="glass-card">
++    <div class="card-body p-4">
++        <form method="POST">
++            {% csrf_token %}
++            
++            <div class="mb-3">
++                <label class="form-label fw-semibold text-stone-600">Condomínio</label>
++                {{ form.condominio }}
++            </div>
++            <div class="row">
++                <div class="col-md-6 mb-3">
++                    <label class="form-label fw-semibold text-stone-600">Bloco</label>
++                    {{ form.bloco }}
++                </div>
++                <div class="col-md-6 mb-3">
++                    <label class="form-label fw-semibold text-stone-600">Apartamento</label>
++                    {{ form.apartamento }}
++                </div>
++            </div>
++            <div class="mb-3">
++                <label class="form-label fw-semibold text-stone-600">Usuário (Login)</label>
++                {{ form.username }}
++                {% if form.username.errors %}<div class="text-danger small">{{ form.username.errors }}</div>{% endif %}
++            </div>
++            <div class="mb-3">
++                <label class="form-label fw-semibold text-stone-600">Telefone (Editável)</label>
++                {{ form.telefone }}
++                {% if form.telefone.errors %}<div class="text-danger small">{{ form.telefone.errors }}</div>{% endif %}
++            </div>
++            <div class="mb-4">
++                <label class="form-label fw-semibold text-stone-600">E-mail (Editável)</label>
++                {{ form.email }}
++                {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors }}</div>{% endif %}
++            </div>
++
++            <button type="submit" class="btn btn-gradient w-100 mb-3 btn-rounded-50">
++                <i class="bi bi-save me-2"></i> Salvar Alterações
++            </button>
++            
++            <a href="{% url 'alterar_senha' %}" class="btn btn-outline-secondary w-100 rounded-pill">
++                <i class="bi bi-key me-2"></i> Alterar Minha Senha
++            </a>
++        </form>
++    </div>
++</div>
++{% endblock %}
+diff --git a/portaria/templates/morador/encomendas.html b/portaria/templates/morador/encomendas.html
+index bf8656c..ac812d2 100644
+--- a/portaria/templates/morador/encomendas.html
++++ b/portaria/templates/morador/encomendas.html
+@@ -4,8 +4,8 @@
+ 
+ {% block content %}
+ <div class="d-flex justify-content-between align-items-center mb-4">
+-    <h4 class="fw-bold mb-0" style="color: #57534e;">
+-        <i class="bi bi-box-seam-fill" style="color: var(--primary);"></i> Minhas Encomendas
++    <h4 class="fw-bold mb-0 text-stone-600">
++        <i class="bi bi-box-seam-fill icon-primary"></i> Minhas Encomendas
+     </h4>
+ </div>
+ 
+@@ -31,8 +31,8 @@
+         <div class="list-group-item border-0 list-item-animated p-4">
+             <div class="d-flex justify-content-between align-items-start">
+                 <div>
+-                    <h6 class="mb-1 fw-bold" style="color: #44403c;">
+-                        <i class="bi bi-box" style="color: var(--primary);"></i> {{ enc.volume }}
++                    <h6 class="mb-1 fw-bold text-stone-700">
++                        <i class="bi bi-box icon-primary"></i> {{ enc.volume }}
+                     </h6>
+                     {% if enc.destinatario_alternativo %}
+                         <small class="text-muted">
+@@ -69,7 +69,7 @@
+                     </li>
+                 {% endif %}
+                 <li class="page-item active">
+-                    <span class="page-link rounded-pill border-0" style="background: var(--primary);">{{ encomendas.number }}</span>
++                    <span class="page-link rounded-pill border-0 page-link-primary">{{ encomendas.number }}</span>
+                 </li>
+                 {% if encomendas.has_next %}
+                     <li class="page-item">
+@@ -85,7 +85,7 @@
+     
+     {% else %}
+     <div class="card-body text-center py-5">
+-        <div class="mb-3" style="font-size: 4rem;">📭</div>
++        <div class="mb-3 icon-4xl">📭</div>
+         <h5 class="text-muted fw-bold">Nenhuma encomenda</h5>
+         <p class="text-muted small mb-0">
+             {% if status_filtro == 'entregues' %}
+diff --git a/portaria/templates/morador/fazer_reserva.html b/portaria/templates/morador/fazer_reserva.html
+index d4d32d0..a0cd0e2 100644
+--- a/portaria/templates/morador/fazer_reserva.html
++++ b/portaria/templates/morador/fazer_reserva.html
+@@ -4,8 +4,8 @@
+ 
+ {% block content %}
+ <div class="d-flex justify-content-between align-items-center mb-4">
+-    <h4 class="fw-bold mb-0" style="color: #57534e;">
+-        <i class="bi bi-calendar-plus" style="color: var(--primary);"></i> {{ area.nome }}
++    <h4 class="fw-bold mb-0 text-stone-600">
++        <i class="bi bi-calendar-plus icon-primary"></i> {{ area.nome }}
+     </h4>
+     <a href="{% url 'morador_areas_disponiveis' %}" class="btn btn-light btn-sm rounded-pill px-3 shadow-sm">
+         <i class="bi bi-arrow-left"></i> Voltar
+@@ -34,7 +34,7 @@
+ <!-- Formulário de Reserva -->
+ <div class="glass-card mb-4 card-animate delay-1">
+     <div class="card-body p-4">
+-        <h6 class="fw-bold mb-3" style="color: var(--primary);">
++        <h6 class="fw-bold mb-3 icon-primary">
+             <i class="bi bi-calendar-plus"></i> Solicitar Reserva
+         </h6>
+         <form method="post" id="formReserva">
+@@ -51,7 +51,7 @@
+             </div>
+             <div class="mb-3">
+                 <label class="form-label fw-semibold small text-muted">Observações</label>
+-                <textarea name="observacoes" class="form-control" rows="2" style="border-radius: 14px;" placeholder="Informações adicionais (opcional)"></textarea>
++                <textarea name="observacoes" class="form-control textarea-rounded-14" rows="2" placeholder="Informações adicionais (opcional)"></textarea>
+             </div>
+             <button type="submit" id="btnSubmit" class="btn btn-gradient w-100">
+                 <i class="bi bi-calendar-check me-2"></i> Solicitar Reserva
+@@ -64,15 +64,15 @@
+ {% if reservas_existentes %}
+ <div class="glass-card card-animate delay-2">
+     <div class="card-body p-3">
+-        <h6 class="fw-bold mb-3 px-1" style="color: #57534e;">
+-            <i class="bi bi-lock-fill" style="color: var(--danger);"></i> Datas Ocupadas
++        <h6 class="fw-bold mb-3 px-1 text-stone-600">
++            <i class="bi bi-lock-fill icon-danger"></i> Datas Ocupadas
+         </h6>
+         <div class="list-group list-group-flush">
+             {% for r in reservas_existentes %}
+             <div class="list-group-item border-0 list-item-animated py-3 px-2">
+                 <div class="d-flex justify-content-between align-items-center">
+                     <div>
+-                        <span class="fw-semibold" style="color: #44403c;">{{ r.data|date:"d/m/Y" }}</span>
++                        <span class="fw-semibold text-stone-700">{{ r.data|date:"d/m/Y" }}</span>
+                         <br><small class="text-muted">{{ r.horario_inicio|time:"H:i" }} – {{ r.horario_fim|time:"H:i" }}</small>
+                     </div>
+                     {% if r.status == 'PENDENTE' %}
+diff --git a/portaria/templates/morador/mensagens.html b/portaria/templates/morador/mensagens.html
+index be72fc7..209f618 100644
+--- a/portaria/templates/morador/mensagens.html
++++ b/portaria/templates/morador/mensagens.html
+@@ -76,14 +76,14 @@
+                         </h2>
+                         <div id="collapse-{{ contato.id }}" class="accordion-collapse collapse" aria-labelledby="heading-{{ contato.id }}" data-bs-parent="#accordionConversas">
+                             <div class="accordion-body p-0 bg-light position-relative" style="background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');">
+-                                <div class="chat-messages p-3" style="max-height: 400px; overflow-y: auto;">
++                                <div class="chat-messages p-3 chat-messages-container">
+                                     {% for m in msgs %}
+                                         {% if m.remetente == request.user %}
+                                         <!-- Mensagem Enviada (Direita, Verde) -->
+                                         <div class="d-flex justify-content-end mb-3">
+-                                            <div class="msg-balloon bg-success text-white p-2 rounded-3 shadow-sm" style="max-width: 75%; border-bottom-right-radius: 0;">
++                                            <div class="msg-balloon bg-success text-white p-2 rounded-3 shadow-sm msg-balloon-sent">
+                                                 <p class="mb-1 text-break" style="font-size: 0.9rem;">{{ m.conteudo }}</p>
+-                                                <div class="text-end" style="font-size: 0.7rem; color: rgba(255,255,255,0.8);">
++                                                <div class="text-end msg-date-sent">
+                                                     {{ m.data_envio|date:"H:i" }}
+                                                     {% if m.lida %}<i class="bi bi-check2-all ms-1 text-warning"></i>{% else %}<i class="bi bi-check2 ms-1"></i>{% endif %}
+                                                 </div>
+@@ -92,9 +92,9 @@
+                                         {% else %}
+                                         <!-- Mensagem Recebida (Esquerda, Branca) -->
+                                         <div class="d-flex justify-content-start mb-3">
+-                                            <div class="msg-balloon bg-white text-dark p-2 rounded-3 shadow-sm" style="max-width: 75%; border-bottom-left-radius: 0;">
++                                            <div class="msg-balloon bg-white text-dark p-2 rounded-3 shadow-sm msg-balloon-received">
+                                                 <p class="mb-1 text-break" style="font-size: 0.9rem;">{{ m.conteudo }}</p>
+-                                                <div class="text-end text-muted" style="font-size: 0.7rem;">
++                                                <div class="text-end text-muted msg-date-received">
+                                                     {{ m.data_envio|date:"d/m H:i" }}
+                                                 </div>
+                                             </div>
+@@ -107,7 +107,7 @@
+                                         {% csrf_token %}
+                                         <input type="hidden" name="destinatario_id" value="{{ contato.id }}">
+                                         <input type="text" name="conteudo" class="form-control rounded-pill border-0 bg-light me-2" placeholder="Digite uma mensagem..." required autocomplete="off">
+-                                        <button type="submit" class="btn btn-primary rounded-circle shadow-sm" style="width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center;">
++                                        <button type="submit" class="btn btn-primary rounded-circle shadow-sm btn-circle-40">
+                                             <i class="bi bi-send-fill"></i>
+                                         </button>
+                                     </form>
+@@ -117,7 +117,7 @@
+                     </div>
+                     {% empty %}
+                     <div class="text-center py-5 text-muted">
+-                        <i class="bi bi-chat-square-text text-secondary" style="font-size: 3rem; opacity: 0.5;"></i>
++                        <i class="bi bi-chat-square-text text-secondary icon-opacity-50"></i>
+                         <h6 class="mt-3 fw-bold text-dark">Você não possui mensagens</h6>
+                         <p class="small">Clique em 'Nova Mensagem' para iniciar.</p>
+                     </div>
+diff --git a/portaria/templates/morador/nova_solicitacao.html b/portaria/templates/morador/nova_solicitacao.html
+index a6d91c8..4e57412 100644
+--- a/portaria/templates/morador/nova_solicitacao.html
++++ b/portaria/templates/morador/nova_solicitacao.html
+@@ -4,8 +4,8 @@
+ 
+ {% block content %}
+ <div class="mb-4">
+-    <h4 class="fw-bold mb-1" style="color: #57534e;">
+-        <i class="bi bi-plus-circle-fill" style="color: var(--primary);"></i> Nova Solicitação
++    <h4 class="fw-bold mb-1 text-stone-600">
++        <i class="bi bi-plus-circle-fill icon-primary"></i> Nova Solicitação
+     </h4>
+     <p class="text-muted mb-0 small">Envie sua solicitação para a administração</p>
+ </div>
+@@ -16,7 +16,7 @@
+             {% csrf_token %}
+             
+             <div class="mb-4">
+-                <label class="form-label fw-semibold" style="color: #57534e;">
++                <label class="form-label fw-semibold text-stone-600">
+                     <i class="bi bi-tag"></i> Tipo de Solicitação
+                 </label>
+                 <select name="tipo" class="form-select rounded-pill" required>
+@@ -29,26 +29,25 @@
+             </div>
+ 
+             <div class="mb-4">
+-                <label class="form-label fw-semibold" style="color: #57534e;">
++                <label class="form-label fw-semibold text-stone-600">
+                     <i class="bi bi-chat-text"></i> Descrição
+                 </label>
+-                <textarea name="descricao" class="form-control" rows="5" 
+-                    placeholder="Descreva detalhadamente sua solicitação..." 
+-                    style="border-radius: 16px;" required></textarea>
++                <textarea name="descricao" class="form-control textarea-rounded-16" rows="5" 
++                    placeholder="Descreva detalhadamente sua solicitação..." required></textarea>
+                 <small class="text-muted">Quanto mais detalhes, melhor!</small>
+             </div>
+ 
+             <div class="mb-4">
+-                <label class="form-label fw-semibold" style="color: #57534e;">
++                <label class="form-label fw-semibold text-stone-600">
+                     <i class="bi bi-camera"></i> Foto ou Vídeo (opcional)
+                 </label>
+                 <input type="file" name="arquivo" class="form-control rounded-pill" 
+                     accept="image/*,video/*" id="fileInput">
+                 <small class="text-muted">JPG, PNG, MP4 (máx. 50MB)</small>
+                 
+-                <div id="filePreview" class="mt-3" style="display: none;">
+-                    <img id="imagePreview" src="" class="img-fluid rounded-3 shadow" style="max-height: 200px; display: none;">
+-                    <video id="videoPreview" controls class="rounded-3 shadow" style="max-width: 100%; max-height: 200px; display: none;"></video>
++                <div id="filePreview" class="mt-3 d-none">
++                    <img id="imagePreview" src="" class="img-fluid rounded-3 shadow preview-img d-none">
++                    <video id="videoPreview" controls class="rounded-3 shadow preview-vid d-none"></video>
+                 </div>
+             </div>
+ 
+@@ -61,7 +60,7 @@
+ 
+ <div class="glass-card mt-4">
+     <div class="card-body p-4">
+-        <h6 class="fw-bold mb-3" style="color: #57534e;">
++        <h6 class="fw-bold mb-3 text-stone-600">
+             <i class="bi bi-lightbulb text-warning"></i> Dicas
+         </h6>
+         <ul class="list-unstyled mb-0 small text-muted">
+diff --git a/portaria/templates/morador/ocorrencias.html b/portaria/templates/morador/ocorrencias.html
+index 3c50875..8505266 100644
+--- a/portaria/templates/morador/ocorrencias.html
++++ b/portaria/templates/morador/ocorrencias.html
+@@ -58,13 +58,13 @@
+                 {% if o.infrator %}
+                 <p class="mb-2"><strong>Infrator/Referência:</strong> {{ o.infrator }}</p>
+                 {% endif %}
+-                <p class="card-text text-secondary mb-0" style="white-space: pre-wrap;">{{ o.descricao }}</p>
++                <p class="card-text text-secondary mb-0 text-pre-wrap">{{ o.descricao }}</p>
+             </div>
+         </div>
+     </div>
+     {% empty %}
+     <div class="col-12 text-center py-5 text-muted">
+-        <i class="bi bi-journal-x" style="font-size: 3rem;"></i>
++        <i class="bi bi-journal-x icon-3xl"></i>
+         <h5 class="mt-3">Nenhuma ocorrência registrada</h5>
+         <p>Você não possui nenhum registro no livro negro.</p>
+     </div>
+diff --git a/portaria/templates/morador/portal_home.html b/portaria/templates/morador/portal_home.html
+index 5892c3f..aa925cc 100644
+--- a/portaria/templates/morador/portal_home.html
++++ b/portaria/templates/morador/portal_home.html
+@@ -8,7 +8,7 @@
+     <h4 class="fw-bold mb-1 text-white" id="saudacao">
+         <span id="emoji-tempo"></span> Olá, {{ morador.nome.split.0 }}!
+     </h4>
+-    <p class="mb-0 small" style="color: rgba(255,255,255,0.85);">
++    <p class="mb-0 small text-white-85">
+         <i class="bi bi-geo-alt"></i> {% if morador.bloco %}Bloco {{ morador.bloco }} - {% endif %}Apto {{ morador.apartamento }}
+     </p>
+ </div>
+@@ -44,7 +44,7 @@
+ <!-- Ação Rápida -->
+ <div class="glass-card mb-4">
+     <div class="card-body p-4">
+-        <h6 class="fw-bold mb-3" style="color: #57534e;">
++        <h6 class="fw-bold mb-3 text-stone-600">
+             <i class="bi bi-lightning-charge-fill text-warning"></i> Ação Rápida
+         </h6>
+         <a href="{% url 'morador_nova_solicitacao' %}" class="btn btn-gradient w-100">
+@@ -57,10 +57,10 @@
+ {% if avisos %}
+ <div class="glass-card mb-4">
+     <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center p-4 pb-0">
+-        <h6 class="mb-0 fw-bold" style="color: #57534e;">
+-            <i class="bi bi-megaphone-fill" style="color: var(--primary);"></i> Avisos
++        <h6 class="mb-0 fw-bold text-stone-600">
++            <i class="bi bi-megaphone-fill icon-primary"></i> Avisos
+         </h6>
+-        <a href="{% url 'morador_avisos' %}" class="text-decoration-none small fw-semibold" style="color: var(--primary);">
++        <a href="{% url 'morador_avisos' %}" class="text-decoration-none small fw-semibold text-hover-primary">
+             Ver todos <i class="bi bi-arrow-right"></i>
+         </a>
+     </div>
+@@ -69,7 +69,7 @@
+         <div class="list-group-item border-0 list-item-animated px-4 py-3">
+             <div class="d-flex justify-content-between align-items-start">
+                 <div>
+-                    <h6 class="mb-1 fw-semibold" style="color: #44403c;">{{ aviso.titulo }}</h6>
++                    <h6 class="mb-1 fw-semibold text-stone-700">{{ aviso.titulo }}</h6>
+                     <p class="mb-0 text-muted small">{{ aviso.conteudo|truncatechars:80 }}</p>
+                 </div>
+                 <small class="text-muted ms-2">{{ aviso.data_publicacao|date:"d/m" }}</small>
+@@ -84,10 +84,10 @@
+ {% if solicitacoes_recentes %}
+ <div class="glass-card">
+     <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center p-4 pb-0">
+-        <h6 class="mb-0 fw-bold" style="color: #57534e;">
++        <h6 class="mb-0 fw-bold text-stone-600">
+             <i class="bi bi-clock-history text-secondary"></i> Recentes
+         </h6>
+-        <a href="{% url 'morador_solicitacoes' %}" class="text-decoration-none small fw-semibold" style="color: var(--primary);">
++        <a href="{% url 'morador_solicitacoes' %}" class="text-decoration-none small fw-semibold text-hover-primary">
+             Ver todas <i class="bi bi-arrow-right"></i>
+         </a>
+     </div>
+diff --git a/portaria/templates/morador/reservas.html b/portaria/templates/morador/reservas.html
+index 89e2ca6..2e17ba5 100644
+--- a/portaria/templates/morador/reservas.html
++++ b/portaria/templates/morador/reservas.html
+@@ -4,8 +4,8 @@
+ 
+ {% block content %}
+ <div class="d-flex justify-content-between align-items-center mb-4">
+-    <h4 class="fw-bold mb-0" style="color: #57534e;">
+-        <i class="bi bi-calendar-check-fill" style="color: var(--primary);"></i> Minhas Reservas
++    <h4 class="fw-bold mb-0 text-stone-600">
++        <i class="bi bi-calendar-check-fill icon-primary"></i> Minhas Reservas
+     </h4>
+     <a href="{% url 'morador_areas_disponiveis' %}" class="btn btn-light btn-sm rounded-pill px-3 shadow-sm">
+         <i class="bi bi-plus-lg"></i> Nova
+@@ -42,11 +42,11 @@
+     {% if reservas %}
+     <div class="list-group list-group-flush">
+         {% for r in reservas %}
+-        <div class="list-group-item border-0 list-item-animated p-4" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#modalRes{{ r.id }}">
++        <div class="list-group-item border-0 list-item-animated p-4 cursor-pointer" data-bs-toggle="modal" data-bs-target="#modalRes{{ r.id }}">
+             <div class="d-flex justify-content-between align-items-center">
+-                <div style="flex: 1; min-width: 0;">
++                <div class="flex-grow-1 min-w-0">
+                     <div class="d-flex align-items-center mb-1 flex-wrap gap-1">
+-                        <span class="badge bg-light text-dark rounded-pill fw-semibold" style="white-space: nowrap;">
++                        <span class="badge bg-light text-dark rounded-pill fw-semibold text-nowrap">
+                             <i class="bi bi-building"></i> {{ r.area.nome }}
+                         </span>
+                         <small class="text-muted">{{ r.data|date:"d/m/Y" }}</small>
+@@ -55,7 +55,7 @@
+                         <i class="bi bi-clock"></i> {{ r.horario_inicio|time:"H:i" }} – {{ r.horario_fim|time:"H:i" }}
+                     </p>
+                 </div>
+-                <div class="ms-3" style="white-space: nowrap; flex-shrink: 0; align-self: center;">
++                <div class="ms-3 align-self-center text-nowrap flex-shrink-0">
+                     {% if r.status == 'PENDENTE' %}
+                         <span class="badge badge-pending rounded-pill px-3">Pendente</span>
+                     {% elif r.status == 'APROVADA' %}
+@@ -83,7 +83,7 @@
+                     </li>
+                 {% endif %}
+                 <li class="page-item active">
+-                    <span class="page-link rounded-pill border-0" style="background: var(--primary);">{{ reservas.number }}</span>
++                    <span class="page-link rounded-pill border-0 page-link-primary">{{ reservas.number }}</span>
+                 </li>
+                 {% if reservas.has_next %}
+                     <li class="page-item">
+@@ -99,7 +99,7 @@
+ 
+     {% else %}
+     <div class="card-body text-center py-5">
+-        <div class="mb-3" style="font-size: 4rem;">📅</div>
++        <div class="mb-3 icon-4xl">📅</div>
+         <h5 class="text-muted fw-bold">Nenhuma reserva</h5>
+         <p class="text-muted small mb-3">Você ainda não fez nenhuma reserva de área comum.</p>
+         <a href="{% url 'morador_areas_disponiveis' %}" class="btn btn-gradient">
+@@ -114,30 +114,30 @@
+ {% for r in reservas %}
+ <div class="modal fade" id="modalRes{{ r.id }}" tabindex="-1">
+     <div class="modal-dialog modal-dialog-centered">
+-        <div class="modal-content" style="border-radius: 20px; border: none;">
++        <div class="modal-content modal-rounded-20">
+             <div class="modal-header border-0 pb-0">
+-                <h5 class="modal-title fw-bold">
+-                    <i class="bi bi-calendar-check" style="color: var(--primary);"></i> {{ r.area.nome }}
++                <h5 class="modal-title fw-bold icon-primary">
++                    <i class="bi bi-calendar-check"></i> {{ r.area.nome }}
+                 </h5>
+                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+             </div>
+             <div class="modal-body">
+                 <div class="row g-3 mb-3">
+                     <div class="col-4">
+-                        <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">DATA</label>
++                        <label class="form-label text-muted small fw-semibold mb-1 label-uppercase-xs">DATA</label>
+                         <div class="fw-semibold">{{ r.data|date:"d/m/Y" }}</div>
+                     </div>
+                     <div class="col-4">
+-                        <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">INÍCIO</label>
++                        <label class="form-label text-muted small fw-semibold mb-1 label-uppercase-xs">INÍCIO</label>
+                         <div class="fw-semibold">{{ r.horario_inicio|time:"H:i" }}</div>
+                     </div>
+                     <div class="col-4">
+-                        <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">FIM</label>
++                        <label class="form-label text-muted small fw-semibold mb-1 label-uppercase-xs">FIM</label>
+                         <div class="fw-semibold">{{ r.horario_fim|time:"H:i" }}</div>
+                     </div>
+                 </div>
+                 <div class="mb-3">
+-                    <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">STATUS</label>
++                    <label class="form-label text-muted small fw-semibold mb-1 label-uppercase-xs">STATUS</label>
+                     <div>
+                         {% if r.status == 'PENDENTE' %}
+                             <span class="badge badge-pending rounded-pill px-3">Pendente</span>
+@@ -152,18 +152,18 @@
+                 </div>
+                 {% if r.observacoes %}
+                 <div class="mb-3">
+-                    <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">OBSERVAÇÕES</label>
+-                    <div class="p-3 rounded-3" style="background: #f8fafc; font-size: 0.9rem;">{{ r.observacoes }}</div>
++                    <label class="form-label text-muted small fw-semibold mb-1 label-uppercase-xs">OBSERVAÇÕES</label>
++                    <div class="p-3 rounded-3 obs-box">{{ r.observacoes }}</div>
+                 </div>
+                 {% endif %}
+                 {% if r.motivo_recusa %}
+                 <div class="mb-3">
+-                    <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">MOTIVO DA RECUSA</label>
+-                    <div class="p-3 rounded-3" style="background: #fef2f2; border-left: 3px solid var(--danger); font-size: 0.9rem;">{{ r.motivo_recusa }}</div>
++                    <label class="form-label text-muted small fw-semibold mb-1 label-uppercase-xs">MOTIVO DA RECUSA</label>
++                    <div class="p-3 rounded-3 reason-box">{{ r.motivo_recusa }}</div>
+                 </div>
+                 {% endif %}
+                 <div class="mb-3">
+-                    <label class="form-label text-muted small fw-semibold mb-1" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">SOLICITADO EM</label>
++                    <label class="form-label text-muted small fw-semibold mb-1 label-uppercase-xs">SOLICITADO EM</label>
+                     <div class="small">{{ r.data_criacao|date:"d/m/Y H:i" }}</div>
+                 </div>
+ 
+@@ -171,7 +171,7 @@
+                 <hr>
+                 <form method="post" action="{% url 'morador_cancelar_reserva' r.id %}">
+                     {% csrf_token %}
+-                    <button type="submit" class="btn w-100 rounded-pill fw-bold" style="background: linear-gradient(135deg, #f87171, #ef4444); color: white;"
++                    <button type="submit" class="btn w-100 rounded-pill fw-bold btn-cancel-gradient"
+                             onclick="return confirm('Tem certeza que deseja cancelar esta reserva?')">
+                         <i class="bi bi-x-circle me-2"></i> Cancelar Reserva
+                     </button>
+diff --git a/portaria/templates/morador/solicitacoes.html b/portaria/templates/morador/solicitacoes.html
+index db0d2d3..b66bab8 100644
+--- a/portaria/templates/morador/solicitacoes.html
++++ b/portaria/templates/morador/solicitacoes.html
+@@ -4,8 +4,8 @@
+ 
+ {% block content %}
+ <div class="d-flex justify-content-between align-items-center mb-4">
+-    <h4 class="fw-bold mb-0" style="color: #57534e;">
+-        <i class="bi bi-clipboard2-check-fill" style="color: var(--primary);"></i> Minhas Solicitações
++    <h4 class="fw-bold mb-0 text-stone-600">
++        <i class="bi bi-clipboard2-check-fill icon-primary"></i> Minhas Solicitações
+     </h4>
+     <a href="{% url 'morador_nova_solicitacao' %}" class="btn btn-light btn-sm rounded-pill px-3 shadow-sm">
+         <i class="bi bi-plus-lg"></i> Nova
+@@ -45,12 +45,12 @@
+         {% for sol in solicitacoes %}
+         <a href="{% url 'morador_ver_solicitacao' sol.id %}" class="list-group-item list-group-item-action border-0 list-item-animated p-4">
+             <div class="d-flex justify-content-between align-items-start">
+-                <div style="flex: 1;">
++                <div class="flex-grow-1">
+                     <div class="d-flex align-items-center mb-2">
+                         <span class="badge bg-light text-dark me-2 rounded-pill fw-semibold">{{ sol.get_tipo_display }}</span>
+                         <small class="text-muted">{{ sol.data_criacao|date:"d/m/Y" }}</small>
+                     </div>
+-                    <p class="mb-0 text-truncate fw-medium" style="max-width: 220px; color: #44403c;">{{ sol.descricao }}</p>
++                    <p class="mb-0 text-truncate fw-medium text-stone-700 max-w-220">{{ sol.descricao }}</p>
+                 </div>
+                 <div class="text-end ms-2">
+                     {% if sol.status == 'PENDENTE' %}
+@@ -83,7 +83,7 @@
+                     </li>
+                 {% endif %}
+                 <li class="page-item active">
+-                    <span class="page-link rounded-pill border-0" style="background: var(--primary);">{{ solicitacoes.number }}</span>
++                    <span class="page-link rounded-pill border-0 page-link-primary">{{ solicitacoes.number }}</span>
+                 </li>
+                 {% if solicitacoes.has_next %}
+                     <li class="page-item">
+@@ -99,7 +99,7 @@
+     
+     {% else %}
+     <div class="card-body text-center py-5">
+-        <div class="mb-3" style="font-size: 4rem;">📝</div>
++        <div class="mb-3 icon-4xl">📝</div>
+         <h5 class="text-muted fw-bold">Nenhuma solicitação</h5>
+         <p class="text-muted small mb-3">Você ainda não abriu nenhuma solicitação.</p>
+         <a href="{% url 'morador_nova_solicitacao' %}" class="btn btn-gradient">
+diff --git a/portaria/templates/morador/ver_solicitacao.html b/portaria/templates/morador/ver_solicitacao.html
+index 235208a..b4eace4 100644
+--- a/portaria/templates/morador/ver_solicitacao.html
++++ b/portaria/templates/morador/ver_solicitacao.html
+@@ -7,7 +7,7 @@
+     <a href="{% url 'morador_solicitacoes' %}" class="btn btn-light btn-sm rounded-pill mb-3 shadow-sm">
+         <i class="bi bi-arrow-left"></i> Voltar
+     </a>
+-    <h4 class="fw-bold mb-0" style="color: #57534e;">
++    <h4 class="fw-bold mb-0 text-stone-600">
+         Solicitação #{{ solicitacao.id }}
+     </h4>
+ </div>
+@@ -31,7 +31,7 @@
+ 
+         <div class="mb-4">
+             <label class="form-label text-muted small fw-semibold">DESCRIÇÃO</label>
+-            <p class="mb-0" style="color: #44403c;">{{ solicitacao.descricao }}</p>
++            <p class="mb-0 text-stone-700">{{ solicitacao.descricao }}</p>
+         </div>
+ 
+         {% if solicitacao.arquivo %}
+@@ -40,10 +40,10 @@
+             <div class="bg-light rounded-3 p-3 text-center">
+                 {% if 'image' in solicitacao.arquivo.url or '.jpg' in solicitacao.arquivo.url or '.png' in solicitacao.arquivo.url or '.jpeg' in solicitacao.arquivo.url or '.webp' in solicitacao.arquivo.url or '.JPG' in solicitacao.arquivo.url or '.PNG' in solicitacao.arquivo.url %}
+                     <a href="{{ solicitacao.arquivo.url }}" target="_blank">
+-                        <img src="{{ solicitacao.arquivo.url }}" class="img-fluid rounded-3 shadow mt-2" style="max-width: 100%; max-height: 300px; cursor: pointer;">
++                        <img src="{{ solicitacao.arquivo.url }}" class="img-fluid rounded-3 shadow mt-2 file-preview-img cursor-pointer">
+                     </a>
+                 {% elif 'video' in solicitacao.arquivo.url %}
+-                    <video controls class="rounded-3 shadow" style="max-width: 100%; max-height: 300px;">
++                    <video controls class="rounded-3 shadow file-preview-vid">
+                         <source src="{{ solicitacao.arquivo.url }}">
+                     </video>
+                 {% else %}
+@@ -62,18 +62,18 @@
+ </div>
+ 
+ {% if solicitacao.resposta_admin %}
+-<div class="glass-card" style="border-left: 4px solid #10b981;">
++<div class="glass-card panel-success-left">
+     <div class="card-body p-4">
+-        <h6 class="fw-bold mb-3" style="color: #57534e;">
+-            <i class="bi bi-building" style="color: var(--primary);"></i> Resposta da Administração
++        <h6 class="fw-bold mb-3 text-stone-600">
++            <i class="bi bi-building icon-primary"></i> Resposta da Administração
+         </h6>
+-        <p class="mb-3" style="color: #44403c;">{{ solicitacao.resposta_admin }}</p>
++        <p class="mb-3 text-stone-700">{{ solicitacao.resposta_admin }}</p>
+     </div>
+ </div>
+ {% else %}
+ <div class="glass-card">
+     <div class="card-body p-4 text-center">
+-        <div class="mb-2" style="font-size: 2rem;">⏳</div>
++        <div class="mb-2 icon-2xl">⏳</div>
+         <p class="mb-0 text-muted">Aguardando resposta da administração...</p>
+     </div>
+ </div>

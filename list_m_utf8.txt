@@ -1,0 +1,15 @@
+﻿portaria/templates/morador/alterar_senha.html
+portaria/templates/morador/areas_disponiveis.html
+portaria/templates/morador/avisos.html
+portaria/templates/morador/base_morador.html
+portaria/templates/morador/cobrancas.html
+portaria/templates/morador/editar_perfil.html
+portaria/templates/morador/encomendas.html
+portaria/templates/morador/fazer_reserva.html
+portaria/templates/morador/mensagens.html
+portaria/templates/morador/nova_solicitacao.html
+portaria/templates/morador/ocorrencias.html
+portaria/templates/morador/portal_home.html
+portaria/templates/morador/reservas.html
+portaria/templates/morador/solicitacoes.html
+portaria/templates/morador/ver_solicitacao.html

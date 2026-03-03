@@ -1,0 +1,58 @@
+﻿diff --git a/portaria/templates/morador/portal_home.html b/portaria/templates/morador/portal_home.html
+index 5892c3f..aa925cc 100644
+--- a/portaria/templates/morador/portal_home.html
++++ b/portaria/templates/morador/portal_home.html
+@@ -8,7 +8,7 @@
+     <h4 class="fw-bold mb-1 text-white" id="saudacao">
+         <span id="emoji-tempo"></span> Ol├í, {{ morador.nome.split.0 }}!
+     </h4>
+-    <p class="mb-0 small" style="color: rgba(255,255,255,0.85);">
++    <p class="mb-0 small text-white-85">
+         <i class="bi bi-geo-alt"></i> {% if morador.bloco %}Bloco {{ morador.bloco }} - {% endif %}Apto {{ morador.apartamento }}
+     </p>
+ </div>
+@@ -44,7 +44,7 @@
+ <!-- A├º├úo R├ípida -->
+ <div class="glass-card mb-4">
+     <div class="card-body p-4">
+-        <h6 class="fw-bold mb-3" style="color: #57534e;">
++        <h6 class="fw-bold mb-3 text-stone-600">
+             <i class="bi bi-lightning-charge-fill text-warning"></i> A├º├úo R├ípida
+         </h6>
+         <a href="{% url 'morador_nova_solicitacao' %}" class="btn btn-gradient w-100">
+@@ -57,10 +57,10 @@
+ {% if avisos %}
+ <div class="glass-card mb-4">
+     <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center p-4 pb-0">
+-        <h6 class="mb-0 fw-bold" style="color: #57534e;">
+-            <i class="bi bi-megaphone-fill" style="color: var(--primary);"></i> Avisos
++        <h6 class="mb-0 fw-bold text-stone-600">
++            <i class="bi bi-megaphone-fill icon-primary"></i> Avisos
+         </h6>
+-        <a href="{% url 'morador_avisos' %}" class="text-decoration-none small fw-semibold" style="color: var(--primary);">
++        <a href="{% url 'morador_avisos' %}" class="text-decoration-none small fw-semibold text-hover-primary">
+             Ver todos <i class="bi bi-arrow-right"></i>
+         </a>
+     </div>
+@@ -69,7 +69,7 @@
+         <div class="list-group-item border-0 list-item-animated px-4 py-3">
+             <div class="d-flex justify-content-between align-items-start">
+                 <div>
+-                    <h6 class="mb-1 fw-semibold" style="color: #44403c;">{{ aviso.titulo }}</h6>
++                    <h6 class="mb-1 fw-semibold text-stone-700">{{ aviso.titulo }}</h6>
+                     <p class="mb-0 text-muted small">{{ aviso.conteudo|truncatechars:80 }}</p>
+                 </div>
+                 <small class="text-muted ms-2">{{ aviso.data_publicacao|date:"d/m" }}</small>
+@@ -84,10 +84,10 @@
+ {% if solicitacoes_recentes %}
+ <div class="glass-card">
+     <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center p-4 pb-0">
+-        <h6 class="mb-0 fw-bold" style="color: #57534e;">
++        <h6 class="mb-0 fw-bold text-stone-600">
+             <i class="bi bi-clock-history text-secondary"></i> Recentes
+         </h6>
+-        <a href="{% url 'morador_solicitacoes' %}" class="text-decoration-none small fw-semibold" style="color: var(--primary);">
++        <a href="{% url 'morador_solicitacoes' %}" class="text-decoration-none small fw-semibold text-hover-primary">
+             Ver todas <i class="bi bi-arrow-right"></i>
+         </a>
+     </div>
