@@ -1,6 +1,5 @@
-na pagina de adm, criar filtragem por condomínio, sindico, morador e portaria
-adicionar a pagina de usuários novamente, o site ainda continua tendo que ligar o usuário ao morador, mas não tem a pagina morador no admin;
-tirar o logo do splash na tela de login e colocar um ícone de condomínio
-acrescentar na pagina botao com o perfil do sindico e morador para edição
-
-quando faço uma solicitação no app do morador, da erro;
+no app do morador, não aparece a notificação para cobranças; reorganizar as ordens que aparece os boletos os mais novos em cima e os mais antigos abaixo;
+email aceira errado, exemplo .co e não .com;
+quando facó login com uma conta, saio entro em outra, depois saio novamente e entro na primeira conta, dá erro de CSRF;
+esqueci a senha não redefine a senha por email;
+retirar a questão de enviar video pelo sistema;

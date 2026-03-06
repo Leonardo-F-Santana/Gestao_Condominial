@@ -41,6 +41,14 @@
                     </span>
                     {% endif %}
                 </a>
+                <a href="{% url 'sindico_notificacoes' %}" class="topbar-icon position-relative" title="Notificações">
+                    <i class="bi bi-bell"></i>
+                    {% if notificacoes|length > 0 %}
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger topbar-badge">
+                        {{ notificacoes|length }}
+                    </span>
+                    {% endif %}
+                </a>
                 <a href="{% url 'sindico_financeiro' %}" class="topbar-icon position-relative" title="Cobranças">
                     <i class="bi bi-cash-coin"></i>
                     <span id="badge-cobrancas-top" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger topbar-badge d-none"></span>

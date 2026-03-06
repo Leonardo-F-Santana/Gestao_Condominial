@@ -8,7 +8,7 @@
 <!-- Filtros -->
 <div class="card card-custom mb-4">
     <div class="card-body py-3">
-        <form method="GET" class="d-flex align-items-center gap-2">
+        <form method="GET" class="d-flex align-items-center gap-2 flex-wrap">
             <span class="text-muted"><i class="bi bi-funnel"></i> Status:</span>
             <select name="status" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
                 <option value="TODOS" {% if status_filtro == 'TODOS' %}selected{% endif %}>Todas</option>
@@ -16,101 +16,113 @@
                 <option value="EM_ANALISE" {% if status_filtro == 'EM_ANALISE' %}selected{% endif %}>Em Análise</option>
                 <option value="RESOLVIDA" {% if status_filtro == 'RESOLVIDA' %}selected{% endif %}>Resolvidas</option>
             </select>
+            <div class="ms-auto d-flex align-items-center gap-2">
+                <input type="text" name="q" value="{{ request.GET.q }}" class="form-control form-control-sm w-auto" placeholder="Buscar por morador ou infrator...">
+                <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-search"></i> Buscar</button>
+            </div>
         </form>
     </div>
 </div>
 
-<div class="card card-custom">
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>ID</th>
-                        <th>Data</th>
-                        <th>Autor (Morador)</th>
-                        <th>Infrator / Ref.</th>
-                        <th>Status</th>
-                        <th class="text-end">Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for o in ocorrencias %}
-                    <tr>
-                        <td class="text-muted">#{{ o.id }}</td>
-                        <td>{{ o.data_registro|date:"d/m/Y H:i" }}</td>
-                        <td>
-                            <div class="fw-bold">{{ o.autor.nome }}</div>
-                            <small class="text-muted">{{ o.autor.bloco|default:"" }} {{ o.autor.apartamento|default:"" }}</small>
-                        </td>
-                        <td>{{ o.infrator|default:"<span class='text-muted'>Não informado</span>" }}</td>
-                        <td>
-                            {% if o.status == 'REGISTRADA' %}
-                                <span class="badge bg-secondary">Registrada</span>
-                            {% elif o.status == 'EM_ANALISE' %}
-                                <span class="badge bg-warning text-dark">Em Análise</span>
-                            {% elif o.status == 'RESOLVIDA' %}
-                                <span class="badge bg-success">Resolvida</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-end">
-                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#ocorrenciaModal{{ o.id }}" title="Ver e Gerenciar">
-                                <i class="bi bi-search"></i>
-                            </button>
-                        </td>
-                    </tr>
-
-                    <!-- Modal Gerenciar Ocorrencia -->
-                    <div class="modal fade" id="ocorrenciaModal{{ o.id }}" tabindex="-1">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">Ocorrência #{{ o.id }}</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <div class="mb-3">
-                                        <label class="text-muted small d-block">Autor</label>
-                                        <div class="fw-bold">{{ o.autor.nome }} ({{ o.autor.bloco|default:"" }} {{ o.autor.apartamento|default:"" }})</div>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="text-muted small d-block">Possível Infrator</label>
-                                        <div>{{ o.infrator|default:"-" }}</div>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="text-muted small d-block">Descrição da Ocorrência</label>
-                                        <div class="p-3 bg-light rounded text-secondary text-pre-wrap">{{ o.descricao }}</div>
-                                    </div>
-                                    
-                                    <hr>
-                                    
-                                    <form method="POST" action="{% url 'sindico_alterar_status_ocorrencia' o.id %}">
-                                        {% csrf_token %}
-                                        <label class="fw-bold mb-2">Ação / Mudar Status</label>
-                                        <div class="d-flex gap-2">
-                                            <select name="status" class="form-select">
-                                                <option value="REGISTRADA" {% if o.status == 'REGISTRADA' %}selected{% endif %}>Registrada</option>
-                                                <option value="EM_ANALISE" {% if o.status == 'EM_ANALISE' %}selected{% endif %}>Em Análise</option>
-                                                <option value="RESOLVIDA" {% if o.status == 'RESOLVIDA' %}selected{% endif %}>Resolvida</option>
-                                            </select>
-                                            <button type="submit" class="btn btn-primary">Salvar</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
+<div class="row">
+    {% for o in ocorrencias %}
+    <div class="col-12 mb-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100 cobranca-card">
+            <div class="card-body p-4">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                    <!-- Detalhes -->
+                    <div class="flex-grow-1">
+                        <h5 class="fw-bold mb-1 text-dark">Morador: {{ o.autor.nome }}</h5>
+                        <p class="text-muted small mb-2"><i class="bi bi-person me-1"></i> Infrator / Ref: <strong>{{ o.infrator|default:"Não informado" }}</strong></p>
+                        <p class="text-secondary small mb-2">{{ o.descricao|truncatechars:100 }}</p>
+                        <p class="text-muted small mb-0"><i class="bi bi-calendar-event me-1"></i> Data do Registro: <strong>{{ o.data_registro|date:"d/m/Y H:i" }}</strong></p>
                     </div>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6" class="text-center py-5 text-muted">
-                            <i class="bi bi-journal-x icon-2xl"></i>
-                            <p class="mt-2 text-muted">Nenhuma ocorrência encontrada.</p>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                    
+                    <!-- Status -->
+                    <div class="text-md-end text-start">
+                        {% if o.status == 'REGISTRADA' %}
+                            <span class="badge bg-secondary rounded-pill px-3 py-2"><i class="bi bi-clock me-1"></i>Registrada</span>
+                        {% elif o.status == 'EM_ANALISE' %}
+                            <span class="badge bg-warning text-dark rounded-pill px-3 py-2"><i class="bi bi-search me-1"></i>Em Análise</span>
+                        {% elif o.status == 'RESOLVIDA' %}
+                            <span class="badge bg-success rounded-pill px-3 py-2"><i class="bi bi-check-circle me-1"></i>Resolvida</span>
+                        {% endif %}
+                        <div class="mt-2 text-muted small">ID: #{{ o.id }}</div>
+                    </div>
+                    
+                    <!-- Ações -->
+                    <div class="mt-3 mt-md-0 d-flex flex-wrap align-items-center justify-content-md-end gap-2 border-top border-md-top-0 pt-3 pt-md-0 ps-md-3 min-w-180">
+                        <button type="button" class="btn btn-outline-primary rounded-pill w-100 fw-semibold py-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#ocorrenciaModal{{ o.id }}" title="Ver e Gerenciar">
+                            <i class="bi bi-eye me-1"></i> Ver Detalhes / Responder
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
+    <!-- Modal Gerenciar Ocorrencia -->
+    <div class="modal fade" id="ocorrenciaModal{{ o.id }}" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 rounded-4 shadow">
+                <div class="modal-header bg-light border-0 rounded-top-4">
+                    <h5 class="modal-title fw-bold text-dark"><i class="bi bi-exclamation-triangle text-warning me-2"></i>Ocorrência #{{ o.id }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="text-muted small fw-bold d-block text-uppercase mb-1">Autor</label>
+                        <div class="fw-semibold text-dark fs-6">{{ o.autor.nome }} <span class="badge bg-secondary ms-2 fw-normal">{{ o.autor.bloco|default:"" }} {{ o.autor.apartamento|default:"" }}</span></div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="text-muted small fw-bold d-block text-uppercase mb-1">Possível Infrator</label>
+                        <div class="text-dark">{{ o.infrator|default:"-" }}</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="text-muted small fw-bold d-block text-uppercase mb-1">Descrição</label>
+                        <div class="p-3 bg-light rounded-3 text-secondary text-pre-wrap small">{{ o.descricao }}</div>
+                    </div>
+                    
+                    {% if o.foto %}
+                    <div class="mb-4">
+                        <label class="text-muted small fw-bold d-block text-uppercase mb-2">Anexo / Prova</label>
+                        <a href="{{ o.foto.url }}" target="_blank" class="btn btn-outline-info rounded-pill px-4 shadow-sm fw-semibold w-100">
+                            <i class="bi bi-file-earmark-image me-2"></i> Ver Arquivo Anexado
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    <hr class="text-muted opacity-25 my-4">
+                    
+                    <form method="POST" action="{% url 'sindico_alterar_status_ocorrencia' o.id %}">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label class="fw-bold mb-2 text-dark"><i class="bi bi-chat-right-text me-2 text-primary"></i>Sua Resposta / Providência</label>
+                            <textarea name="resposta_sindico" class="form-control bg-light" rows="3" placeholder="Digite uma resposta ou providência para notificar o morador...">{{ o.resposta_sindico }}</textarea>
+                            <div class="form-text mt-2"><i class="bi bi-info-circle me-1"></i>O morador receberá uma notificação quando você salvar.</div>
+                        </div>
+                        
+                        <label class="fw-bold mb-2 text-dark"><i class="bi bi-sliders me-2 text-primary"></i>Ação / Alterar Status</label>
+                        <div class="d-flex gap-2">
+                            <select name="status" class="form-select bg-light fw-semibold">
+                                <option value="REGISTRADA" {% if o.status == 'REGISTRADA' %}selected{% endif %}>Registrada</option>
+                                <option value="EM_ANALISE" {% if o.status == 'EM_ANALISE' %}selected{% endif %}>Em Análise</option>
+                                <option value="RESOLVIDA" {% if o.status == 'RESOLVIDA' %}selected{% endif %}>Resolvida</option>
+                            </select>
+                            <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">Salvar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center text-muted py-5">
+        <i class="bi bi-journal-x empty-state-icon-large opacity-50" style="font-size: 3rem;"></i>
+        <p class="mt-3 mb-0 fw-semibold fs-5">Nenhuma ocorrência encontrada.</p>
+    </div>
+    {% endfor %}
 </div>
 {% endblock %}

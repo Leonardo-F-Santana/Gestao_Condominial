@@ -182,7 +182,8 @@ class Encomenda(models.Model):
 
 class Solicitacao(models.Model):
     TIPOS_CHOICES = [
-        ('RECLAMACAO', '📢 Reclamação'),
+        ('DUVIDA', '❓ Dúvida'),
+        ('SUGESTAO', '💡 Sugestão'),
         ('MANUTENCAO', '🛠️ Manutenção'),
         ('MUDANCA', '🚚 Mudança'),
         ('OUTRO', '📝 Outro'),
@@ -245,6 +246,7 @@ class Notificacao(models.Model):
         ('solicitacao', '📋 Nova Solicitação'),
         ('resposta_solicitacao', '💬 Resposta de Solicitação'),
         ('reserva', '📅 Reserva de Espaço'),
+        ('ocorrencia', '🚨 Nova Ocorrência'),
     ]
 
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notificacoes')
@@ -360,7 +362,9 @@ class Ocorrencia(models.Model):
     autor = models.ForeignKey(Morador, on_delete=models.CASCADE, related_name='ocorrencias_registradas', verbose_name="Autor da Ocorrência")
     infrator = models.CharField(max_length=200, blank=True, verbose_name="Possível Infrator/Unidade")
     descricao = models.TextField(verbose_name="Descrição da Ocorrência")
+    foto = models.FileField(upload_to='ocorrencias/%Y/%m/', blank=True, null=True, verbose_name="Foto/Prova")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='REGISTRADA', verbose_name="Status")
+    resposta_sindico = models.TextField(blank=True, verbose_name="Resposta do Síndico")
     data_registro = models.DateTimeField(auto_now_add=True, verbose_name="Data do Registro")
 
     def __str__(self):

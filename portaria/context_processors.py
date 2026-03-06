@@ -17,11 +17,23 @@ def notificacoes(request):
     """
     if request.user.is_authenticated:
         try:
-            from .models import Notificacao, Mensagem
+            from .models import Notificacao, Mensagem, Cobranca
+            
+            cobrancas_pendentes_count = 0
+            try:
+                morador = getattr(request.user, 'morador', None)
+                if morador:
+                    cobrancas_pendentes_count = Cobranca.objects.filter(
+                        morador=morador, status__in=['PENDENTE', 'ATRASADO']
+                    ).count()
+            except Exception:
+                pass
+
             return {
                 'notificacoes': Notificacao.objects.filter(usuario=request.user, lida=False),
-                'mensagens_nao_lidas': Mensagem.objects.filter(destinatario=request.user, lida=False).count()
+                'mensagens_nao_lidas': Mensagem.objects.filter(destinatario=request.user, lida=False).count(),
+                'cobrancas_pendentes_count': cobrancas_pendentes_count,
             }
         except ImportError:
             pass
-    return {'notificacoes': [], 'mensagens_nao_lidas': 0}
+    return {'notificacoes': [], 'mensagens_nao_lidas': 0, 'cobrancas_pendentes_count': 0}

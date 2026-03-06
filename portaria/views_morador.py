@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.utils import timezone
@@ -141,6 +142,10 @@ def minhas_cobrancas(request):
             
             comprovante = request.FILES.get('comprovante')
             if comprovante:
+                content_type = getattr(comprovante, 'content_type', '')
+                if content_type.startswith('video/') or str(comprovante.name).lower().endswith(('.mp4', '.avi', '.mov', '.mkv', '.webm')):
+                    messages.error(request, "O envio de vídeos não é permitido para o comprovante.")
+                    return redirect('morador_cobrancas')
                 cobranca.comprovante = comprovante
                 
             cobranca.status = 'EM_ANALISE'
@@ -158,10 +163,23 @@ def minhas_cobrancas(request):
             messages.success(request, 'Aviso de pagamento enviado com sucesso. O síndico analisará o comprovante.')
             return redirect('morador_cobrancas')
 
-    cobrancas_list = Cobranca.objects.filter(
+    status_filter = request.GET.get('status')
+    data_inicio = request.GET.get('data_inicio')
+    data_fim = request.GET.get('data_fim')
+
+    queryset = Cobranca.objects.filter(
         morador=morador,
         condominio=morador.condominio
-    ).order_by('-data_vencimento')
+    )
+    
+    if status_filter:
+        queryset = queryset.filter(status=status_filter)
+    if data_inicio:
+        queryset = queryset.filter(data_vencimento__gte=data_inicio)
+    if data_fim:
+        queryset = queryset.filter(data_vencimento__lte=data_fim)
+
+    cobrancas_list = queryset.order_by('-data_criacao')
 
     paginator = Paginator(cobrancas_list, 10)
     page_number = request.GET.get('page')
@@ -250,6 +268,12 @@ def nova_solicitacao(request):
         tipo = request.POST.get('tipo')
         descricao = request.POST.get('descricao')
         arquivo = request.FILES.get('arquivo')
+        
+        if arquivo:
+            content_type = getattr(arquivo, 'content_type', '')
+            if content_type.startswith('video/') or str(arquivo.name).lower().endswith(('.mp4', '.avi', '.mov', '.mkv', '.webm')):
+                messages.error(request, "O envio de vídeos não é permitido.")
+                return redirect('morador_nova_solicitacao')
 
         if tipo and descricao:
             sol_kwargs = dict(
@@ -564,14 +588,37 @@ def ocorrencias(request):
     if request.method == 'POST':
         infrator = request.POST.get('infrator', '').strip()
         descricao = request.POST.get('descricao', '').strip()
+        foto = request.FILES.get('foto')
+        
+        if foto:
+            content_type = getattr(foto, 'content_type', '')
+            if content_type.startswith('video/') or str(foto.name).lower().endswith(('.mp4', '.avi', '.mov', '.mkv', '.webm')):
+                messages.error(request, "O envio de vídeos não é permitido.")
+                return redirect('morador_ocorrencias')
         
         if descricao:
-            Ocorrencia.objects.create(
+            ocorrencia = Ocorrencia.objects.create(
                 condominio=condominio,
                 autor=morador,
                 infrator=infrator,
-                descricao=descricao
+                descricao=descricao,
+                foto=foto
             )
+            
+            # Notificar síndicos do condomínio
+            if condominio:
+                User_model = get_user_model()
+                sindicos = User_model.objects.filter(condominio=condominio, tipo_usuario='sindico')
+                notificacoes = [
+                    Notificacao(
+                        usuario=sindico,
+                        tipo='ocorrencia',
+                        mensagem=f'O morador {morador.nome[:30]} abriu uma ocorrência.',
+                        link='/sindico/ocorrencias/'
+                    ) for sindico in sindicos
+                ]
+                Notificacao.objects.bulk_create(notificacoes)
+
             messages.success(request, 'Ocorrência registrada com sucesso.')
             return redirect('morador_ocorrencias')
         else:

@@ -66,6 +66,11 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'morador_ocorrencias' %}active{% endif %}" href="{% url 'morador_ocorrencias' %}">
+                            <i class="bi bi-shield-exclamation text-danger"></i> Ocorrências (Livro Negro)
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link {% if 'reserva' in request.resolver_match.url_name or 'areas' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'morador_reservas' %}">
                             <i class="bi bi-calendar-check-fill"></i> Reservas
                             {% if notif_reservas %}<span class="badge bg-danger rounded-pill ms-1">{{ notif_reservas }}</span>{% endif %}
@@ -74,7 +79,11 @@
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'morador_cobrancas' %}active{% endif %}" href="{% url 'morador_cobrancas' %}">
                             <i class="bi bi-receipt"></i> Cobranças
-                            <span id="badge-cobrancas-top" class="badge bg-danger rounded-pill ms-1 d-none"></span>
+                            {% if cobrancas_pendentes_count > 0 %}
+                                <span id="badge-cobrancas-top" class="badge bg-danger rounded-pill ms-1 badge-notificacao">{{ cobrancas_pendentes_count }}</span>
+                            {% else %}
+                                <span id="badge-cobrancas-top" class="badge bg-danger rounded-pill ms-1 d-none"></span>
+                            {% endif %}
                         </a>
                     </li>
                 </ul>
@@ -110,45 +119,44 @@
     </div>
 
     <!-- Bottom Navigation -->
-    <div class="bottom-nav d-md-none">
-        <a href="{% url 'morador_home' %}" class="{% if request.resolver_match.url_name == 'morador_home' %}active{% endif %}">
-            <i class="bi bi-house-heart{% if request.resolver_match.url_name == 'morador_home' %}-fill{% endif %}"></i>
-            <span>Início</span>
+    <div class="bottom-nav d-md-none d-flex justify-content-between align-items-center w-100 px-2">
+        <a href="{% url 'morador_home' %}" class="text-center flex-fill {% if request.resolver_match.url_name == 'morador_home' %}active{% endif %}">
+            <span class="icon-badge-wrapper">
+                <i class="bi bi-house-heart{% if request.resolver_match.url_name == 'morador_home' %}-fill{% endif %}"></i>
+            </span>
+            <span style="font-size: 0.65rem; white-space: nowrap; display: block;">Início</span>
         </a>
-        <a href="{% url 'morador_cobrancas' %}" class="{% if 'cobrancas' in request.resolver_match.url_name %}active{% endif %}">
+        <a href="{% url 'morador_cobrancas' %}" class="text-center flex-fill {% if 'cobrancas' in request.resolver_match.url_name %}active{% endif %}">
             <span class="icon-badge-wrapper">
                 <i class="bi bi-receipt{% if 'cobrancas' in request.resolver_match.url_name %}-cutoff{% endif %}"></i>
-                <span id="badge-cobrancas-bottom" class="notification-badge d-none"></span>
+                {% if cobrancas_pendentes_count > 0 %}
+                    <span id="badge-cobrancas-bottom" class="notification-badge">{{ cobrancas_pendentes_count }}</span>
+                {% else %}
+                    <span id="badge-cobrancas-bottom" class="notification-badge d-none"></span>
+                {% endif %}
             </span>
-            <span>Cobranças</span>
+            <span style="font-size: 0.65rem; white-space: nowrap; display: block;">Cobranças</span>
         </a>
-        <a href="{% url 'morador_reservas' %}" class="{% if 'reserva' in request.resolver_match.url_name or 'areas' in request.resolver_match.url_name %}active{% endif %}">
+        <a href="{% url 'morador_reservas' %}" class="text-center flex-fill {% if 'reserva' in request.resolver_match.url_name or 'areas' in request.resolver_match.url_name %}active{% endif %}">
             <span class="icon-badge-wrapper">
                 <i class="bi bi-calendar-check{% if 'reserva' in request.resolver_match.url_name or 'areas' in request.resolver_match.url_name %}-fill{% endif %}"></i>
                 {% if notif_reservas %}<span class="notification-badge">{{ notif_reservas }}</span>{% endif %}
             </span>
-            <span>Reservas</span>
+            <span style="font-size: 0.65rem; white-space: nowrap; display: block;">Reservas</span>
         </a>
-        <a href="{% url 'morador_solicitacoes' %}" class="{% if 'solicitac' in request.resolver_match.url_name %}active{% endif %}">
+        <a href="{% url 'morador_solicitacoes' %}" class="text-center flex-fill {% if 'solicitac' in request.resolver_match.url_name %}active{% endif %}">
             <span class="icon-badge-wrapper">
                 <i class="bi bi-clipboard2{% if 'solicitac' in request.resolver_match.url_name %}-check-fill{% else %}-check{% endif %}"></i>
                 {% if notif_solicitacoes %}<span class="notification-badge">{{ notif_solicitacoes }}</span>{% endif %}
             </span>
-            <span>Pedidos</span>
+            <span style="font-size: 0.65rem; white-space: nowrap; display: block;">Solicitações</span>
         </a>
-        <a href="{% url 'morador_avisos' %}" class="{% if 'aviso' in request.resolver_match.url_name %}active{% endif %}">
+        <a href="{% url 'morador_avisos' %}" class="text-center flex-fill {% if 'aviso' in request.resolver_match.url_name %}active{% endif %}">
             <span class="icon-badge-wrapper">
                 <i class="bi bi-megaphone{% if 'aviso' in request.resolver_match.url_name %}-fill{% endif %}"></i>
                 {% if avisos_nao_lidos > 0 %}<span class="notification-badge">{{ avisos_nao_lidos }}</span>{% endif %}
             </span>
-            <span>Avisos</span>
-        </a>
-        <a href="{% url 'morador_mensagens' %}" class="{% if 'mensagens' in request.resolver_match.url_name %}active{% endif %}">
-            <span class="icon-badge-wrapper">
-                <i class="bi bi-chat-dots{% if 'mensagens' in request.resolver_match.url_name %}-fill{% endif %}"></i>
-                {% if mensagens_nao_lidas > 0 %}<span class="notification-badge">{{ mensagens_nao_lidas }}</span>{% endif %}
-            </span>
-            <span>Mensagens</span>
+            <span style="font-size: 0.65rem; white-space: nowrap; display: block;">Avisos</span>
         </a>
     </div>
 
@@ -204,20 +212,7 @@
         }
         
         document.addEventListener("DOMContentLoaded", function() {
-            var pendingCobrancas = [
-                {% if morador %}
-                {% for c in morador.cobrancas.all %}
-                    {% if c.status == 'PENDENTE' or c.status == 'ATRASADO' %}1,{% endif %}
-                {% endfor %}
-                {% endif %}
-            ];
-            var count = pendingCobrancas.length;
-            if (count > 0) {
-                var bTop = document.getElementById('badge-cobrancas-top');
-                var bBottom = document.getElementById('badge-cobrancas-bottom');
-                if (bTop) { bTop.textContent = count; bTop.style.display = 'inline-block'; }
-                if (bBottom) { bBottom.textContent = count; bBottom.style.display = 'block'; }
-            }
+            // A renderização de badge é feita via Django template tags agora
         });
     </script>
     {% block scripts %}{% endblock %}

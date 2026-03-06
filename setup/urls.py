@@ -78,7 +78,8 @@ from portaria.views_sindico import (
     mensagens_sindico,
     ocorrencias_sindico,
     alterar_status_ocorrencia,
-    editar_perfil_sindico
+    editar_perfil_sindico,
+    sindico_notificacoes
 )
 
 urlpatterns = [
@@ -181,6 +182,7 @@ urlpatterns = [
     path('sindico/mensagens/', mensagens_sindico, name='sindico_mensagens'),
     path('sindico/ocorrencias/', ocorrencias_sindico, name='sindico_ocorrencias'),
     path('sindico/ocorrencias/<int:ocorrencia_id>/status/', alterar_status_ocorrencia, name='sindico_alterar_status_ocorrencia'),
+    path('sindico/notificacoes/', sindico_notificacoes, name='sindico_notificacoes'),
     path('sindico/perfil/editar/', editar_perfil_sindico, name='editar_perfil_sindico'),
     # Compatibilidade com rota antiga
     path('sindico/condominio/<int:condominio_id>/', dashboard_condominio, name='sindico_dashboard'),

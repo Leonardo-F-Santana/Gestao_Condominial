@@ -89,7 +89,7 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Imagem</label>
-                                <input type="file" name="imagem" class="form-control" accept="image/*">
+                                <input type="file" name="imagem" class="form-control" accept="image/*, .pdf, .doc, .docx">
                                 {% if area.imagem %}
                                 <small class="text-muted">Imagem atual: {{ area.imagem.name }}</small>
                                 {% endif %}
@@ -154,7 +154,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Imagem</label>
-                        <input type="file" name="imagem" class="form-control" accept="image/*">
+                        <input type="file" name="imagem" class="form-control" accept="image/*, .pdf, .doc, .docx">
                     </div>
                 </div>
                 <div class="modal-footer">

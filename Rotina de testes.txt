@@ -1,0 +1,51 @@
+Fazer um teste completo (o que chamamos de **QA - Quality Assurance**) é o passo mais importante antes de colocar o sistema nas mãos dos clientes. Como a sua plataforma tem vários tipos de usuários, o ideal é simular a "jornada real" do dia a dia do condomínio.
+
+Para garantir que a refatoração do CSS e as novas lógicas não quebraram nada, abra o seu navegador em uma **Guia Anônima** (para evitar que o cache esconda erros) e siga este roteiro de 4 passos:
+
+### 🧪 Roteiro de Testes (Checklist KS Tech)
+
+#### Passo 1: O Teste do Síndico (Gestão)
+
+Faça login com a conta de um Síndico de teste.
+
+1. **Áreas Comuns (CRUD):** Vá na página de Áreas Comuns. Crie uma nova área (ex: "Churrasqueira 2"). Edite o nome dela e, em seguida, exclua. Se tudo funcionar e a mensagem verdinha de sucesso aparecer, a lógica de banco de dados está perfeita.
+2. **Avisos (Multitenant):** Crie um aviso com um título **bem longo** (para testarmos aquele ajuste visual que fizemos).
+3. **Cobranças:** Gere uma cobrança de teste para um morador específico.
+
+#### Passo 2: O Teste do Morador (A Experiência do Cliente)
+
+Saia da conta do Síndico e faça login com a conta do morador que recebeu a cobrança (você pode apertar **F12** no teclado e clicar no ícone de celular para simular a tela de um smartphone).
+
+1. **O Bug do Balão de Aviso:** Vá na tela de Avisos. Verifique se o aviso com título longo que o Síndico acabou de criar está alinhado e se a setinha para baixo não "vazou" para fora do balão.
+2. **O Bug da Cobrança "Travada":** Vá na tela de Cobranças. Clique no botão de "Pagar/Detalhes". O fundo deve escurecer e o modal com as informações do PIX/Boleto deve aparecer na frente, sem travar a tela. Feche o modal no "X".
+3. **Perfil:** Clique no ícone de Usuário/Perfil e veja se consegue alterar apenas o telefone e o e-mail, e se o botão de "Alterar Senha" está lá.
+
+#### Passo 3: O Teste da Portaria (A Prova de Fogo Offline)
+
+Saia do Morador e faça login como Portaria.
+
+1. **Layout Padrão:** Verifique se os botões de registrar visitantes e encomendas mantiveram as cores (se ficaram brancos/sem estilo, significa que o CSS da portaria não carregou).
+2. **O Teste Offline (PWA):** - Na página da Portaria, desconecte a internet do seu computador (desligue o Wi-Fi).
+* O selo verde "Online" no topo da tela deve mudar para "Offline".
+* Tente registrar um novo **Visitante**. O sistema deve salvar, limpar o formulário e avisar que o registro está na fila de sincronização.
+* Ligue a internet novamente. O sistema deve enviar o dado para o banco de dados automaticamente.
+
+
+
+#### Passo 4: O Teste do Dono (Admin do SaaS)
+
+Faça login na conta de Superusuário (Admin do Django).
+
+1. **Isolamento Total:** Verifique se as páginas de Visitantes, Encomendas e Avisos realmente **sumiram** do seu painel geral. O seu painel deve estar limpo, focado apenas em gerenciar os "Condomínios" e os "Usuários".
+2. **Filtros:** Na lista de Usuários, teste os filtros laterais para ver se consegue encontrar rapidamente os moradores de um condomínio específico.
+
+---
+
+### 🚨 Como identificar e corrigir falhas durante o teste:
+
+Se durante esse roteiro alguma página aparecer "desconfigurada" (textos pretos em fundo branco) ou algum botão não funcionar:
+
+1. Aperte **F12**, vá na aba **Console**. Se houver letras vermelhas dizendo `404 Not Found` sobre algum arquivo `.css`, é apenas o servidor que não atualizou os estáticos.
+2. Basta ir no painel do PythonAnywhere, rodar `python manage.py collectstatic --no-input` no terminal e dar Reload na aba Web.
+
+Gostaria de começar os testes agora? Se esbarrar em qualquer erro durante esse roteiro, é só me mandar a mensagem de erro aqui e nós "blindamos" o código na hora!

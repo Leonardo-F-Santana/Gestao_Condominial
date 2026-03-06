@@ -145,6 +145,12 @@ def moradores_sindico(request):
                 messages.error(request, "Nenhum arquivo selecionado.")
                 return redirect('sindico_moradores')
             
+            # Validação anti-vídeo
+            content_type = getattr(arquivo, 'content_type', '')
+            if content_type.startswith('video/') or str(arquivo.name).lower().endswith(('.mp4', '.avi', '.mov', '.mkv', '.webm')):
+                messages.error(request, "O envio de vídeos não é permitido. Envie apenas planilhas (.xlsx, .xls, .csv).")
+                return redirect('sindico_moradores')
+            
             nome_arquivo = arquivo.name.lower()
             rows = []
             
@@ -292,8 +298,23 @@ def moradores_sindico(request):
                     messages.info(request, f"Login criado: {username}")
                 return redirect('sindico_moradores')
     
-    moradores = Morador.objects.filter(condominio=condominio).order_by('bloco', 'apartamento')
-    ctx = sindico_context(request, {'moradores': moradores}, active_page='moradores')
+    # Implementação da busca por moradores
+    query_busca = request.GET.get('q', '').strip()
+    moradores = Morador.objects.filter(condominio=condominio)
+    
+    if query_busca:
+        moradores = moradores.filter(
+            Q(nome__icontains=query_busca) |
+            Q(apartamento__icontains=query_busca) |
+            Q(bloco__icontains=query_busca)
+        )
+        
+    moradores = moradores.order_by('bloco', 'apartamento')
+
+    ctx = sindico_context(request, {
+        'moradores': moradores,
+        'query_busca': query_busca,
+    }, active_page='moradores')
     return render(request, 'sindico/moradores.html', ctx)
 
 @login_required
@@ -583,6 +604,14 @@ def criar_aviso_sindico(request):
         imagem = request.FILES.get('imagem')
         arquivo = request.FILES.get('arquivo')
         
+        # Validação anti-vídeo
+        for f in [imagem, arquivo]:
+            if f:
+                content_type = getattr(f, 'content_type', '')
+                if content_type.startswith('video/') or str(f.name).lower().endswith(('.mp4', '.avi', '.mov', '.mkv', '.webm')):
+                    messages.error(request, "O envio de vídeos não é permitido. Envie apenas imagens ou documentos.")
+                    return redirect('sindico_avisos')
+
         if titulo and conteudo:
             aviso = Aviso.objects.create(
                 condominio=condominio,
@@ -629,10 +658,18 @@ def editar_aviso_sindico(request, aviso_id):
         
         imagem = request.FILES.get('imagem')
         if imagem:
+            content_type = getattr(imagem, 'content_type', '')
+            if content_type.startswith('video/') or str(imagem.name).lower().endswith(('.mp4', '.avi', '.mov', '.mkv', '.webm')):
+                messages.error(request, "O envio de vídeos não é permitido.")
+                return redirect('sindico_avisos')
             aviso.imagem = imagem
         
         arquivo = request.FILES.get('arquivo')
         if arquivo:
+            content_type = getattr(arquivo, 'content_type', '')
+            if content_type.startswith('video/') or str(arquivo.name).lower().endswith(('.mp4', '.avi', '.mov', '.mkv', '.webm')):
+                messages.error(request, "O envio de vídeos não é permitido.")
+                return redirect('sindico_avisos')
             aviso.arquivo = arquivo
         
         aviso.save()
@@ -686,6 +723,12 @@ def areas_comuns_sindico(request):
                 horario_fechamento = request.POST.get('horario_fechamento') or '22:00'
                 imagem = request.FILES.get('imagem')
 
+                if imagem:
+                    content_type = getattr(imagem, 'content_type', '')
+                    if content_type.startswith('video/') or str(imagem.name).lower().endswith(('.mp4', '.avi', '.mov', '.mkv', '.webm')):
+                        messages.error(request, "O envio de vídeos não é permitido.")
+                        return redirect('sindico_areas_comuns')
+
                 if nome:
                     area = AreaComum.objects.create(
                         condominio=condominio,
@@ -711,8 +754,15 @@ def areas_comuns_sindico(request):
                 area.horario_abertura = request.POST.get('horario_abertura') or area.horario_abertura
                 area.horario_fechamento = request.POST.get('horario_fechamento') or area.horario_fechamento
                 area.ativo = request.POST.get('ativo') == 'on'
-                if request.FILES.get('imagem'):
-                    area.imagem = request.FILES['imagem']
+                
+                imagem_nova = request.FILES.get('imagem')
+                if imagem_nova:
+                    content_type = getattr(imagem_nova, 'content_type', '')
+                    if content_type.startswith('video/') or str(imagem_nova.name).lower().endswith(('.mp4', '.avi', '.mov', '.mkv', '.webm')):
+                        messages.error(request, "O envio de vídeos não é permitido.")
+                        return redirect('sindico_areas_comuns')
+                    area.imagem = imagem_nova
+                    
                 area.save()
                 messages.success(request, f'Área "{area.nome}" atualizada!')
 
@@ -774,6 +824,12 @@ def reservas_sindico(request):
             horario_abertura = request.POST.get('horario_abertura') or '08:00'
             horario_fechamento = request.POST.get('horario_fechamento') or '22:00'
             imagem = request.FILES.get('imagem')
+
+            if imagem:
+                content_type = getattr(imagem, 'content_type', '')
+                if content_type.startswith('video/') or str(imagem.name).lower().endswith(('.mp4', '.avi', '.mov', '.mkv', '.webm')):
+                    messages.error(request, "O envio de vídeos não é permitido.")
+                    return redirect('sindico_reservas')
 
             if nome:
                 area = AreaComum.objects.create(
@@ -896,6 +952,12 @@ def financeiro_sindico(request):
             data_vencimento = request.POST.get('data_vencimento')
             arquivo_boleto = request.FILES.get('arquivo_boleto')
             chave_pix = request.POST.get('chave_pix', '').strip()
+            
+            if arquivo_boleto:
+                content_type = getattr(arquivo_boleto, 'content_type', '')
+                if content_type.startswith('video/') or str(arquivo_boleto.name).lower().endswith(('.mp4', '.avi', '.mov', '.mkv', '.webm')):
+                    messages.error(request, "O envio de vídeos não é permitido.")
+                    return redirect('sindico_financeiro')
             
             if morador_id and descricao and valor and data_vencimento:
                 morador = get_object_or_404(Morador, id=morador_id, condominio=condominio)
@@ -1032,8 +1094,16 @@ def ocorrencias_sindico(request):
         return redirect('sindico_home')
 
     status = request.GET.get('status', 'TODOS')
+    q = request.GET.get('q', '').strip()
     
     ocorrencias_list = Ocorrencia.objects.filter(condominio=condominio)
+    
+    if q:
+        ocorrencias_list = ocorrencias_list.filter(
+            Q(autor__nome__icontains=q) |
+            Q(infrator__icontains=q) |
+            Q(descricao__icontains=q)
+        )
     
     if status != 'TODOS':
         ocorrencias_list = ocorrencias_list.filter(status=status)
@@ -1056,14 +1126,24 @@ def alterar_status_ocorrencia(request, ocorrencia_id):
 
     if request.method == 'POST':
         novo_status = request.POST.get('status')
+        resposta_sindico = request.POST.get('resposta_sindico', '').strip()
         ocorrencia = get_object_or_404(Ocorrencia, id=ocorrencia_id, condominio=get_condominio_ativo(request))
         
         if novo_status in dict(Ocorrencia.STATUS_CHOICES).keys():
+            if resposta_sindico:
+                ocorrencia.resposta_sindico = resposta_sindico
             ocorrencia.status = novo_status
             ocorrencia.save()
             
-            # Notificar autor se resolvida
-            if novo_status == 'RESOLVIDA' and ocorrencia.autor.usuario:
+            # Notificar autor se houver resposta ou se resolvida
+            if resposta_sindico and ocorrencia.autor.usuario:
+                Notificacao.objects.create(
+                    usuario=ocorrencia.autor.usuario,
+                    tipo='geral',
+                    mensagem=f'O síndico respondeu a sua ocorrência registrada em {ocorrencia.data_registro.strftime("%d/%m")}.',
+                    link='/morador/ocorrencias/'
+                )
+            elif novo_status == 'RESOLVIDA' and ocorrencia.autor.usuario:
                 Notificacao.objects.create(
                     usuario=ocorrencia.autor.usuario,
                     tipo='geral',
@@ -1071,7 +1151,7 @@ def alterar_status_ocorrencia(request, ocorrencia_id):
                     link='/morador/ocorrencias/'
                 )
             
-            messages.success(request, f'Status da ocorrência alterado para {ocorrencia.get_status_display()}.')
+            messages.success(request, f'Status e resposta da ocorrência foram atualizados.')
     
     return redirect('sindico_ocorrencias')
 
@@ -1106,3 +1186,29 @@ def editar_perfil_sindico(request):
         'form': form,
     }, active_page='perfil')
     return render(request, 'sindico/editar_perfil.html', context)
+
+
+@login_required
+def sindico_notificacoes(request):
+    """Exibe todas as notificações do síndico."""
+    if not is_sindico(request.user):
+        messages.error(request, 'Acesso negado: Perfil de Síndico requerido.')
+        return redirect('home')
+        
+    condominio = get_condominio_ativo(request)
+    if not condominio:
+        return redirect('sindico_home')
+        
+    # Buscar todas as notificações do usuário, ordenadas por mais recentes
+    notificacoes = Notificacao.objects.filter(
+        usuario=request.user
+    ).order_by('-id')
+    
+    # Marcar todas como lidas ao entrar na página
+    Notificacao.objects.filter(usuario=request.user, lida=False).update(lida=True)
+    
+    context = sindico_context(request, {
+        'notificacoes_lista': notificacoes
+    }, active_page='notificacoes')
+    
+    return render(request, 'sindico/notificacoes_lista.html', context)

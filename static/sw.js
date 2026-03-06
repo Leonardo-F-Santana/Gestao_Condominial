@@ -36,14 +36,14 @@ self.addEventListener('activate', event => {
 
 // Fetch: network-first strategy (fall back to cache for offline)
 self.addEventListener('fetch', event => {
-    // Skip non-GET requests
-    if (event.request.method !== 'GET') return;
-
-    // By-pass chache on sensitive auth and admin paths
+    // By-pass cache on sensitive auth and admin paths independent of HTTP method
     const bypassRoutes = ['/login', '/logout', '/admin', '/password_reset', '/reset', '/api/', '/sindico/', '/morador/'];
     if (bypassRoutes.some(route => event.request.url.includes(route))) {
-        return; 
+        return; // Allows the browser to handle the request normally (Network only)
     }
+
+    // Skip non-GET requests for the rest
+    if (event.request.method !== 'GET') return;
 
     event.respondWith(
         fetch(event.request)

@@ -7,6 +7,18 @@ User = get_user_model()
 from django.core.validators import RegexValidator
 
 
+# Validador de domínio de e-mail customizado
+def validate_email_domain(email):
+    if not email:
+        return email
+    domain = email.split('@')[-1].lower() if '@' in email else ''
+    
+    # Domínios confiáveis com TLDs bem conhecidos. Rejeita falhas de digitação curtas como ".co" e ".con"
+    valid_tlds = ['.com', '.com.br', '.net', '.org', '.edu', '.gov', '.mil', '.int', '.io', '.coop']
+    if not any(domain.endswith(tld) for tld in valid_tlds) or domain.startswith('.') or domain.endswith('.co') or domain.endswith('.con'):
+        raise forms.ValidationError("Informe um e-mail com um domínio válido (ex: .com, .com.br, .net, .org).")
+    return email
+
 # Validador que permite espaços no username
 username_validator = RegexValidator(
     regex=r'^[\w.@+\- ]+$',
@@ -187,6 +199,10 @@ class MoradorPerfilForm(forms.ModelForm):
         self.fields['bloco'].disabled = True
         self.fields['condominio'].disabled = True
 
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        return validate_email_domain(email)
+
     def save(self, commit=True):
         morador = super().save(commit=False)
         if self.user:
@@ -220,6 +236,10 @@ class SindicoPerfilForm(forms.ModelForm):
             self.fields['email'].initial = self.user.email
             self.fields['email'].widget.attrs.update({'class': 'form-control'})
         self.fields['condominio'].disabled = True
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        return validate_email_domain(email)
 
     def save(self, commit=True):
         sindico = super().save(commit=False)
