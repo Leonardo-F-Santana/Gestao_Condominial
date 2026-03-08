@@ -309,7 +309,7 @@ def moradores_sindico(request):
             Q(bloco__icontains=query_busca)
         )
         
-    moradores = moradores.order_by('bloco', 'apartamento')
+    moradores = moradores.order_by('nome', 'bloco', 'apartamento')
 
     ctx = sindico_context(request, {
         'moradores': moradores,

@@ -53,6 +53,21 @@ function copiarLink() {
     });
 }
 </script>
+
+<!-- Barra de Pesquisa -->
+<div class="card-section mb-08 p-3">
+    <form method="GET" action="{% url 'sindico_moradores' %}" class="d-flex gap-2">
+        <div class="input-group">
+            <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+            <input type="text" name="q" class="form-control border-start-0 ps-0" placeholder="Buscar por nome, bloco ou apartamento..." value="{{ query_busca }}">
+        </div>
+        <button type="submit" class="btn-exec bg-navy">Buscar</button>
+        {% if query_busca %}
+            <a href="{% url 'sindico_moradores' %}" class="btn-exec-outline bg-white text-muted">Limpar</a>
+        {% endif %}
+    </form>
+</div>
+
 <div class="card-section">
     <div class="card-section-body">
         {% for m in moradores %}
