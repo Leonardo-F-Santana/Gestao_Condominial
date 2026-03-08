@@ -15,6 +15,7 @@ const OfflineEngine = (function () {
     const DB_NAME = 'portaria_offline';
     const DB_VERSION = 2;
     let db = null;
+    let isSincronizando = false;
 
     // =====================
     // 1. IndexedDB Setup
@@ -153,27 +154,56 @@ const OfflineEngine = (function () {
             return Promise.resolve(false);
         }
 
+        if (isSincronizando) {
+            console.log('⏳ Sincronização já em andamento');
+            return Promise.resolve(false);
+        }
+
+        isSincronizando = true;
+
         return new Promise((resolve) => {
-            const tx = db.transaction(['visitantes_pendentes', 'encomendas_pendentes', 'solicitacoes_pendentes'], 'readonly');
+            const tx = db.transaction(['visitantes_pendentes', 'encomendas_pendentes', 'solicitacoes_pendentes'], 'readwrite');
             const visitantes = [];
             const encomendas = [];
             const solicitacoes = [];
 
-            tx.objectStore('visitantes_pendentes').getAll().onsuccess = function (e) {
-                e.target.result.forEach(v => visitantes.push(v));
+            const storeV = tx.objectStore('visitantes_pendentes');
+            storeV.getAll().onsuccess = function (e) {
+                e.target.result.forEach(v => {
+                    if (!v.sincronizando) {
+                        v.sincronizando = true;
+                        storeV.put(v);
+                        visitantes.push(v);
+                    }
+                });
             };
 
-            tx.objectStore('encomendas_pendentes').getAll().onsuccess = function (e) {
-                e.target.result.forEach(enc => encomendas.push(enc));
+            const storeE = tx.objectStore('encomendas_pendentes');
+            storeE.getAll().onsuccess = function (e) {
+                e.target.result.forEach(enc => {
+                    if (!enc.sincronizando) {
+                        enc.sincronizando = true;
+                        storeE.put(enc);
+                        encomendas.push(enc);
+                    }
+                });
             };
 
-            tx.objectStore('solicitacoes_pendentes').getAll().onsuccess = function (e) {
-                e.target.result.forEach(sol => solicitacoes.push(sol));
+            const storeS = tx.objectStore('solicitacoes_pendentes');
+            storeS.getAll().onsuccess = function (e) {
+                e.target.result.forEach(sol => {
+                    if (!sol.sincronizando) {
+                        sol.sincronizando = true;
+                        storeS.put(sol);
+                        solicitacoes.push(sol);
+                    }
+                });
             };
 
             tx.oncomplete = function () {
                 if (visitantes.length === 0 && encomendas.length === 0 && solicitacoes.length === 0) {
                     console.log('✅ Nada para sincronizar');
+                    isSincronizando = false;
                     atualizarBadgePendentes();
                     resolve(true);
                     return;
@@ -206,17 +236,24 @@ const OfflineEngine = (function () {
                         }))
                     })
                 })
-                    .then(r => r.json())
+                    .then(r => {
+                        if (!r.ok) {
+                            throw new Error(`Erro HTTP: ${r.status}`);
+                        }
+                        return r.json();
+                    })
                     .then(result => {
                         console.log('✅ Sync resultado:', result);
 
-                        // Limpar stores após sync bem-sucedido
+                        // Remover apenas os registros enviados com sucesso
                         const clearTx = db.transaction(['visitantes_pendentes', 'encomendas_pendentes', 'solicitacoes_pendentes'], 'readwrite');
-                        clearTx.objectStore('visitantes_pendentes').clear();
-                        clearTx.objectStore('encomendas_pendentes').clear();
-                        clearTx.objectStore('solicitacoes_pendentes').clear();
+                        
+                        visitantes.forEach(v => clearTx.objectStore('visitantes_pendentes').delete(v.tempId));
+                        encomendas.forEach(e => clearTx.objectStore('encomendas_pendentes').delete(e.tempId));
+                        solicitacoes.forEach(s => clearTx.objectStore('solicitacoes_pendentes').delete(s.tempId));
 
                         clearTx.oncomplete = () => {
+                            isSincronizando = false;
                             atualizarBadgePendentes();
                             const partes = [];
                             if (result.visitantes_criados) partes.push(`${result.visitantes_criados} visitante(s)`);
@@ -225,11 +262,39 @@ const OfflineEngine = (function () {
                             mostrarNotificacao(`✅ Sincronizado! ${partes.join(', ')} registrados por ${result.porteiro}.`, 'success');
                             resolve(true);
                         };
+                        clearTx.onerror = () => {
+                            isSincronizando = false;
+                            resolve(false);
+                        };
                     })
                     .catch(err => {
                         console.error('❌ Erro no sync:', err);
-                        mostrarNotificacao('❌ Erro ao sincronizar. Tentaremos novamente em breve.', 'danger');
-                        resolve(false);
+                        
+                        // Reverter flag "sincronizando"
+                        const revertTx = db.transaction(['visitantes_pendentes', 'encomendas_pendentes', 'solicitacoes_pendentes'], 'readwrite');
+                        
+                        visitantes.forEach(v => {
+                            v.sincronizando = false;
+                            revertTx.objectStore('visitantes_pendentes').put(v);
+                        });
+                        encomendas.forEach(e => {
+                            e.sincronizando = false;
+                            revertTx.objectStore('encomendas_pendentes').put(e);
+                        });
+                        solicitacoes.forEach(s => {
+                            s.sincronizando = false;
+                            revertTx.objectStore('solicitacoes_pendentes').put(s);
+                        });
+
+                        revertTx.oncomplete = () => {
+                            isSincronizando = false;
+                            mostrarNotificacao('❌ Erro ao sincronizar. Tentaremos novamente em breve.', 'danger');
+                            resolve(false);
+                        };
+                        revertTx.onerror = () => {
+                            isSincronizando = false;
+                            resolve(false);
+                        };
                     });
             };
         });
@@ -251,7 +316,7 @@ const OfflineEngine = (function () {
                 }
             }
             if (syncBtn) {
-                syncBtn.style.display = count > 0 ? 'inline-block' : 'none';
+                syncBtn.style.display = (count > 0 && navigator.onLine) ? 'inline-block' : 'none';
             }
         });
     }
@@ -293,40 +358,8 @@ const OfflineEngine = (function () {
     // =====================
     function interceptarFormularios() {
         // --- Formulário de Visitantes ---
-        const formVisitante = document.querySelector('form[action*="registrar_entrada"]'); // action url has registrar_entrada in views, or input hidden with registrar_entrada
-        if (!formVisitante) {
-            // Se formVisitante falhar, tenta pegar via input hidden 
-            const inputVisitante = document.querySelector('input[name="registrar_entrada"]');
-            if (inputVisitante && inputVisitante.closest('form')) {
-                const formReal = inputVisitante.closest('form');
-                formReal.addEventListener('submit', function (e) {
-                    if (navigator.onLine) return; // Online: deixa o form normal funcionar
-    
-                    e.preventDefault();
-                    const formData = new FormData(formReal);
-                    salvarVisitante({
-                        nome_completo: formData.get('nome'),
-                        cpf: formData.get('cpf') || '',
-                        data_nascimento: formData.get('data_nascimento') || '',
-                        placa_veiculo: formData.get('placa') || '',
-                        morador_id: formData.get('morador_id') || '',
-                        quem_autorizou: formData.get('quem_autorizou') || '',
-                        observacoes: formData.get('observacoes') || ''
-                    }).then(() => {
-                        formReal.reset();
-                        mostrarNotificacao('Visitante salvo offline — será sincronizado automaticamente quando a internet voltar.', 'warning');
-                        atualizarBadgePendentes();
-                        
-                        // Close modal if exists
-                        const modal = document.getElementById('modalEntrada');
-                        if (modal && typeof bootstrap !== 'undefined') {
-                            const bsModal = bootstrap.Modal.getInstance(modal);
-                            if (bsModal) bsModal.hide();
-                        }
-                    });
-                });
-            }
-        } else {
+        const formVisitante = document.getElementById('form-visitante');
+        if (formVisitante) {
             formVisitante.addEventListener('submit', function (e) {
                 if (navigator.onLine) return; // Online: deixa o form normal funcionar
 
@@ -342,6 +375,12 @@ const OfflineEngine = (function () {
                     observacoes: formData.get('observacoes') || ''
                 }).then(() => {
                     formVisitante.reset();
+                    // Restaurar Select2/Filtros simulando os fields originais se tiverem JS
+                    const selApto = document.getElementById('vis_filtro_apto');
+                    if(selApto) { selApto.disabled = true; selApto.innerHTML = '<option value="">Apto...</option>'; }
+                     const selMorador = document.getElementById('vis_select_morador');
+                    if(selMorador) { selMorador.disabled = true; selMorador.innerHTML = '<option value="" disabled selected>--- Aguardando Filtro ---</option>'; }
+
                     mostrarNotificacao('Visitante salvo offline — será sincronizado automaticamente quando a internet voltar.', 'warning');
                     atualizarBadgePendentes();
                 });
@@ -349,7 +388,7 @@ const OfflineEngine = (function () {
         }
 
         // --- Formulário de Encomendas ---
-        const formEncomenda = document.querySelector('form[action*="registrar_encomenda"]');
+        const formEncomenda = document.getElementById('form-encomenda');
         if (formEncomenda) {
             formEncomenda.addEventListener('submit', function (e) {
                 if (navigator.onLine) return;
@@ -367,6 +406,11 @@ const OfflineEngine = (function () {
                     destinatario_alternativo: formData.get('destinatario_alternativo') || ''
                 }).then(() => {
                     formEncomenda.reset();
+                    const selAptoE = document.getElementById('filtro_apto');
+                    if(selAptoE) { selAptoE.disabled = true; selAptoE.innerHTML = '<option value="">Apto...</option>'; }
+                     const selMoradorE = document.getElementById('select_morador_final');
+                    if(selMoradorE) { selMoradorE.disabled = true; selMoradorE.innerHTML = '<option value="" disabled selected>--- Aguardando Filtro ---</option>'; }
+
                     mostrarNotificacao('Encomenda salva offline — será sincronizada automaticamente quando a internet voltar.', 'warning');
                     atualizarBadgePendentes();
                 });
@@ -374,7 +418,7 @@ const OfflineEngine = (function () {
         }
 
         // --- Formulário de Solicitações ---
-        const formSolicitacao = document.querySelector('form[action*="registrar_solicitacao"]');
+        const formSolicitacao = document.getElementById('form-solicitacao');
         if (formSolicitacao) {
             formSolicitacao.addEventListener('submit', function (e) {
                 if (navigator.onLine) return;
@@ -392,6 +436,11 @@ const OfflineEngine = (function () {
                     morador_id: formData.get('morador_solicitacao') || ''
                 }).then(() => {
                     formSolicitacao.reset();
+                    const selAptoS = document.getElementById('sol_filtro_apto');
+                    if(selAptoS) { selAptoS.disabled = true; selAptoS.innerHTML = '<option value="">Apto...</option>'; }
+                     const selMoradorS = document.getElementById('sol_select_morador');
+                    if(selMoradorS) { selMoradorS.innerHTML = '<option value="">-- Área Comum --</option>'; }
+                    
                     mostrarNotificacao('Solicitação salva offline — será sincronizada automaticamente quando a internet voltar.', 'warning');
                     atualizarBadgePendentes();
                 });
@@ -403,7 +452,7 @@ const OfflineEngine = (function () {
         if (syncBtn) {
             syncBtn.addEventListener('click', function () {
                 syncBtn.disabled = true;
-                syncBtn.innerHTML = '<i class="bi bi-arrow-repeat spin-icon"></i> Sincronizando...';
+                syncBtn.innerHTML = '<i class="bi bi-arrow-repeat bi-spin"></i> Sincronizando...';
                 sincronizar().then(() => {
                     syncBtn.disabled = false;
                     syncBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Sincronizar';
@@ -426,6 +475,7 @@ const OfflineEngine = (function () {
         window.addEventListener('online', () => {
             console.log('🟢 Conexão restabelecida!');
             atualizarStatusConexao();
+            atualizarBadgePendentes(); // Re-checar o botão Sincronizar
             // Tentar sincronizar automaticamente após 2s (dar tempo para estabilizar)
             setTimeout(() => {
                 sincronizar().then(ok => {
@@ -440,6 +490,7 @@ const OfflineEngine = (function () {
         window.addEventListener('offline', () => {
             console.log('🔴 Conexão perdida!');
             atualizarStatusConexao();
+            atualizarBadgePendentes(); // Re-checar o botão Sincronizar (deve sumir)
             mostrarNotificacao('⚠️ Você está sem internet. Os cadastros serão salvos localmente e sincronizados quando a conexão voltar.', 'warning');
         });
     }
