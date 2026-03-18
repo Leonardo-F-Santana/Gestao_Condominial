@@ -1216,3 +1216,130 @@ def sindico_notificacoes(request):
     }, active_page='notificacoes')
     
     return render(request, 'sindico/notificacoes_lista.html', context)
+
+
+# ==========================================
+# GERAÇÃO DE PDF — ADVERTÊNCIA FORMAL
+# ==========================================
+
+@login_required
+def gerar_advertencia_pdf(request, ocorrencia_id):
+    """Gera um PDF de Advertência Formal a partir de uma ocorrência do Livro Negro."""
+    if not is_sindico(request.user):
+        return redirect('home')
+
+    condominio = get_condominio_ativo(request)
+    if not condominio:
+        return redirect('sindico_home')
+
+    ocorrencia = get_object_or_404(Ocorrencia, id=ocorrencia_id, condominio=condominio)
+
+    # Nome do síndico para a assinatura
+    sindico_obj = getattr(request.user, 'sindico', None)
+    sindico_nome = sindico_obj.nome if sindico_obj else request.user.get_full_name() or request.user.username
+
+    context = {
+        'condominio': condominio,
+        'ocorrencia': ocorrencia,
+        'sindico_nome': sindico_nome,
+    }
+
+    # Renderizar HTML e converter em PDF via xhtml2pdf
+    from django.http import HttpResponse
+    from django.template.loader import get_template
+
+    try:
+        from xhtml2pdf import pisa
+    except ImportError:
+        return HttpResponse("Erro: Biblioteca xhtml2pdf não instalada. Rode: pip install xhtml2pdf")
+
+    template = get_template('sindico/pdf_advertencia.html')
+    html = template.render(context)
+
+    response = HttpResponse(content_type='application/pdf')
+    filename = f"advertencia_ocorrencia_{ocorrencia.id}.pdf"
+    response['Content-Disposition'] = f'inline; filename="{filename}"'
+
+    pisa_status = pisa.CreatePDF(html, dest=response)
+
+    if pisa_status.err:
+        return HttpResponse(f'Erro ao gerar PDF: {pisa_status.err}')
+
+    # Marcar ocorrência como advertência emitida
+    if not ocorrencia.advertencia_emitida:
+        ocorrencia.advertencia_emitida = True
+        ocorrencia.save(update_fields=['advertencia_emitida'])
+
+        # Notificar o autor (morador que registrou / recebe a advertência)
+        if ocorrencia.autor and ocorrencia.autor.usuario:
+            Notificacao.objects.create(
+                usuario=ocorrencia.autor.usuario,
+                tipo='geral',
+                mensagem=f'Uma advertência formal foi emitida referente à ocorrência #{ocorrencia.id}.',
+                link='/morador/ocorrencias/'
+            )
+
+    return response
+
+
+# ==========================================
+# CENTRAL DE DOCUMENTOS
+# ==========================================
+
+@login_required
+def documentos_sindico(request):
+    """Lista de documentos oficiais do condomínio do síndico, com upload"""
+    if not is_sindico(request.user):
+        return redirect('home')
+
+    condominio = get_condominio_ativo(request)
+    if not condominio:
+        return redirect('sindico_home')
+
+    from .models import DocumentoCondominio
+
+    # Upload de novo documento
+    if request.method == 'POST':
+        titulo = request.POST.get('titulo', '').strip()
+        categoria = request.POST.get('categoria', 'OUTROS')
+        arquivo = request.FILES.get('arquivo')
+
+        if titulo and arquivo:
+            DocumentoCondominio.objects.create(
+                condominio=condominio,
+                titulo=titulo,
+                categoria=categoria,
+                arquivo=arquivo,
+            )
+            messages.success(request, f'Documento "{titulo}" enviado com sucesso!')
+        else:
+            messages.error(request, 'Preencha o título e selecione um arquivo.')
+
+        return redirect('sindico_documentos')
+
+    # Exclusão via GET ?excluir=ID
+    excluir_id = request.GET.get('excluir')
+    if excluir_id:
+        doc = DocumentoCondominio.objects.filter(id=excluir_id, condominio=condominio).first()
+        if doc:
+            doc.arquivo.delete(save=False)
+            doc.delete()
+            messages.success(request, 'Documento excluído.')
+        return redirect('sindico_documentos')
+
+    documentos = DocumentoCondominio.objects.filter(
+        condominio=condominio
+    ).order_by('-data_upload')
+
+    categoria_filtro = request.GET.get('categoria', '')
+    if categoria_filtro:
+        documentos = documentos.filter(categoria=categoria_filtro)
+
+    ctx = sindico_context(request, {
+        'documentos': documentos,
+        'categoria_filtro': categoria_filtro,
+        'categorias': DocumentoCondominio.CATEGORIA_CHOICES,
+    }, active_page='documentos')
+
+    return render(request, 'sindico/central_documentos.html', ctx)
+

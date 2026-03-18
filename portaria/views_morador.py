@@ -682,3 +682,30 @@ def editar_perfil_morador(request):
         'form': form,
     }, active_page='perfil')
     return render(request, 'morador/editar_perfil.html', context)
+
+
+# ==========================================
+# CENTRAL DE DOCUMENTOS
+# ==========================================
+
+@morador_required
+def documentos_morador(request):
+    """Lista de documentos oficiais do condomínio do morador"""
+    morador = request.morador
+    from .models import DocumentoCondominio
+
+    documentos = DocumentoCondominio.objects.filter(
+        condominio=morador.condominio
+    ).order_by('-data_upload')
+
+    categoria = request.GET.get('categoria', '')
+    if categoria:
+        documentos = documentos.filter(categoria=categoria)
+
+    context = {
+        'morador': morador,
+        'documentos': documentos,
+        'categoria_filtro': categoria,
+        'categorias': DocumentoCondominio.CATEGORIA_CHOICES,
+    }
+    return render(request, 'morador/central_documentos.html', context)

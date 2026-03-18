@@ -52,9 +52,15 @@
                     
                     <!-- Ações -->
                     <div class="mt-3 mt-md-0 d-flex flex-wrap align-items-center justify-content-md-end gap-2 border-top border-md-top-0 pt-3 pt-md-0 ps-md-3 min-w-180">
+                        <a href="{% url 'sindico_gerar_advertencia_pdf' o.id %}" target="_blank" class="btn btn-outline-danger rounded-pill w-100 fw-semibold py-2 shadow-sm" title="Gerar Advertência Formal em PDF">
+                            <i class="bi bi-file-earmark-pdf me-1"></i> Gerar Advertência
+                        </a>
                         <button type="button" class="btn btn-outline-primary rounded-pill w-100 fw-semibold py-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#ocorrenciaModal{{ o.id }}" title="Ver e Gerenciar">
                             <i class="bi bi-eye me-1"></i> Ver Detalhes / Responder
                         </button>
+                        {% if o.advertencia_emitida %}
+                        <span class="badge bg-danger rounded-pill px-3 py-2 w-100 text-center"><i class="bi bi-exclamation-triangle me-1"></i>Advertência Emitida</span>
+                        {% endif %}
                     </div>
                 </div>
             </div>

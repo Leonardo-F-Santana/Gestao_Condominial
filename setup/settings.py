@@ -174,15 +174,16 @@ DEFAULT_FROM_EMAIL = 'Gestão Condominial <noreply@gestaocondominial.com>'
 from django.urls import reverse_lazy
 
 UNFOLD = {
-    "SITE_TITLE": "Painel de Administração",
-    "SITE_HEADER": "Gestão Condominial",
-    "SITE_SUBHEADER": "Painel de Administração",
-    "SITE_URL": "/",
+    "SITE_TITLE": "KS TECH - Gestão de Ativos",
+    "SITE_HEADER": "KS TECH - Gestão de Ativos",
+    "SITE_SUBHEADER": "Painel de Administração SaaS",
+    "SITE_URL": "/admin/",
     "SITE_SYMBOL": "apartment",
     "SHOW_HISTORY": True,
     "SHOW_VIEW_ON_SITE": False,
     "SHOW_BACK_BUTTON": True,
     "BORDER_RADIUS": "8px",
+    "DASHBOARD_CALLBACK": "portaria.dashboard.dashboard_callback",
     "COLORS": {
         "base": {
             "50": "250 250 252",
@@ -228,9 +229,9 @@ UNFOLD = {
                 ],
             },
             {
-                "title": "Condomínios",
+                "title": "Gestão de Locatários",
                 "separator": True,
-                "collapsible": True,
+                "collapsible": False,
                 "items": [
                     {
                         "title": "Condomínios",
@@ -241,6 +242,11 @@ UNFOLD = {
                         "title": "Síndicos",
                         "icon": "admin_panel_settings",
                         "link": reverse_lazy("admin:portaria_sindico_changelist"),
+                    },
+                    {
+                        "title": "Porteiros",
+                        "icon": "badge",
+                        "link": reverse_lazy("admin:portaria_porteiro_changelist"),
                     },
                     {
                         "title": "Moradores",
@@ -266,23 +272,7 @@ UNFOLD = {
                     },
                 ],
             },
-            {
-                "title": "Links Rápidos",
-                "separator": True,
-                "collapsible": False,
-                "items": [
-                    {
-                        "title": "Portal do Síndico",
-                        "icon": "open_in_new",
-                        "link": "/sindico/",
-                    },
-                    {
-                        "title": "Portaria",
-                        "icon": "open_in_new",
-                        "link": "/",
-                    },
-                ],
-            },
         ],
     },
 }
+

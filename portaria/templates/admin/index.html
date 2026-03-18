@@ -1,0 +1,337 @@
+{% extends 'admin/base.html' %}
+{% load i18n %}
+
+{% block title %}
+    KS TECH - Gestão de Ativos
+{% endblock %}
+
+{% block content %}
+<style>
+    /* =============================================
+       KS TECH — Dashboard SaaS
+       ============================================= */
+
+    .ks-dashboard {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, sans-serif;
+        max-width: 1200px;
+        padding: 0.5rem 0;
+    }
+
+    /* ---------- Títulos de seção ---------- */
+    .ks-section {
+        margin-bottom: 1.75rem;
+    }
+    .ks-section-header {
+        margin-bottom: 1rem;
+    }
+    .ks-section-title {
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        color: #f8fafc;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0 0 0.2rem 0;
+    }
+    .ks-section-title .material-symbols-outlined {
+        font-size: 1.15rem;
+        color: #60a5fa;
+    }
+    .ks-section-subtitle {
+        font-size: 0.78rem;
+        color: #94a3b8;
+        margin: 0;
+        padding-left: 1.65rem;
+    }
+
+    /* ---------- Stats Cards (Neumorfismo suave) ---------- */
+    .ks-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 1rem;
+    }
+    .ks-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 1.35rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        box-shadow:
+            0 1px 3px rgba(0, 0, 0, 0.04),
+            0 4px 14px rgba(0, 0, 0, 0.03);
+        transition: transform 0.22s ease, box-shadow 0.22s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    .ks-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #3b82f6, #6366f1);
+        opacity: 0;
+        transition: opacity 0.22s ease;
+    }
+    .ks-card:hover {
+        transform: translateY(-3px);
+        box-shadow:
+            0 4px 12px rgba(0, 0, 0, 0.06),
+            0 8px 28px rgba(59, 130, 246, 0.08);
+    }
+    .ks-card:hover::before {
+        opacity: 1;
+    }
+    .ks-card-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        background: #eff6ff;
+        color: #3b82f6;
+        font-size: 1.5rem;
+    }
+    .ks-card-icon.green  { background: #dcfce7; color: #16a34a; }
+    .ks-card-icon.purple { background: #ede9fe; color: #7c3aed; }
+    .ks-card-icon.amber  { background: #fef3c7; color: #d97706; }
+    .ks-card-value {
+        font-size: 1.85rem;
+        font-weight: 800;
+        line-height: 1;
+        color: #0f172a;
+    }
+    .ks-card-label {
+        font-size: 0.78rem;
+        font-weight: 500;
+        color: #64748b;
+        margin-top: 3px;
+    }
+
+    /* ---------- Cards de Tipo (menores) ---------- */
+    .ks-tipo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0.85rem;
+    }
+    .ks-tipo-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.15rem 1rem;
+        text-align: center;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .ks-tipo-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+    }
+    .ks-tipo-value {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: #0f172a;
+    }
+    .ks-tipo-label {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: #64748b;
+        margin-top: 3px;
+    }
+
+    /* ---------- Botões de Acesso Rápido ---------- */
+    .ks-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1rem;
+    }
+    .ks-action-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.9rem;
+        padding: 1rem 1.25rem;
+        border-radius: 12px;
+        border: 1.5px solid #3b82f6;
+        background: transparent;
+        text-decoration: none !important;
+        color: #f8fafc !important;
+        font-weight: 600;
+        font-size: 0.88rem;
+        transition: all 0.25s ease;
+    }
+    .ks-action-btn:hover {
+        background: linear-gradient(135deg, #3b82f6, #6366f1);
+        border-color: #6366f1;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(59, 130, 246, 0.25);
+        color: #ffffff !important;
+    }
+    .ks-action-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        background: rgba(59, 130, 246, 0.15);
+        color: #60a5fa;
+        transition: all 0.25s ease;
+    }
+    .ks-action-btn:hover .ks-action-icon {
+        background: rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+    }
+
+    /* ---------- Separator ---------- */
+    .ks-separator {
+        border: none;
+        border-top: 1px solid #1e293b;
+        margin: 0.5rem 0;
+    }
+
+    /* ---------- Dark-mode overrides (Unfold dark) ---------- */
+    @media (prefers-color-scheme: light) {
+        .ks-section-title { color: #0f172a; }
+        .ks-section-title .material-symbols-outlined { color: #3b82f6; }
+        .ks-section-subtitle { color: #64748b; }
+        .ks-action-btn { color: #1e293b !important; }
+        .ks-separator { border-top-color: #e2e8f0; }
+    }
+</style>
+
+<div class="ks-dashboard">
+
+    <!-- ============================================= -->
+    <!-- Seção 1: Visão Geral do Sistema               -->
+    <!-- ============================================= -->
+    <div class="ks-section">
+        <div class="ks-section-header">
+            <h3 class="ks-section-title">
+                <span class="material-symbols-outlined">monitoring</span>
+                Visão Geral do Sistema
+            </h3>
+            <p class="ks-section-subtitle">Principais indicadores de saúde do seu SaaS KS Tech</p>
+        </div>
+        <div class="ks-grid">
+            <div class="ks-card">
+                <div class="ks-card-icon">
+                    <span class="material-symbols-outlined">apartment</span>
+                </div>
+                <div>
+                    <div class="ks-card-value">{{ total_condominios }}</div>
+                    <div class="ks-card-label">Condomínios Cadastrados</div>
+                </div>
+            </div>
+            <div class="ks-card">
+                <div class="ks-card-icon green">
+                    <span class="material-symbols-outlined">check_circle</span>
+                </div>
+                <div>
+                    <div class="ks-card-value">{{ condominios_ativos }}</div>
+                    <div class="ks-card-label">Condomínios Ativos</div>
+                </div>
+            </div>
+            <div class="ks-card">
+                <div class="ks-card-icon purple">
+                    <span class="material-symbols-outlined">group</span>
+                </div>
+                <div>
+                    <div class="ks-card-value">{{ total_usuarios }}</div>
+                    <div class="ks-card-label">Usuários no Sistema</div>
+                </div>
+            </div>
+            <div class="ks-card">
+                <div class="ks-card-icon amber">
+                    <span class="material-symbols-outlined">people</span>
+                </div>
+                <div>
+                    <div class="ks-card-value">{{ total_moradores }}</div>
+                    <div class="ks-card-label">Moradores Cadastrados</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr class="ks-separator">
+
+    <!-- ============================================= -->
+    <!-- Seção 2: Usuários por Tipo                    -->
+    <!-- ============================================= -->
+    <div class="ks-section">
+        <div class="ks-section-header">
+            <h3 class="ks-section-title">
+                <span class="material-symbols-outlined">pie_chart</span>
+                Usuários por Tipo
+            </h3>
+            <p class="ks-section-subtitle">Distribuição de contas ativas no sistema por perfil de acesso</p>
+        </div>
+        <div class="ks-tipo-grid">
+            <div class="ks-tipo-card">
+                <div class="ks-tipo-value">{{ total_sindicos }}</div>
+                <div class="ks-tipo-label">Síndicos</div>
+            </div>
+            <div class="ks-tipo-card">
+                <div class="ks-tipo-value">{{ total_porteiros }}</div>
+                <div class="ks-tipo-label">Porteiros</div>
+            </div>
+            <div class="ks-tipo-card">
+                <div class="ks-tipo-value">{{ total_moradores_user }}</div>
+                <div class="ks-tipo-label">Moradores (com login)</div>
+            </div>
+            <div class="ks-tipo-card">
+                <div class="ks-tipo-value">{{ total_admins }}</div>
+                <div class="ks-tipo-label">Admins SaaS</div>
+            </div>
+        </div>
+    </div>
+
+    <hr class="ks-separator">
+
+    <!-- ============================================= -->
+    <!-- Seção 3: Acessos Rápidos                      -->
+    <!-- ============================================= -->
+    <div class="ks-section">
+        <div class="ks-section-header">
+            <h3 class="ks-section-title">
+                <span class="material-symbols-outlined">bolt</span>
+                Acessos Rápidos
+            </h3>
+            <p class="ks-section-subtitle">Atalhos para as ações mais utilizadas na gestão de locatários</p>
+        </div>
+        <div class="ks-actions">
+            <a href="/admin/portaria/condominio/add/" class="ks-action-btn">
+                <div class="ks-action-icon">
+                    <span class="material-symbols-outlined">add_business</span>
+                </div>
+                Adicionar Novo Condomínio
+            </a>
+            <a href="/admin/portaria/customuser/?is_active__exact=1" class="ks-action-btn">
+                <div class="ks-action-icon">
+                    <span class="material-symbols-outlined">group</span>
+                </div>
+                Listar Usuários Ativos
+            </a>
+            <a href="/admin/portaria/customuser/add/" class="ks-action-btn">
+                <div class="ks-action-icon">
+                    <span class="material-symbols-outlined">person_add</span>
+                </div>
+                Criar Novo Usuário
+            </a>
+            <a href="/admin/portaria/condominio/" class="ks-action-btn">
+                <div class="ks-action-icon">
+                    <span class="material-symbols-outlined">list</span>
+                </div>
+                Todos os Condomínios
+            </a>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

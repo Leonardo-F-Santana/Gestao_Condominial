@@ -8,7 +8,7 @@ from unfold.admin import ModelAdmin
 from unfold.contrib.import_export.forms import ExportForm, ImportForm
 from unfold.forms import AdminPasswordChangeForm, UserChangeForm, UserCreationForm
 from .models import (
-    Condominio, Sindico, Porteiro, Visitante, Morador, Encomenda, Solicitacao, Aviso, Notificacao, AreaComum, Reserva, Cobranca, Mensagem, Ocorrencia
+    Condominio, Sindico, Porteiro, Visitante, Morador, Encomenda, Solicitacao, Aviso, Notificacao, AreaComum, Reserva, Cobranca, Mensagem, Ocorrencia, DocumentoCondominio
 )
 from .forms import CustomUserChangeForm, CustomUserCreationForm
 
@@ -51,13 +51,67 @@ class TenantAdminMixin:
         return super().has_module_permission(request)
 
 
-from unfold.admin import ModelAdmin, StackedInline
+from unfold.admin import ModelAdmin, StackedInline, TabularInline
+
 
 class MoradorInline(StackedInline):
     model = Morador
     extra = 0
     can_delete = False
     autocomplete_fields = ['condominio']
+
+
+# --- Inlines para a página de cada Condomínio ---
+
+class SindicoUserInline(TabularInline):
+    model = User
+    extra = 0
+    can_delete = True
+    verbose_name = "Síndico"
+    verbose_name_plural = "Síndicos"
+    fields = ('username', 'first_name', 'email', 'is_active')
+    readonly_fields = ('username',)
+    show_change_link = True
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(tipo_usuario='sindico')
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+class PorteiroUserInline(TabularInline):
+    model = User
+    extra = 0
+    can_delete = True
+    verbose_name = "Porteiro"
+    verbose_name_plural = "Porteiros"
+    fields = ('username', 'first_name', 'email', 'is_active')
+    readonly_fields = ('username',)
+    show_change_link = True
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(tipo_usuario='porteiro')
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+class MoradorUserInline(TabularInline):
+    model = User
+    extra = 0
+    can_delete = True
+    verbose_name = "Morador"
+    verbose_name_plural = "Moradores"
+    fields = ('username', 'first_name', 'email', 'is_active')
+    readonly_fields = ('username',)
+    show_change_link = True
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(tipo_usuario='morador')
+
+    def has_add_permission(self, request, obj=None):
+        return False
     
 @admin.register(User)
 class UserAdmin(BaseUserAdmin, ModelAdmin):
@@ -103,12 +157,33 @@ class GroupAdmin(BaseGroupAdmin, ModelAdmin):
 
 # --- CONFIGURAÇÃO DE CONDOMÍNIOS (MULTI-TENANCY) ---
 
+class DocumentoInline(TabularInline):
+    model = DocumentoCondominio
+    extra = 0
+    can_delete = True
+    verbose_name = "Documento Oficial"
+    verbose_name_plural = "Documentos Oficiais"
+    fields = ('titulo', 'categoria', 'arquivo', 'data_upload')
+    readonly_fields = ('data_upload',)
+
+
 @admin.register(Condominio)
 class CondominioAdmin(ModelAdmin):
-    list_display = ('nome', 'endereco', 'cnpj', 'telefone', 'ativo', 'data_criacao')
+    list_display = ('nome', 'endereco', 'cnpj', 'telefone', 'get_status_ativo', 'data_criacao')
     list_filter = ('ativo',)
     search_fields = ('nome', 'endereco', 'cnpj')
-    list_editable = ('ativo',)
+    list_editable = ()
+    inlines = [SindicoUserInline, PorteiroUserInline, MoradorUserInline, DocumentoInline]
+
+    def get_status_ativo(self, obj):
+        color = "#22c55e" if obj.ativo else "#ef4444"
+        label = "Ativo" if obj.ativo else "Inativo"
+        return format_html(
+            '<span style="color: {}; font-weight: bold;">● {}</span>',
+            color,
+            label
+        )
+    get_status_ativo.short_description = 'Status'
 
 
 @admin.register(Sindico)
@@ -253,3 +328,12 @@ class OcorrenciaAdmin(TenantAdminMixin, ModelAdmin):
     search_fields = ('autor__nome', 'infrator', 'descricao')
     autocomplete_fields = ['autor', 'condominio']
 
+
+# --- CENTRAL DE DOCUMENTOS ---
+
+@admin.register(DocumentoCondominio)
+class DocumentoCondominioAdmin(TenantAdminMixin, ModelAdmin):
+    list_display = ('titulo', 'condominio', 'categoria', 'data_upload')
+    list_filter = ('condominio', 'categoria')
+    search_fields = ('titulo', 'condominio__nome')
+    autocomplete_fields = ['condominio']

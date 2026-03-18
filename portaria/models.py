@@ -366,6 +366,7 @@ class Ocorrencia(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='REGISTRADA', verbose_name="Status")
     resposta_sindico = models.TextField(blank=True, verbose_name="Resposta do Síndico")
     data_registro = models.DateTimeField(auto_now_add=True, verbose_name="Data do Registro")
+    advertencia_emitida = models.BooleanField(default=False, verbose_name="Advertência Emitida")
 
     def __str__(self):
         return f"Ocorrência {self.id} - {self.condominio.nome}"
@@ -392,4 +393,32 @@ class PushSubscription(models.Model):
 
     def __str__(self):
         return f"Push Sub de {self.usuario.username}"
+
+
+# ==============================================================================
+# CENTRAL DE DOCUMENTOS
+# ==============================================================================
+
+class DocumentoCondominio(models.Model):
+    CATEGORIA_CHOICES = (
+        ('CONVENCAO', 'Convenção'),
+        ('REGIMENTO', 'Regimento Interno'),
+        ('ATA', 'Ata de Assembleia'),
+        ('FINANCEIRO', 'Relatório Financeiro'),
+        ('OUTROS', 'Outros'),
+    )
+
+    condominio = models.ForeignKey(Condominio, on_delete=models.CASCADE, related_name='documentos')
+    titulo = models.CharField(max_length=200, verbose_name="Título do Documento")
+    categoria = models.CharField(max_length=20, choices=CATEGORIA_CHOICES, default='OUTROS', verbose_name="Categoria")
+    arquivo = models.FileField(upload_to='documentos/%Y/%m/', verbose_name="Arquivo")
+    data_upload = models.DateTimeField(auto_now_add=True, verbose_name="Data de Upload")
+
+    def __str__(self):
+        return f"{self.titulo} — {self.condominio.nome}"
+
+    class Meta:
+        verbose_name = "Documento"
+        verbose_name_plural = "Documentos"
+        ordering = ['-data_upload']
 
