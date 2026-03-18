@@ -60,6 +60,8 @@ def sindico_context(request, extra=None, active_page=''):
 @login_required
 def portal_sindico_home(request):
     """Dashboard redirecionado"""
+    if request.user.is_superuser:
+        return redirect('admin:index')
     if not is_sindico(request.user):
         messages.error(request, "Você não tem permissão de síndico.")
         return redirect('home')
@@ -89,6 +91,8 @@ def criar_condominio(request):
 @login_required
 def painel_sindico(request):
     """Dashboard do condomínio selecionado"""
+    if request.user.is_superuser:
+        return redirect('admin:index')
     if not is_sindico(request.user):
         return redirect('home')
     

@@ -82,6 +82,8 @@ def morador_context(request, extra_context=None, active_page=None):
 @morador_required
 def portal_home(request):
     """Dashboard do morador"""
+    if request.user.is_superuser:
+        return redirect('admin:index')
     morador = request.morador
 
     # Encomendas pendentes

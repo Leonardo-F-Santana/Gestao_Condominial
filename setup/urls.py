@@ -26,7 +26,8 @@ from portaria.views import (
     alterar_senha,
     cadastro_morador,
     api_moradores_offline,
-    api_sync_offline
+    api_sync_offline,
+    CustomPasswordResetView
 )
 
 # Views do Portal do Morador
@@ -93,7 +94,7 @@ urlpatterns = [
     path('cadastro/<uuid:codigo_convite>/', cadastro_morador, name='cadastro_morador'),
     
     # --- Recuperação de Senha ---
-    path('recuperar-senha/', auth_views.PasswordResetView.as_view(
+    path('recuperar-senha/', CustomPasswordResetView.as_view(
         template_name='registration/password_reset_form.html',
         email_template_name='registration/password_reset_email.txt',
         html_email_template_name='registration/password_reset_email.html',

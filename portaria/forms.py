@@ -156,6 +156,15 @@ class CustomUserChangeForm(BaseUserChangeForm):
         model = User
         fields = '__all__'
 
+    def clean(self):
+        cleaned_data = super().clean()
+        tipo_usuario = cleaned_data.get("tipo_usuario")
+        condominio = cleaned_data.get("condominio")
+        is_superuser = cleaned_data.get("is_superuser", False)
+        if not is_superuser and tipo_usuario in ['sindico', 'porteiro', 'morador'] and not condominio:
+            self.add_error('condominio', 'O condomínio é obrigatório para este tipo de usuário.')
+        return cleaned_data
+
 
 class CustomUserCreationForm(BaseUserCreationForm):
     """Form para criação de usuários permitindo espaços no username."""
@@ -170,6 +179,14 @@ class CustomUserCreationForm(BaseUserCreationForm):
     class Meta(BaseUserCreationForm.Meta):
         model = User
         fields = ('username', 'tipo_usuario', 'condominio')
+
+    def clean(self):
+        cleaned_data = super().clean()
+        tipo_usuario = cleaned_data.get("tipo_usuario")
+        condominio = cleaned_data.get("condominio")
+        if tipo_usuario in ['sindico', 'porteiro', 'morador'] and not condominio:
+            self.add_error('condominio', 'O condomínio é obrigatório para este tipo de usuário.')
+        return cleaned_data
 
 from .models import Morador, Sindico
 

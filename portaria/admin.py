@@ -65,14 +65,11 @@ class UserAdmin(BaseUserAdmin, ModelAdmin):
     add_form = CustomUserCreationForm
     change_password_form = AdminPasswordChangeForm
     filter_horizontal = ('groups',)
-    list_display = ('username', 'first_name', 'last_name', 'email', 'tipo_usuario', 'condominio', 'is_staff', 'is_active')
-    list_filter = ('tipo_usuario', 'condominio', 'is_staff', 'is_active', 'groups')
-    search_fields = ('username', 'first_name', 'last_name', 'email')
+    list_display = ('username', 'first_name', 'email', 'tipo_usuario', 'condominio', 'is_active')
+    list_filter = ('condominio', 'tipo_usuario', 'is_active')
+    search_fields = ('username', 'first_name', 'email', 'morador__cpf')
     ordering = ('username',)
     inlines = [MoradorInline]
-    list_filter = ('tipo_usuario', 'condominio', 'is_staff', 'is_active', 'groups')
-    search_fields = ('username', 'first_name', 'last_name', 'email')
-    ordering = ('username',)
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
         ('Classificação', {'fields': ('tipo_usuario', 'condominio')}),
@@ -196,6 +193,28 @@ class MoradorAdmin(TenantAdminMixin, ModelAdmin):
 
 # Os models operacionais (Visitante, Encomenda, Solicitacao, Aviso, Notificacao, AreaComum, Reserva)
 # foram ocultados do painel global de administração conforme o requisito 4.
+# (Porém Visitante, Encomenda e Solicitacao voltam conforme diretriz Saas)
+
+@admin.register(Visitante)
+class VisitanteAdmin(TenantAdminMixin, ModelAdmin):
+    list_display = ('nome_completo', 'condominio', 'morador_responsavel', 'horario_chegada')
+    list_filter = ('condominio',)
+    search_fields = ('nome_completo', 'cpf')
+    autocomplete_fields = ['morador_responsavel', 'condominio']
+
+@admin.register(Encomenda)
+class EncomendaAdmin(TenantAdminMixin, ModelAdmin):
+    list_display = ('id', 'morador', 'condominio', 'entregue', 'data_chegada')
+    list_filter = ('condominio', 'entregue')
+    search_fields = ('morador__nome',)
+    autocomplete_fields = ['morador', 'condominio']
+
+@admin.register(Solicitacao)
+class SolicitacaoAdmin(TenantAdminMixin, ModelAdmin):
+    list_display = ('id', 'tipo', 'morador', 'condominio', 'status', 'data_criacao')
+    list_filter = ('condominio', 'status', 'tipo')
+    search_fields = ('descricao', 'morador__nome')
+    autocomplete_fields = ['morador', 'condominio']
 
 @admin.register(Cobranca)
 class CobrancaAdmin(TenantAdminMixin, ModelAdmin):

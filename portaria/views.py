@@ -130,6 +130,26 @@ def logout_view(request):
     return redirect('login')
 
 
+import smtplib
+import logging
+from django.contrib.auth.views import PasswordResetView
+
+logger = logging.getLogger(__name__)
+
+class CustomPasswordResetView(PasswordResetView):
+    def form_valid(self, form):
+        try:
+            return super().form_valid(form)
+        except smtplib.SMTPException as e:
+            logger.error(f"Erro crítico de SMTP: {e}")
+            messages.error(self.request, "Ocorreu um erro ao tentar enviar o e-mail. O servidor de correio recusou a conexão. Tente novamente mais tarde ou contate o administrador.")
+            return self.render_to_response(self.get_context_data(form=form))
+        except Exception as e:
+            logger.error(f"Erro desconhecido ao enviar e-mail: {e}")
+            messages.error(self.request, "Falha interna ao processar a recuperação de senha.")
+            return self.render_to_response(self.get_context_data(form=form))
+
+
 @login_required
 def alterar_senha(request):
     """Permite ao usuário logado alterar sua própria senha"""
@@ -266,7 +286,10 @@ def api_stats(request):
 
 @login_required
 def home(request):
-    if request.user.is_superuser or request.user.is_staff:
+    if request.user.is_superuser:
+        return redirect('admin:index')
+        
+    if request.user.is_staff:
         # Admins can bypass the morador check and view the home if they want,
         # but usually they go to admin. Let them see home.
         pass
