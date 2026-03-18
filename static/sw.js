@@ -39,7 +39,8 @@ self.addEventListener('fetch', event => {
     // By-pass cache on sensitive auth and admin paths independent of HTTP method
     const bypassRoutes = ['/login', '/logout', '/admin', '/password_reset', '/reset', '/api/', '/sindico/', '/morador/'];
     if (bypassRoutes.some(route => event.request.url.includes(route))) {
-        return; // Allows the browser to handle the request normally (Network only)
+        event.respondWith(fetch(event.request)); // Vai direto para a rede, ignora o cache
+        return;
     }
 
     // Skip non-GET requests for the rest
