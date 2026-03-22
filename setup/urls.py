@@ -15,6 +15,7 @@ from portaria.views import (
     marcar_notificado, 
     registrar_solicitacao, 
     registrar_saida, 
+    trocar_condominio,
 
     exportar_relatorio, 
     exportar_relatorio_encomendas, 
@@ -83,7 +84,8 @@ from portaria.views_sindico import (
     editar_perfil_sindico,
     sindico_notificacoes,
     gerar_advertencia_pdf,
-    documentos_sindico
+    documentos_sindico,
+    redirecionar_notificacao
 )
 
 urlpatterns = [
@@ -95,6 +97,7 @@ urlpatterns = [
     path('logout/', logout_view, name='logout'),
     path('alterar-senha/', alterar_senha, name='alterar_senha'),
     path('cadastro/<uuid:codigo_convite>/', cadastro_morador, name='cadastro_morador'),
+    path('trocar-condominio/<int:condominio_id>/', trocar_condominio, name='trocar_condominio'),
     
     # --- Recuperação de Senha ---
     path('recuperar-senha/', CustomPasswordResetView.as_view(
@@ -190,6 +193,7 @@ urlpatterns = [
     path('sindico/ocorrencias/<int:ocorrencia_id>/status/', alterar_status_ocorrencia, name='sindico_alterar_status_ocorrencia'),
     path('sindico/ocorrencias/<int:ocorrencia_id>/advertencia-pdf/', gerar_advertencia_pdf, name='sindico_gerar_advertencia_pdf'),
     path('sindico/notificacoes/', sindico_notificacoes, name='sindico_notificacoes'),
+    path('sindico/notificacoes/<int:notificacao_id>/', redirecionar_notificacao, name='redirecionar_notificacao'),
     path('sindico/perfil/editar/', editar_perfil_sindico, name='editar_perfil_sindico'),
     path('sindico/documentos/', documentos_sindico, name='sindico_documentos'),
     # Compatibilidade com rota antiga

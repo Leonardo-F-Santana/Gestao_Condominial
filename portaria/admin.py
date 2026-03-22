@@ -64,51 +64,46 @@ class MoradorInline(StackedInline):
 # --- Inlines para a página de cada Condomínio ---
 
 class SindicoUserInline(TabularInline):
-    model = User
+    model = User.condominios.through
     extra = 0
     can_delete = True
     verbose_name = "Síndico"
     verbose_name_plural = "Síndicos"
-    fields = ('username', 'first_name', 'email', 'is_active')
-    readonly_fields = ('username',)
-    show_change_link = True
+    readonly_fields = ('customuser',)
+    # show_change_link não funcionará bem para through model focado em read/delete.
 
     def get_queryset(self, request):
-        return super().get_queryset(request).filter(tipo_usuario='sindico')
+        return super().get_queryset(request).filter(customuser__tipo_usuario='sindico')
 
     def has_add_permission(self, request, obj=None):
         return False
 
 
 class PorteiroUserInline(TabularInline):
-    model = User
+    model = User.condominios.through
     extra = 0
     can_delete = True
     verbose_name = "Porteiro"
     verbose_name_plural = "Porteiros"
-    fields = ('username', 'first_name', 'email', 'is_active')
-    readonly_fields = ('username',)
-    show_change_link = True
+    readonly_fields = ('customuser',)
 
     def get_queryset(self, request):
-        return super().get_queryset(request).filter(tipo_usuario='porteiro')
+        return super().get_queryset(request).filter(customuser__tipo_usuario='porteiro')
 
     def has_add_permission(self, request, obj=None):
         return False
 
 
 class MoradorUserInline(TabularInline):
-    model = User
+    model = User.condominios.through
     extra = 0
     can_delete = True
     verbose_name = "Morador"
     verbose_name_plural = "Moradores"
-    fields = ('username', 'first_name', 'email', 'is_active')
-    readonly_fields = ('username',)
-    show_change_link = True
+    readonly_fields = ('customuser',)
 
     def get_queryset(self, request):
-        return super().get_queryset(request).filter(tipo_usuario='morador')
+        return super().get_queryset(request).filter(customuser__tipo_usuario='morador')
 
     def has_add_permission(self, request, obj=None):
         return False
@@ -118,15 +113,15 @@ class UserAdmin(BaseUserAdmin, ModelAdmin):
     form = CustomUserChangeForm
     add_form = CustomUserCreationForm
     change_password_form = AdminPasswordChangeForm
-    filter_horizontal = ('groups',)
-    list_display = ('username', 'first_name', 'email', 'tipo_usuario', 'condominio', 'is_active')
-    list_filter = ('condominio', 'tipo_usuario', 'is_active')
+    filter_horizontal = ('groups', 'condominios')
+    list_display = ('username', 'first_name', 'email', 'tipo_usuario', 'get_condominios_list', 'is_active')
+    list_filter = ('condominios', 'tipo_usuario', 'is_active')
     search_fields = ('username', 'first_name', 'email', 'morador__cpf')
     ordering = ('username',)
     inlines = [MoradorInline]
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
-        ('Classificação', {'fields': ('tipo_usuario', 'condominio')}),
+        ('Classificação', {'fields': ('tipo_usuario', 'condominios')}),
         ('Informações Pessoais', {'fields': ('first_name', 'last_name', 'email')}),
         ('Permissões', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('Datas', {'fields': ('last_login', 'date_joined')}),
@@ -138,16 +133,21 @@ class UserAdmin(BaseUserAdmin, ModelAdmin):
         }),
         ('Classificação', {
             'classes': ('wide',),
-            'fields': ('tipo_usuario', 'condominio'),
+            'fields': ('tipo_usuario', 'condominios'),
         }),
     )
+
+    def get_condominios_list(self, obj):
+        return ", ".join([c.nome for c in obj.condominios.all()])
+    get_condominios_list.short_description = 'Condomínios'
     
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         if request.user.is_superuser:
             return qs
-        if hasattr(request.user, 'condominio') and request.user.condominio:
-            return qs.filter(condominio=request.user.condominio)
+        condominio_ativo = getattr(request.user, 'get_condominio_ativo', None)
+        if condominio_ativo:
+            return qs.filter(condominios=condominio_ativo)
         return qs.none()
 
 @admin.register(Group)
@@ -253,9 +253,11 @@ class MoradorAdmin(TenantAdminMixin, ModelAdmin):
                 password='mudar123',
                 first_name=obj.nome.split()[0] if obj.nome else '',
                 email=obj.email or '',
-                tipo_usuario='morador',
-                condominio=obj.condominio if obj.condominio else request.user.condominio
+                tipo_usuario='morador'
             )
+            cond = obj.condominio if obj.condominio else request.user.get_condominio_ativo
+            if cond:
+                user.condominios.add(cond)
             obj.usuario = user
             
             # Show a success message to the admin

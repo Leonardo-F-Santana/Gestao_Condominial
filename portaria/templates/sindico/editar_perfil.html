@@ -18,8 +18,10 @@
             {% csrf_token %}
             
             <div class="mb-3">
-                <label class="form-label fw-semibold">Condomínio</label>
-                {{ form.condominio }}
+                <label class="form-label fw-semibold">Condomínio(s)</label>
+                <div class="form-control bg-light text-muted">
+                    {% for cond in request.user.condominios.all %}{{ cond.nome }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                </div>
             </div>
             <div class="mb-3">
                 <label class="form-label fw-semibold">Usuário (Login)</label>

@@ -11,7 +11,7 @@
             <div class="card-body p-0">
                 <div class="list-group list-group-flush rounded-4">
                     {% for notificacao in notificacoes_lista %}
-                        <a href="{{ notificacao.link|default:'#' }}" class="list-group-item list-group-item-action py-3 px-4 border-bottom {% if not notificacao.lida %}bg-light border-start border-4 border-primary{% endif %}">
+                        <a href="{% url 'redirecionar_notificacao' notificacao.id %}" class="list-group-item list-group-item-action py-3 px-4 border-bottom {% if not notificacao.lida %}bg-light border-start border-4 border-primary{% endif %}">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="d-flex align-items-start gap-3">
                                     <div class="fs-4">
@@ -30,7 +30,10 @@
                                         {% endif %}
                                     </div>
                                     <div>
-                                        <p class="mb-1 text-dark">{{ notificacao.mensagem }}</p>
+                                        <p class="mb-1 text-dark">
+                                            {% if notificacao.condominio %}<strong>[{{ notificacao.condominio.nome|truncatechars:15 }}]</strong>{% endif %} 
+                                            {{ notificacao.mensagem }}
+                                        </p>
                                         <small class="text-muted"><i class="bi bi-clock me-1"></i> Notificação Registrada</small>
                                     </div>
                                 </div>

@@ -23,7 +23,18 @@
     <header class="topbar">
         <div class="d-flex justify-content-between align-items-center topbar-container">
             <span class="topbar-brand">
-                {% if condominio %}
+                {% if request.user.condominios.count > 1 %}
+                <div class="dropdown d-inline">
+                    <button class="btn btn-link text-white text-decoration-none p-0 fw-bold dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-buildings me-1"></i> {{ condominio.nome|truncatechars:15 }}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-dark shadow">
+                        {% for c in request.user.condominios.all %}
+                        <li><a class="dropdown-item {% if condominio and c.id == condominio.id %}active{% endif %}" href="{% url 'trocar_condominio' c.id %}">{{ c.nome }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% elif condominio %}
                 <span class="text-white fw-bold"><i class="bi bi-buildings me-1"></i> {{ condominio.nome|truncatechars:15 }}</span>
                 {% else %}
                 SÍNDICO

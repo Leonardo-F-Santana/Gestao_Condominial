@@ -6,8 +6,17 @@ def condominio_info(request):
     Injeta o condomínio atual no contexto de todos os templates.
     Se o usuário estiver logado e tiver um condomínio vinculado, retorna os dados dele.
     """
-    if request.user.is_authenticated and hasattr(request.user, 'condominio') and request.user.condominio:
-        return {'condominio_atual': request.user.condominio}
+    if request.user.is_authenticated:
+        condominio_id = request.session.get('condominio_ativo_id')
+        if condominio_id:
+            condominio = request.user.condominios.filter(id=condominio_id).first()
+            if condominio:
+                return {'condominio_atual': condominio}
+        
+        # Fallback
+        condominio = getattr(request.user, 'get_condominio_ativo', None)
+        if condominio:
+            return {'condominio_atual': condominio}
     return {'condominio_atual': None}
 
 def notificacoes(request):

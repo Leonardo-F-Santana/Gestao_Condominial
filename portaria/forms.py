@@ -159,10 +159,10 @@ class CustomUserChangeForm(BaseUserChangeForm):
     def clean(self):
         cleaned_data = super().clean()
         tipo_usuario = cleaned_data.get("tipo_usuario")
-        condominio = cleaned_data.get("condominio")
+        condominios = cleaned_data.get("condominios")
         is_superuser = cleaned_data.get("is_superuser", False)
-        if not is_superuser and tipo_usuario in ['sindico', 'porteiro', 'morador'] and not condominio:
-            self.add_error('condominio', 'O condomínio é obrigatório para este tipo de usuário.')
+        if not is_superuser and tipo_usuario in ['sindico', 'porteiro', 'morador'] and not condominios:
+            self.add_error('condominios', 'Pelo menos um condomínio é obrigatório para este tipo de usuário.')
         return cleaned_data
 
 
@@ -178,14 +178,14 @@ class CustomUserCreationForm(BaseUserCreationForm):
 
     class Meta(BaseUserCreationForm.Meta):
         model = User
-        fields = ('username', 'tipo_usuario', 'condominio')
+        fields = ('username', 'tipo_usuario', 'condominios')
 
     def clean(self):
         cleaned_data = super().clean()
         tipo_usuario = cleaned_data.get("tipo_usuario")
-        condominio = cleaned_data.get("condominio")
-        if tipo_usuario in ['sindico', 'porteiro', 'morador'] and not condominio:
-            self.add_error('condominio', 'O condomínio é obrigatório para este tipo de usuário.')
+        condominios = cleaned_data.get("condominios")
+        if tipo_usuario in ['sindico', 'porteiro', 'morador'] and not condominios:
+            self.add_error('condominios', 'Pelo menos um condomínio é obrigatório para este tipo de usuário.')
         return cleaned_data
 
 from .models import Morador, Sindico
@@ -238,10 +238,9 @@ class SindicoPerfilForm(forms.ModelForm):
 
     class Meta:
         model = Sindico
-        fields = ['telefone', 'condominio']
+        fields = ['telefone']
         widgets = {
             'telefone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(00) 00000-0000'}),
-            'condominio': forms.Select(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -252,7 +251,6 @@ class SindicoPerfilForm(forms.ModelForm):
             self.fields['username'].widget.attrs.update({'class': 'form-control'})
             self.fields['email'].initial = self.user.email
             self.fields['email'].widget.attrs.update({'class': 'form-control'})
-        self.fields['condominio'].disabled = True
 
     def clean_email(self):
         email = self.cleaned_data.get('email')

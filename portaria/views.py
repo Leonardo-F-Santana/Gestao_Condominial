@@ -813,3 +813,16 @@ def api_sync_offline(request):
     resultados['ok'] = len(resultados['erros']) == 0
     resultados['porteiro'] = request.user.username
     return JsonResponse(resultados)
+
+@login_required
+def trocar_condominio(request, condominio_id):
+    """
+    Troca o condomínio ativo na sessão do usuário atual.
+    Verifica se o usuário realmente tem vínculo com o condomínio solicitado.
+    """
+    if request.user.condominios.filter(id=condominio_id).exists() or request.user.is_superuser:
+        request.session['condominio_ativo_id'] = condominio_id
+        messages.success(request, 'Condomínio alterado com sucesso.')
+    else:
+        messages.error(request, 'Você não tem acesso a este condomínio.')
+    return redirect(request.META.get('HTTP_REFERER', '/'))

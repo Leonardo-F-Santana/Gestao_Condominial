@@ -40,11 +40,22 @@ class CustomUser(AbstractUser):
         ('admin', 'Administrador SaaS'),
     )
     tipo_usuario = models.CharField(max_length=20, choices=TIPO_CHOICES, default='morador', verbose_name="Tipo de Usuário")
-    condominio = models.ForeignKey(Condominio, on_delete=models.CASCADE, null=True, blank=True, related_name='usuarios_cadastrados', verbose_name="Condomínio")
+    condominios = models.ManyToManyField(Condominio, blank=True, related_name='usuarios')
+
+    @property
+    def get_condominio_ativo(self):
+        """Nova property que retorna o primeiro condomínio (compatibilidade)."""
+        return self.condominios.first()
+
+    @property
+    def condominio(self):
+        """Property de fallback para lugares onde user.condominio ainda é chamado."""
+        return self.get_condominio_ativo
 
     def __str__(self):
-        if self.condominio:
-            return f"{self.username} - {self.condominio.nome}"
+        condominio_ativo = self.get_condominio_ativo
+        if condominio_ativo:
+            return f"{self.username} - {condominio_ativo.nome}"
         return self.username
 
 
@@ -250,6 +261,7 @@ class Notificacao(models.Model):
     ]
 
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notificacoes')
+    condominio = models.ForeignKey('Condominio', on_delete=models.CASCADE, related_name='notificacoes', null=True, blank=True)
     tipo = models.CharField(max_length=30, choices=TIPO_CHOICES)
     mensagem = models.CharField(max_length=200)
     link = models.CharField(max_length=200, blank=True)

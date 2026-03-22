@@ -21,11 +21,15 @@ def is_sindico(user):
 
 
 def get_condominio_ativo(request):
-    """Retorna o condomínio vinculado ao usuário logado"""
-    condominio = getattr(request.user, 'condominio', None)
+    """Retorna o condomínio vinculado ao usuário logado, priorizando a sessão"""
+    condominio_id = request.session.get('condominio_ativo_id')
+    if condominio_id and request.user.is_authenticated:
+        c = request.user.condominios.filter(id=condominio_id).first()
+        if c: return c
+    
+    condominio = getattr(request.user, 'get_condominio_ativo', None)
     if not condominio and hasattr(request.user, 'sindico'):
         condominio = request.user.sindico.condominio
-    print(f"DEBUG get_condominio_ativo: user {request.user.username}, returning condominio={condominio}")
     return condominio
 
 
@@ -1038,12 +1042,18 @@ def mensagens_sindico(request):
     if request.method == 'POST':
         destinatario_id = request.POST.get('destinatario_id')
         conteudo = request.POST.get('conteudo', '').strip()
+        msg_condominio_id = request.POST.get('condominio_id')
 
-        if destinatario_id and conteudo:
+        if msg_condominio_id:
+            msg_condominio = request.user.condominios.filter(id=msg_condominio_id).first()
+        else:
+            msg_condominio = condominio
+
+        if destinatario_id and conteudo and msg_condominio:
             destinatario = get_object_or_404(User, id=destinatario_id)
 
             Mensagem.objects.create(
-                condominio=condominio,
+                condominio=msg_condominio,
                 remetente=usuario,
                 destinatario=destinatario,
                 conteudo=conteudo
@@ -1051,7 +1061,7 @@ def mensagens_sindico(request):
             messages.success(request, 'Mensagem enviada com sucesso!')
             return redirect('sindico_mensagens')
         else:
-            messages.error(request, 'Destinatário e conteúdo são obrigatórios.')
+            messages.error(request, 'Destinatário, conteúdo e condomínio são obrigatórios.')
 
     # Marcar lidas
     Mensagem.objects.filter(destinatario=usuario, lida=False).update(lida=True)
@@ -1061,7 +1071,7 @@ def mensagens_sindico(request):
     ).select_related('remetente', 'destinatario').order_by('-data_envio')
 
     # Destinatários: Moradores e Outros Síndicos do condomínio
-    destinatarios_possiveis = User.objects.filter(condominio=condominio).exclude(id=usuario.id)
+    destinatarios_possiveis = User.objects.filter(condominios__in=usuario.condominios.all()).exclude(id=usuario.id).distinct()
 
     # Agrupar mensagens por contato para chat estilo WhatsApp
     conversas = {}
@@ -1218,6 +1228,20 @@ def sindico_notificacoes(request):
     return render(request, 'sindico/notificacoes_lista.html', context)
 
 
+@login_required
+def redirecionar_notificacao(request, notificacao_id):
+    """Intercepta o clique da notificação, processa a troca de contexto, e redireciona."""
+    notificacao = get_object_or_404(Notificacao, id=notificacao_id, usuario=request.user)
+    notificacao.lida = True
+    notificacao.save()
+    
+    # Se a notificação tem um condomínio e difere do que está ativo na sessão
+    if notificacao.condominio and notificacao.condominio.id != request.session.get('condominio_ativo_id'):
+        request.session['condominio_ativo_id'] = notificacao.condominio.id
+        messages.success(request, f"Você agora está visualizando o Condomínio {notificacao.condominio.nome}")
+        
+    url_destino = notificacao.link if notificacao.link else reverse('sindico_notificacoes')
+    return redirect(url_destino)
 # ==========================================
 # GERAÇÃO DE PDF — ADVERTÊNCIA FORMAL
 # ==========================================

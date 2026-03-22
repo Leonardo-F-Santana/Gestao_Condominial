@@ -45,7 +45,12 @@ def get_morador_ativo(request):
     return None
 
 def get_condominio_ativo(request):
-    """Retorna o objeto Condominio do morador logado, se existir."""
+    """Retorna o objeto Condominio do morador logado, priorizando a sessão."""
+    condominio_id = request.session.get('condominio_ativo_id')
+    if condominio_id and request.user.is_authenticated:
+        c = request.user.condominios.filter(id=condominio_id).first()
+        if c: return c
+    
     morador = get_morador_ativo(request)
     if morador:
         return morador.condominio

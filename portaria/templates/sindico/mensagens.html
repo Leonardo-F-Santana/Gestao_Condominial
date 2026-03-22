@@ -20,11 +20,20 @@
                 {% csrf_token %}
                 <div class="modal-body">
                     <div class="mb-3">
+                        <label>Condomínio:</label>
+                        <select id="msg_condominio_select" name="condominio_id" class="form-select" required>
+                            <option value="">Selecione o condomínio...</option>
+                            {% for c in request.user.condominios.all %}
+                            <option value="{{ c.id }}" {% if condominio and c.id == condominio.id %}selected{% endif %}>{{ c.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
                         <label>Enviar para:</label>
-                        <select name="destinatario_id" class="form-select" required>
+                        <select id="msg_destinatario_select" name="destinatario_id" class="form-select" required>
                             <option value="">Selecione o destinatário...</option>
                             {% for d in destinatarios %}
-                            <option value="{{ d.id }}">
+                            <option value="{{ d.id }}" data-conds="{% for cd in d.condominios.all %}{{ cd.id }},{% endfor %}">
                                 {{ d.get_full_name|default:d.username }} 
                                 {% if d.tipo_usuario == 'morador' %}
                                     - {{ d.morador.bloco|default:"" }} {{ d.morador.apartamento|default:"" }}
@@ -45,6 +54,39 @@
                     <button type="submit" class="btn btn-primary">Enviar</button>
                 </div>
             </form>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const selectCond = document.getElementById('msg_condominio_select');
+                    const selectDest = document.getElementById('msg_destinatario_select');
+                    const allOptions = Array.from(selectDest.options).slice(1);
+                    
+                    function updateDestinatarios() {
+                        const condId = selectCond.value;
+                        selectDest.innerHTML = '<option value="">Selecione o destinatário...</option>';
+                        
+                        if (!condId) return;
+                        
+                        let hasOptions = false;
+                        allOptions.forEach(opt => {
+                            const relatedConds = opt.getAttribute('data-conds') || '';
+                            if (relatedConds.indexOf(condId + ',') !== -1) {
+                                selectDest.appendChild(opt);
+                                hasOptions = true;
+                            }
+                        });
+                        
+                        if (!hasOptions) {
+                            selectDest.innerHTML = '<option value="">Nenhum morador encontrado</option>';
+                        }
+                    }
+                    
+                    selectCond.addEventListener('change', updateDestinatarios);
+                    
+                    if (selectCond.value) {
+                        updateDestinatarios();
+                    }
+                });
+            </script>
         </div>
     </div>
 </div>
@@ -70,7 +112,9 @@
                                     <i class="bi bi-person-circle text-primary me-2 fs-5"></i>
                                     <span class="fw-bold">{{ contato.get_full_name|default:contato.username }}</span>
                                     {% if contato.tipo_usuario == 'morador' %}
-                                        <small class="text-muted ms-1">- {{ contato.morador.bloco|default:"" }} {{ contato.morador.apartamento|default:"" }}</small>
+                                        <small class="text-muted ms-1">
+                                            <strong>[{{ msgs.0.condominio.nome|truncatechars:15 }}]</strong> - Bloco {{ contato.morador.bloco|default:"" }} / Ap {{ contato.morador.apartamento|default:"" }}
+                                        </small>
                                     {% endif %}
                                 </div>
                                 {% with nao_lidas=0 %}
@@ -115,6 +159,9 @@
                                     <form method="POST" action="{% url 'sindico_mensagens' %}" class="d-flex align-items-center">
                                         {% csrf_token %}
                                         <input type="hidden" name="destinatario_id" value="{{ contato.id }}">
+                                        {% if msgs.0.condominio %}
+                                        <input type="hidden" name="condominio_id" value="{{ msgs.0.condominio.id }}">
+                                        {% endif %}
                                         <input type="text" name="conteudo" class="form-control rounded-pill border-0 bg-light me-2" placeholder="Digite uma mensagem..." required autocomplete="off">
                                         <button type="submit" class="btn btn-primary rounded-circle shadow-sm btn-icon-round">
                                             <i class="bi bi-send-fill"></i>
