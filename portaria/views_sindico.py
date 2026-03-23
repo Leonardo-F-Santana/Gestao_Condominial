@@ -241,9 +241,9 @@ def moradores_sindico(request):
                             password='mudar123',
                             first_name=nome.split()[0] if nome else '',
                             email=email,
-                            tipo_usuario='morador',
-                            condominio=condominio
+                            tipo_usuario='morador'
                         )
+                        user_obj.condominios.add(condominio)
                         
                         Morador.objects.create(
                             condominio=condominio,
@@ -288,9 +288,9 @@ def moradores_sindico(request):
                         password=password,
                         first_name=nome.split()[0] if nome else '',
                         email=email,
-                        tipo_usuario='morador',
-                        condominio=condominio
+                        tipo_usuario='morador'
                     )
+                    user_obj.condominios.add(condominio)
                 
                 Morador.objects.create(
                     condominio=condominio,

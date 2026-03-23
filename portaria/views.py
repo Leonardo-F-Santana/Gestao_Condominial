@@ -228,9 +228,9 @@ def cadastro_morador(request, codigo_convite):
                 password=password,
                 first_name=nome.split()[0] if nome else '',
                 email=email,
-                tipo_usuario='morador',
-                condominio=condominio
+                tipo_usuario='morador'
             )
+            user_obj.condominios.add(condominio)
             Morador.objects.create(
                 condominio=condominio,
                 nome=nome,

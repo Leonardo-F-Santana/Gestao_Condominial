@@ -196,12 +196,11 @@ class MoradorPerfilForm(forms.ModelForm):
 
     class Meta:
         model = Morador
-        fields = ['telefone', 'apartamento', 'bloco', 'condominio']
+        fields = ['telefone', 'apartamento', 'bloco']
         widgets = {
             'telefone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(00) 00000-0000'}),
             'apartamento': forms.TextInput(attrs={'class': 'form-control'}),
             'bloco': forms.TextInput(attrs={'class': 'form-control'}),
-            'condominio': forms.Select(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -214,7 +213,6 @@ class MoradorPerfilForm(forms.ModelForm):
             self.fields['email'].widget.attrs.update({'class': 'form-control'})
         self.fields['apartamento'].disabled = True
         self.fields['bloco'].disabled = True
-        self.fields['condominio'].disabled = True
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
