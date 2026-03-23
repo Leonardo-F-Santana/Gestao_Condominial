@@ -541,6 +541,18 @@ def mensagens(request):
                 destinatario=destinatario,
                 conteudo=conteudo
             )
+            
+            from .models import Notificacao
+            sindicos = User.objects.filter(tipo_usuario='sindico', condominios=condominio)
+            for snd in sindicos:
+                Notificacao.objects.create(
+                    usuario=snd,
+                    condominio=condominio,
+                    titulo=f"Nova mensagem de {request.user.first_name or request.user.username}",
+                    mensagem="Você recebeu uma nova mensagem no painel.",
+                    link="/sindico/mensagens/"
+                )
+                
             messages.success(request, 'Mensagem enviada com sucesso!')
             return redirect('morador_mensagens')
         else:
@@ -556,7 +568,7 @@ def mensagens(request):
     from django.contrib.auth import get_user_model
     User = get_user_model()
     destinatarios_possiveis = User.objects.filter(
-        condominio=condominio,
+        condominios=condominio,
         tipo_usuario__in=['sindico', 'porteiro']
     ).exclude(id=usuario.id)
 
