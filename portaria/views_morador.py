@@ -627,7 +627,7 @@ def ocorrencias(request):
             # Notificar síndicos do condomínio
             if condominio:
                 User_model = get_user_model()
-                sindicos = User_model.objects.filter(condominio=condominio, tipo_usuario='sindico')
+                sindicos = User_model.objects.filter(condominios=condominio, tipo_usuario='sindico')
                 notificacoes = [
                     Notificacao(
                         usuario=sindico,
