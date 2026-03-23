@@ -548,8 +548,8 @@ def mensagens(request):
                 Notificacao.objects.create(
                     usuario=snd,
                     condominio=condominio,
-                    titulo=f"Nova mensagem de {request.user.first_name or request.user.username}",
-                    mensagem="Você recebeu uma nova mensagem no painel.",
+                    tipo='aviso',
+                    mensagem=f"Nova mensagem de {request.user.first_name or request.user.username}.",
                     link="/sindico/mensagens/"
                 )
                 
