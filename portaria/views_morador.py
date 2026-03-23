@@ -56,6 +56,27 @@ def get_condominio_ativo(request):
         return morador.condominio
     return None
 
+def notificar_sindicos_do_condominio(condominio, tipo, titulo, mensagem, link):
+    """Auxiliar para notificar todos os síndicos vinculados a um condomínio via M2M"""
+    if not condominio:
+        return
+    User_model = get_user_model()
+    sindicos = User_model.objects.filter(condominios=condominio, tipo_usuario='sindico')
+    
+    mensagem_final = f"[{titulo}] {mensagem}" if titulo else mensagem
+    
+    notificacoes = [
+        Notificacao(
+            usuario=sindico,
+            condominio=condominio,
+            tipo=tipo,
+            mensagem=mensagem_final[:199],  # limited by CharField max 200 length
+            link=link
+        ) for sindico in sindicos
+    ]
+    if notificacoes:
+        Notificacao.objects.bulk_create(notificacoes)
+
 def morador_context(request, extra_context=None, active_page=None):
     """
     Cria um dicionário de contexto padrão para as views do morador.
@@ -158,15 +179,14 @@ def minhas_cobrancas(request):
             cobranca.status = 'EM_ANALISE'
             cobranca.save()
             
-            # Notificar o 1º Síndico daquele condomínio
-            sindico = Sindico.objects.filter(condominio=morador.condominio).first()
-            if sindico and sindico.usuario:
-                Notificacao.objects.create(
-                    usuario=sindico.usuario,
-                    tipo='geral',
-                    mensagem=f'O morador {morador.nome} ({morador.bloco}-{morador.apartamento}) informou o pagamento de uma cobrança.',
-                    link='/sindico/financeiro/'
-                )
+            # Notificar os Síndicos daquele condomínio
+            notificar_sindicos_do_condominio(
+                condominio=morador.condominio,
+                tipo='geral',
+                titulo='Aviso de Pagamento',
+                mensagem=f'O morador {morador.nome} ({morador.bloco}-{morador.apartamento}) informou o pagamento de uma cobrança.',
+                link='/sindico/financeiro/'
+            )
             messages.success(request, 'Aviso de pagamento enviado com sucesso. O síndico analisará o comprovante.')
             return redirect('morador_cobrancas')
 
@@ -295,17 +315,13 @@ def nova_solicitacao(request):
             solicitacao = Solicitacao.objects.create(**sol_kwargs)
 
             # Notificar síndicos do condomínio
-            if morador.condominio:
-                sindicos = Sindico.objects.filter(condominio=morador.condominio)
-                notificacoes = [
-                    Notificacao(
-                        usuario=s.usuario,
-                        tipo='solicitacao',
-                        mensagem=f'Nova solicitação #{solicitacao.id} de {morador.nome[:30]}',
-                        link='/sindico/solicitacoes/'
-                    ) for s in sindicos if s.usuario
-                ]
-                Notificacao.objects.bulk_create(notificacoes)
+            notificar_sindicos_do_condominio(
+                condominio=morador.condominio,
+                tipo='solicitacao',
+                titulo='Nova Solicitação de Manutenção',
+                mensagem=f'O morador {request.user.first_name} abriu um chamado para a unidade {morador.bloco}/{morador.apartamento}.',
+                link='/sindico/solicitacoes/'
+            )
 
             messages.success(request, f"Solicitação #{solicitacao.id} criada com sucesso!")
             return redirect('morador_solicitacoes')
@@ -413,17 +429,13 @@ def fazer_reserva(request, area_id):
                 )
 
                 # Notificar síndicos
-                if morador.condominio:
-                    sindicos = Sindico.objects.filter(condominio=morador.condominio)
-                    notificacoes = [
-                        Notificacao(
-                            usuario=s.usuario,
-                            tipo='reserva',
-                            mensagem=f'Nova reserva de {area.nome} por {morador.nome[:20]}',
-                            link='/sindico/reservas/'
-                        ) for s in sindicos if s.usuario
-                    ]
-                    Notificacao.objects.bulk_create(notificacoes)
+                notificar_sindicos_do_condominio(
+                    condominio=morador.condominio,
+                    tipo='reserva',
+                    titulo='Nova Reserva',
+                    mensagem=f'O morador {morador.nome[:20]} solicitou a reserva de {area.nome}.',
+                    link='/sindico/reservas/'
+                )
 
                 messages.success(request, f'Reserva de {area.nome} para {data} solicitada com sucesso!')
                 return redirect('morador_reservas')
@@ -542,16 +554,13 @@ def mensagens(request):
                 conteudo=conteudo
             )
             
-            from .models import Notificacao
-            sindicos = User.objects.filter(tipo_usuario='sindico', condominios=condominio)
-            for snd in sindicos:
-                Notificacao.objects.create(
-                    usuario=snd,
-                    condominio=condominio,
-                    tipo='aviso',
-                    mensagem=f"Nova mensagem de {request.user.first_name or request.user.username}.",
-                    link="/sindico/mensagens/"
-                )
+            notificar_sindicos_do_condominio(
+                condominio=condominio,
+                tipo='aviso',
+                titulo='Nova Mensagem Recebida',
+                mensagem=f"Enviada pelo morador {request.user.first_name or request.user.username}.",
+                link="/sindico/mensagens/"
+            )
                 
             messages.success(request, 'Mensagem enviada com sucesso!')
             return redirect('morador_mensagens')
@@ -625,18 +634,13 @@ def ocorrencias(request):
             )
             
             # Notificar síndicos do condomínio
-            if condominio:
-                User_model = get_user_model()
-                sindicos = User_model.objects.filter(condominios=condominio, tipo_usuario='sindico')
-                notificacoes = [
-                    Notificacao(
-                        usuario=sindico,
-                        tipo='ocorrencia',
-                        mensagem=f'O morador {morador.nome[:30]} abriu uma ocorrência.',
-                        link='/sindico/ocorrencias/'
-                    ) for sindico in sindicos
-                ]
-                Notificacao.objects.bulk_create(notificacoes)
+            notificar_sindicos_do_condominio(
+                condominio=condominio,
+                tipo='ocorrencia',
+                titulo='Nova Ocorrência',
+                mensagem=f'O morador {request.user.first_name} abriu um chamado para a unidade {morador.bloco}/{morador.apartamento}.',
+                link='/sindico/ocorrencias/'
+            )
 
             messages.success(request, 'Ocorrência registrada com sucesso.')
             return redirect('morador_ocorrencias')
