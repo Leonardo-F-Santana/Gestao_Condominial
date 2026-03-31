@@ -279,6 +279,23 @@ UNFOLD = {
                     },
                 ],
             },
+            {
+                "title": "Autenticação e Domínio",
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": "Domínios do Sistema",
+                        "icon": "language",
+                        "link": reverse_lazy("admin:sites_site_changelist"),
+                    },
+                    {
+                        "title": "Login Social (Google)",
+                        "icon": "key",
+                        "link": reverse_lazy("admin:socialaccount_socialapp_changelist"),
+                    },
+                ],
+            },
         ],
     },
 }
