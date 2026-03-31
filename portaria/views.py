@@ -190,6 +190,10 @@ def cadastro_morador(request, codigo_convite):
     UserModel = get_user_model()
     
     condominio = get_object_or_404(Condominio, codigo_convite=codigo_convite, ativo=True)
+    
+    # Salva na sessão o convite para o botão do Google resgatar em completar_cadastro
+    request.session['condominio_convite_id'] = condominio.id
+    
     form_data = {}
     
     if request.method == 'POST':
@@ -234,9 +238,21 @@ def cadastro_morador(request, codigo_convite):
                 apartamento=apartamento,
                 telefone=telefone,
                 email=email,
-                usuario=user_obj
+                usuario=user_obj,
+                status_aprovacao='AGUARDANDO'
             )
-            messages.success(request, f"Conta criada com sucesso! Faça login com '{username}'.")
+            
+            # Notificar os síndicos para darem "aceite"
+            from portaria.views_morador import notificar_sindicos_do_condominio
+            notificar_sindicos_do_condominio(
+                condominio=condominio,
+                tipo='geral',
+                titulo='Novo cadastro de Morador',
+                mensagem=f"{nome} ({bloco}-{apartamento}) cadastrou-se e aguarda sua aprovação.",
+                link='/sindico/moradores/'
+            )
+            
+            messages.success(request, f"Conta criada com sucesso! Você poderá acessar o portal assim que o síndico aprovar.")
             return redirect('login')
     
     return render(request, 'cadastro_morador.html', {

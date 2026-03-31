@@ -266,6 +266,24 @@ def moradores_sindico(request):
                 for erro_msg in erros_lista:
                     messages.warning(request, erro_msg)
             return redirect('sindico_moradores')
+            
+        elif action == 'aprovar':
+            morador_id = request.POST.get('morador_id')
+            if morador_id:
+                morador = get_object_or_404(Morador, id=morador_id, condominio=condominio)
+                morador.status_aprovacao = 'APROVADO'
+                morador.save()
+                messages.success(request, f"Morador {morador.nome} foi aprovado com sucesso.")
+            return redirect('sindico_moradores')
+            
+        elif action == 'recusar':
+            morador_id = request.POST.get('morador_id')
+            if morador_id:
+                morador = get_object_or_404(Morador, id=morador_id, condominio=condominio)
+                morador.status_aprovacao = 'RECUSADO'
+                morador.save()
+                messages.error(request, f"Morador {morador.nome} foi recusado do sistema.")
+            return redirect('sindico_moradores')
         
         else:
             # Cadastro individual (form original)

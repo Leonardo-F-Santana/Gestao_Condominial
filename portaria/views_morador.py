@@ -30,6 +30,9 @@ def morador_required(view_func):
             from django.contrib.auth import logout
             logout(request)
             return redirect('login')
+        if getattr(morador, 'status_aprovacao', 'APROVADO') == 'AGUARDANDO':
+            return render(request, 'morador/aguardando_aprovacao.html', {'morador': morador})
+            
         request.morador = morador
         return view_func(request, *args, **kwargs)
     return login_required(wrapper)
@@ -749,6 +752,7 @@ def completar_cadastro(request):
         return redirect('morador_home')
         
     condominios_ativos = Condominio.objects.filter(ativo=True).order_by('nome')
+    convite_condominio_id = request.session.get('condominio_convite_id')
     
     if request.method == 'POST':
         condominio_id = request.POST.get('condominio')
@@ -771,13 +775,22 @@ def completar_cadastro(request):
                 telefone=telefone,
                 email=request.user.email,
                 bloco=bloco,
-                apartamento=apartamento
+                apartamento=apartamento,
+                status_aprovacao='AGUARDANDO'
             )
             
             # Adiciona o vínculo multi-tenant
             request.user.condominios.add(condominio)
             
-            messages.success(request, 'Seu perfil foi completado com êxito! Bem-vindo(a) ao portal.')
+            notificar_sindicos_do_condominio(
+                condominio=condominio,
+                tipo='geral',
+                titulo='Novo cadastro de Morador via Social',
+                mensagem=f"{request.user.get_full_name() or request.user.username} ({bloco}-{apartamento}) aguarda sua aprovação.",
+                link='/sindico/moradores/'
+            )
+            
+            messages.success(request, 'Seu perfil foi completado! Você poderá acessar o portal assim que o síndico aprovar.')
             return redirect('morador_home')
         else:
             messages.error(request, 'Condomínio e Apartamento são campos obrigatórios.')
@@ -785,4 +798,5 @@ def completar_cadastro(request):
     return render(request, 'morador/completar_cadastro.html', {
         'condominios': condominios_ativos,
         'user_name': request.user.get_full_name() or request.user.username,
+        'convite_condominio_id': convite_condominio_id,
     })

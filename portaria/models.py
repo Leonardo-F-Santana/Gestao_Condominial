@@ -106,6 +106,18 @@ class Morador(models.Model):
     telefone = models.CharField(max_length=20, verbose_name="Telefone", blank=True)
     bloco = models.CharField(max_length=10, verbose_name="Bloco", blank=True)
     apartamento = models.CharField(max_length=10, verbose_name="Apartamento")
+    
+    STATUS_APROVACAO_CHOICES = [
+        ('AGUARDANDO', 'Aguardando Aprovação'),
+        ('APROVADO', 'Aprovado'),
+        ('RECUSADO', 'Recusado/Inativo'),
+    ]
+    status_aprovacao = models.CharField(
+        max_length=20, 
+        choices=STATUS_APROVACAO_CHOICES, 
+        default='APROVADO', 
+        verbose_name="Status de Aprovação"
+    )
 
     def __str__(self):
         if self.bloco:

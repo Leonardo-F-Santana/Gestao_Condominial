@@ -33,12 +33,15 @@
                     
                     <div class="mb-3">
                         <label class="form-label text-muted fw-semibold">Selecione seu Condomínio *</label>
-                        <select name="condominio" class="form-select bg-light border-0 shadow-sm" style="padding: 12px;" required>
+                        <select name="condominio" class="form-select bg-light border-0 shadow-sm" style="padding: 12px;" required {% if convite_condominio_id %}disabled{% endif %}>
                             <option value="">Escolha...</option>
                             {% for c in condominios %}
-                                <option value="{{ c.id }}">{{ c.nome }}</option>
+                                <option value="{{ c.id }}" {% if c.id|stringformat:"s" == convite_condominio_id|stringformat:"s" %}selected{% endif %}>{{ c.nome }}</option>
                             {% endfor %}
                         </select>
+                        {% if convite_condominio_id %}
+                            <input type="hidden" name="condominio" value="{{ convite_condominio_id }}">
+                        {% endif %}
                     </div>
                     
                     <div class="row g-2 mb-3">

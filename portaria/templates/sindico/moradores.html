@@ -73,7 +73,14 @@ function copiarLink() {
         {% for m in moradores %}
         <div class="list-row">
             <div class="flex-grow-1">
-                <div class="list-row-name">{{ m.nome }}</div>
+                <div class="list-row-name d-flex align-items-center gap-2">
+                    {{ m.nome }}
+                    {% if m.status_aprovacao == 'AGUARDANDO' %}
+                        <span class="badge bg-warning text-dark px-2 rounded-pill"><i class="bi bi-hourglass-split"></i> Aguardando</span>
+                    {% elif m.status_aprovacao == 'RECUSADO' %}
+                        <span class="badge bg-danger px-2 rounded-pill"><i class="bi bi-x-circle"></i> Recusado</span>
+                    {% endif %}
+                </div>
                 <div class="list-row-sub">
                     {% if m.bloco %}Bl. {{ m.bloco }} · {% endif %}Apto {{ m.apartamento }}
                     {% if m.telefone %} · {{ m.telefone }}{% endif %}
@@ -88,7 +95,26 @@ function copiarLink() {
                 </div>
                 {% endif %}
             </div>
-            <div class="d-flex gap-1">
+            <div class="d-flex gap-1 flex-wrap justify-content-end">
+                {% if m.status_aprovacao == 'AGUARDANDO' %}
+                <form method="post" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="aprovar">
+                    <input type="hidden" name="morador_id" value="{{ m.id }}">
+                    <button type="submit" class="btn-exec btn-exec-sm" style="background-color: var(--bs-success);" title="Aprovar Entrada">
+                        <i class="bi bi-check-lg"></i>
+                    </button>
+                </form>
+                <form method="post" class="d-inline border-end pe-1 me-1 border-secondary border-opacity-25">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="recusar">
+                    <input type="hidden" name="morador_id" value="{{ m.id }}">
+                    <button type="submit" class="btn-exec btn-exec-sm bg-red" title="Recusar Entrada">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </form>
+                {% endif %}
+                
                 <button class="btn-exec btn-exec-sm bg-slate-500" title="Editar" data-bs-toggle="modal" data-bs-target="#modalEditar{{ m.id }}">
                     <i class="bi bi-pencil"></i>
                 </button>
