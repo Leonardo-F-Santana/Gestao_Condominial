@@ -310,6 +310,13 @@ SOCIALACCOUNT_ADAPTER = 'portaria.adapters.MySocialAccountAdapter'
 SOCIALACCOUNT_LOGIN_ON_GET = True
 LOGIN_REDIRECT_URL = '/login/popup-close/'
 
+# Configurações para pular a tela crua do Allauth e criar a conta social direto
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_USERNAME_REQUIRED = False
+SOCIALACCOUNT_AUTO_SIGNUP = True
+
 # O redirecionamento base do projeto é o home (operacional de portaria) ou para dashboard por causa das diretivas de login_view()
 # Em portaria/views.py (função login_view) intercepta essas URLs, o que garante estabilidade de fluxos de login.
 
