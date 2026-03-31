@@ -1,0 +1,76 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Completar Perfil - KS Tech</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/global.css' %}">
+</head>
+<body class="login-body">
+    <div class="login-container shadow-lg">
+        <div class="card card-login border-0 rounded-4 overflow-hidden">
+            <div class="card-header-custom text-center py-4 bg-primary text-white" style="background: linear-gradient(135deg, var(--ks-navy), var(--ks-blue)) !important;">
+                <h3>Quase lá!</h3>
+                <p class="mb-0 text-white-50">Complete seu perfil para acessar o portal</p>
+            </div>
+            <div class="card-body p-4">
+                {% if messages %}
+                    {% for msg in messages %}
+                        <div class="alert alert-{{ msg.tags }} alert-dismissible fade show">
+                            {{ msg }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                <h5 class="fw-bold mb-3 text-dark">Diga-nos onde você mora, {{ user_name }}</h5>
+                
+                <form method="post" action="{% url 'completar_cadastro' %}">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-muted fw-semibold">Selecione seu Condomínio *</label>
+                        <select name="condominio" class="form-select bg-light border-0 shadow-sm" style="padding: 12px;" required>
+                            <option value="">Escolha...</option>
+                            {% for c in condominios %}
+                                <option value="{{ c.id }}">{{ c.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label text-muted fw-semibold">Bloco / Torre</label>
+                            <input type="text" name="bloco" class="form-control bg-light border-0 shadow-sm" style="padding: 12px;" placeholder="Ex: B">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label text-muted fw-semibold">Apartamento *</label>
+                            <input type="text" name="apartamento" class="form-control bg-light border-0 shadow-sm" style="padding: 12px;" placeholder="Ex: 201" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label text-muted fw-semibold">Telefone / WhatsApp</label>
+                        <input type="text" name="telefone" class="form-control bg-light border-0 shadow-sm" style="padding: 12px;" placeholder="(00) 00000-0000">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 rounded-3 border-0 py-3 fw-bold" style="background-color: var(--ks-navy); transition: all 0.3s;">
+                        <i class="bi bi-check2-circle me-1"></i> Concluir e Acessar
+                    </button>
+                    
+                    <div class="text-center mt-3">
+                        <a href="{% url 'logout' %}" class="text-decoration-none text-danger small">
+                            <i class="bi bi-box-arrow-left"></i> Sair por agora
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

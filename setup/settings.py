@@ -306,6 +306,8 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
+SOCIALACCOUNT_ADAPTER = 'portaria.adapters.MySocialAccountAdapter'
+
 # O redirecionamento base do projeto é o home (operacional de portaria) ou para dashboard por causa das diretivas de login_view()
 # Em portaria/views.py (função login_view) intercepta essas URLs, o que garante estabilidade de fluxos de login.
 

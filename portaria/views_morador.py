@@ -730,3 +730,59 @@ def documentos_morador(request):
         'categorias': DocumentoCondominio.CATEGORIA_CHOICES,
     }
     return render(request, 'morador/central_documentos.html', context)
+
+# ==========================================
+# CADASTRO COMPLEMENTAR (LOGIN SOCIAL)
+# ==========================================
+
+@login_required
+def completar_cadastro(request):
+    """
+    Tela exibida quando um usuário (ex: login via Google) ainda não possui o perfil
+    físico de Morador instanciado associado ao seu id (bloco/apartamento/condominio omitidos).
+    """
+    if getattr(request.user, 'tipo_usuario', '') != 'morador':
+        return redirect('home')
+        
+    # Se já tem o perfil associado, segue o fluxo normal
+    if hasattr(request.user, 'morador') and request.user.morador:
+        return redirect('morador_home')
+        
+    condominios_ativos = Condominio.objects.filter(ativo=True).order_by('nome')
+    
+    if request.method == 'POST':
+        condominio_id = request.POST.get('condominio')
+        bloco = request.POST.get('bloco', '').strip()
+        apartamento = request.POST.get('apartamento', '').strip()
+        telefone = request.POST.get('telefone', '').strip()
+        
+        if condominio_id and apartamento:
+            condominio = get_object_or_404(Condominio, id=condominio_id, ativo=True)
+            
+            # Valida se já não existe outra pessoa para o mesmo bloco/apto nesse condomínio? 
+            # (No sistema a base actualiza e cria. Fica a cargo da administração aprovar ou recusar contatos repetidos, 
+            # mas o portal cria o Morador novo).
+            
+            morador = Morador.objects.create(
+                condominio=condominio,
+                usuario=request.user,
+                nome=request.user.get_full_name() or request.user.username,
+                cpf='',  # Será pedido do usuário na edição de perfil se ele quiser futuramente
+                telefone=telefone,
+                email=request.user.email,
+                bloco=bloco,
+                apartamento=apartamento
+            )
+            
+            # Adiciona o vínculo multi-tenant
+            request.user.condominios.add(condominio)
+            
+            messages.success(request, 'Seu perfil foi completado com êxito! Bem-vindo(a) ao portal.')
+            return redirect('morador_home')
+        else:
+            messages.error(request, 'Condomínio e Apartamento são campos obrigatórios.')
+            
+    return render(request, 'morador/completar_cadastro.html', {
+        'condominios': condominios_ativos,
+        'user_name': request.user.get_full_name() or request.user.username,
+    })

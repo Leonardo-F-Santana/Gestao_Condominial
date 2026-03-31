@@ -67,9 +67,7 @@ def login_view(request):
         # Redireciona baseado no tipo de usuário
         if getattr(request.user, 'tipo_usuario', '') == 'morador':
             if not hasattr(request.user, 'morador') or not request.user.morador:
-                logout(request)
-                messages.error(request, "Seu usuário ainda não possui um perfil de morador gerado. Contate a administração.")
-                return redirect('login')
+                return redirect('completar_cadastro')
             return redirect('morador_home')
         if getattr(request.user, 'tipo_usuario', '') == 'sindico':
             condominio = getattr(request.user, 'condominio', None)
@@ -98,9 +96,7 @@ def login_view(request):
             # Redireciona baseado no perfil
             if getattr(user, 'tipo_usuario', '') == 'morador':
                 if not hasattr(user, 'morador') or not user.morador:
-                    logout(request)
-                    messages.error(request, "Seu usuário ainda não possui um perfil de morador gerado. Contate a administração.")
-                    return redirect('login')
+                    return redirect('completar_cadastro')
                 return redirect('morador_home')
             if getattr(user, 'tipo_usuario', '') == 'sindico':
                 condominio = getattr(user, 'condominio', None)
@@ -296,10 +292,7 @@ def home(request):
     # Se for morador, redireciona para o portal do morador
     elif getattr(request.user, 'tipo_usuario', '') == 'morador':
         if not hasattr(request.user, 'morador') or not getattr(request.user, 'morador'):
-            from django.contrib.auth import logout
-            logout(request)
-            messages.error(request, "Seu usuário não possui um perfil de morador gerado. Contate a administração.")
-            return redirect('login')
+            return redirect('completar_cadastro')
         return redirect('morador_home')
     
     # Só staff ou porteiros (grupo Portaria) podem acessar
