@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.utils import timezone
 from django.db import transaction
 from django.db.models import Sum, Q
-from .models import Condominio, Sindico, Morador, Visitante, Encomenda, Solicitacao, Aviso, Notificacao, AreaComum, Reserva, Cobranca, Mensagem, Ocorrencia
+from .models import Condominio, Sindico, Porteiro, Morador, Visitante, Encomenda, Solicitacao, Aviso, Notificacao, AreaComum, Reserva, Cobranca, Mensagem, Ocorrencia
 
 User = get_user_model()
 
@@ -695,6 +695,87 @@ def excluir_aviso_sindico(request, aviso_id):
         messages.success(request, "Aviso excluído!")
     return redirect('sindico_avisos')
 
+
+# ==========================================
+# PORTARIA E ACESSO
+# ==========================================
+
+@login_required
+def gerenciar_portaria(request):
+    """Gestão da equipe de portaria do condomínio"""
+    if not is_sindico(request.user):
+        return redirect('home')
+    
+    condominio = get_condominio_ativo(request)
+    if not condominio:
+        return redirect('sindico_home')
+        
+    if request.method == 'POST':
+        action = request.POST.get('action', 'cadastrar')
+        
+        if action == 'cadastrar':
+            nome = request.POST.get('nome', '').strip()
+            username = request.POST.get('username', '').strip()
+            password = request.POST.get('password', '').strip()
+            
+            if nome and username and password:
+                if User.objects.filter(username=username).exists():
+                    messages.error(request, f"O usuário '{username}' já está em uso.")
+                else:
+                    user_obj = User.objects.create_user(
+                        username=username,
+                        password=password,
+                        first_name=nome.split()[0] if nome else '',
+                        tipo_usuario='porteiro'
+                    )
+                    user_obj.condominios.add(condominio)
+                    
+                    Porteiro.objects.create(
+                        condominio=condominio,
+                        nome=nome,
+                        usuario=user_obj
+                    )
+                    messages.success(request, f"Porteiro '{nome}' cadastrado com sucesso!")
+            else:
+                messages.error(request, "Todos os campos (Nome, Usuário e Senha) são obrigatórios para cadastro.")
+                
+        elif action == 'editar':
+            porteiro_id = request.POST.get('porteiro_id')
+            porteiro = get_object_or_404(Porteiro, id=porteiro_id, condominio=condominio)
+            
+            nome = request.POST.get('nome', porteiro.nome).strip()
+            password = request.POST.get('password', '').strip()
+            
+            porteiro.nome = nome
+            porteiro.save()
+            
+            if porteiro.usuario:
+                porteiro.usuario.first_name = nome.split()[0] if nome else ''
+                if password:
+                    porteiro.usuario.set_password(password)
+                porteiro.usuario.save()
+                
+            messages.success(request, f"Dados do porteiro '{nome}' atualizados!")
+            
+        elif action == 'excluir':
+            porteiro_id = request.POST.get('porteiro_id')
+            porteiro = get_object_or_404(Porteiro, id=porteiro_id, condominio=condominio)
+            nome = porteiro.nome
+            
+            if porteiro.usuario:
+                porteiro.usuario.delete()
+            porteiro.delete()
+            
+            messages.success(request, f"Porteiro '{nome}' excluído com sucesso!")
+            
+        return redirect('sindico_portaria')
+
+    porteiros = Porteiro.objects.filter(condominio=condominio)
+    
+    ctx = sindico_context(request, {
+        'porteiros': porteiros,
+    }, active_page='portaria')
+    return render(request, 'sindico/portaria.html', ctx)
 
 # ==========================================
 # COMPATIBILIDADE

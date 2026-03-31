@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
@@ -83,13 +83,15 @@ from portaria.views_sindico import (
     alterar_status_ocorrencia,
     editar_perfil_sindico,
     sindico_notificacoes,
-    gerar_advertencia_pdf,
     documentos_sindico,
-    redirecionar_notificacao
+    redirecionar_notificacao,
+    gerar_advertencia_pdf,
+    gerenciar_portaria
 )
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('accounts/', include('allauth.urls')),
     
     # --- Rota Principal e Autenticação ---
     path('', home, name='home'),
@@ -196,6 +198,7 @@ urlpatterns = [
     path('sindico/notificacoes/<int:notificacao_id>/', redirecionar_notificacao, name='redirecionar_notificacao'),
     path('sindico/perfil/editar/', editar_perfil_sindico, name='editar_perfil_sindico'),
     path('sindico/documentos/', documentos_sindico, name='sindico_documentos'),
+    path('sindico/portaria/', gerenciar_portaria, name='sindico_portaria'),
     # Compatibilidade com rota antiga
     path('sindico/condominio/<int:condominio_id>/', dashboard_condominio, name='sindico_dashboard'),
 ]

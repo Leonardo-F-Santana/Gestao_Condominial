@@ -65,12 +65,18 @@ INSTALLED_APPS = [
     
     'django.contrib.admin',
     'django.contrib.auth',
+    'django.contrib.sites',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
     'import_export',  # Biblioteca extra
+    
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
     
     'portaria',  # Seu App
 ]
@@ -83,6 +89,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'setup.urls'
@@ -275,4 +282,31 @@ UNFOLD = {
         ],
     },
 }
+
+# ==============================================================================
+# AUTENTICAÇÃO E LOGIN SOCIAL (ALLAUTH / GOOGLE)
+# ==============================================================================
+SITE_ID = 1
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        'OAUTH_PKCE_ENABLED': True,
+    }
+}
+
+# O redirecionamento base do projeto é o home (operacional de portaria) ou para dashboard por causa das diretivas de login_view()
+# Em portaria/views.py (função login_view) intercepta essas URLs, o que garante estabilidade de fluxos de login.
+
 

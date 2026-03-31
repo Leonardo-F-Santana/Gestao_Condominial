@@ -188,7 +188,7 @@ class CustomUserCreationForm(BaseUserCreationForm):
             self.add_error('condominios', 'Pelo menos um condomínio é obrigatório para este tipo de usuário.')
         return cleaned_data
 
-from .models import Morador, Sindico
+from .models import Morador, Sindico, Porteiro
 
 class MoradorPerfilForm(forms.ModelForm):
     username = forms.CharField(label="Usuário (Login)", required=True)
@@ -264,3 +264,27 @@ class SindicoPerfilForm(forms.ModelForm):
         if commit:
             sindico.save()
         return sindico
+
+class PorteiroForm(forms.ModelForm):
+    username = forms.CharField(label="Usuário (Login)", required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: login.porteiro'}))
+    password = forms.CharField(label="Senha", required=False, widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Mínimo 6 caracteres'}))
+
+    class Meta:
+        model = Porteiro
+        fields = ['nome']
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome Completo'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        if self.user:
+            self.fields['username'].initial = self.user.username
+            # Para edição, senha é opcional
+            self.fields['password'].required = False
+
+    def save(self, commit=True):
+        porteiro = super().save(commit=False)
+        return porteiro
+
