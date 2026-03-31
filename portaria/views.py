@@ -58,6 +58,11 @@ def get_condominio_porteiro(user):
 
 
 @never_cache
+def popup_close(request):
+    """View apenas para renderizar o fechador de popup do login social"""
+    return render(request, 'popup_close.html')
+
+@never_cache
 @ratelimit(key='ip', rate='5/m', method='POST', block=True)
 def login_view(request):
     if request.user.is_authenticated:

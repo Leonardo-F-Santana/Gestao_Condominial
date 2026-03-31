@@ -94,12 +94,13 @@
                     <span class="text-muted" style="font-size: 0.85rem;">ou</span>
                 </div>
 
-                <a href="{% provider_login_url 'google' %}" class="btn btn-light w-100 rounded-3 shadow-sm d-flex align-items-center justify-content-center border border-light-subtle" style="padding: 10px; font-weight: 600; color: #4a4a4a; transition: all 0.2s;">
+                <button type="button" id="btnGoogle" onclick="loginComGooglePopup('{% provider_login_url \'google\' process=\'login\' %}')" class="btn btn-light w-100 rounded-3 shadow-sm d-flex align-items-center justify-content-center border border-light-subtle" style="padding: 10px; font-weight: 600; color: #4a4a4a; transition: all 0.2s;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-google me-2 text-danger" viewBox="0 0 16 16">
                         <path d="M15.545 6.558a9.4 9.4 0 0 1 .139 1.626c0 2.434-.87 4.492-2.384 5.885h.002C11.978 15.292 10.158 16 8 16A8 8 0 1 1 8 0a7.7 7.7 0 0 1 5.352 2.082l-2.284 2.284A4.35 4.35 0 0 0 8 3.166c-2.087 0-3.86 1.408-4.492 3.304a4.8 4.8 0 0 0 0 3.06c.632 1.896 2.405 3.304 4.492 3.304 1.25 0 2.33-.42 3.13-1.12.83-.73 1.34-1.8 1.48-3.1h-4.6v-2.1h4.605z"/>
                     </svg>
-                    Cadastrar com Google
-                </a>
+                    <span id="txtGoogle">Cadastrar com Google</span>
+                    <span id="spinnerGoogle" class="spinner-border spinner-border-sm ms-2 text-secondary" style="display: none;" role="status"></span>
+                </button>
             </div>
         </div>
 
@@ -141,6 +142,38 @@
                 if (installBtn) installBtn.style.display = 'none';
             });
         }
+    }
+    
+    let googlePopup = null;
+    let googlePollTimer = null;
+
+    function loginComGooglePopup(url) {
+        const btn = document.getElementById('btnGoogle');
+        const txt = document.getElementById('txtGoogle');
+        const spinner = document.getElementById('spinnerGoogle');
+        
+        // Estado visual de loading
+        btn.classList.add('disabled');
+        txt.innerText = 'Conectando...';
+        spinner.style.display = 'inline-block';
+
+        // Parâmetros da nova janela
+        const width = 500;
+        const height = 600;
+        const left = (window.innerWidth / 2) - (width / 2);
+        const top = (window.innerHeight / 2) - (height / 2);
+
+        googlePopup = window.open(url, 'GoogleLogin', `width=${width},height=${height},top=${top},left=${left}`);
+
+        // Fica checando se o popup fechou a cada meio segundo
+        if (googlePollTimer) clearInterval(googlePollTimer);
+        googlePollTimer = setInterval(() => {
+            if (!googlePopup || googlePopup.closed || googlePopup.closed === undefined) {
+                clearInterval(googlePollTimer);
+                txt.innerText = 'Redirecionando...';
+                window.location.reload(); 
+            }
+        }, 500);
     }
 
     // iOS WebKit: intercepta o envio do formulário para tratar erros de CSRF

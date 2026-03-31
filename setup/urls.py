@@ -8,6 +8,7 @@ from django.contrib.auth import views as auth_views
 from portaria.views import (
     home, 
     login_view, 
+    popup_close,
     logout_view, 
     registrar_visitante, 
     registrar_encomenda, 
@@ -97,6 +98,7 @@ urlpatterns = [
     # --- Rota Principal e Autenticação ---
     path('', home, name='home'),
     path('login/', login_view, name='login'),
+    path('login/popup-close/', popup_close, name='popup_close'),
     path('logout/', logout_view, name='logout'),
     path('alterar-senha/', alterar_senha, name='alterar_senha'),
     path('cadastro/<uuid:codigo_convite>/', cadastro_morador, name='cadastro_morador'),

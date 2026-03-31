@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fechando...</title>
+    <script>
+        if (window.opener) {
+            window.close(); // Fecha o popup automaticamente
+        } else {
+            window.location.href = '/'; // Fallback se não for popup
+        }
+    </script>
+</head>
+<body style="background: #0f172a; color: white; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif;">
+    <p>Autenticação concluída! Retornando ao aplicativo...</p>
+</body>
+</html>
