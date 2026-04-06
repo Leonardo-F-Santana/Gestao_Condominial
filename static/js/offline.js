@@ -1,15 +1,4 @@
-/**
- * ============================================================
- * PORTARIA OFFLINE ENGINE
- * ============================================================
- * Gerencia armazenamento offline (IndexedDB), detecção de
- * conexão e sincronização automática de visitantes, encomendas
- * e solicitações.
- * 
- * Quando offline, os formulários salvam localmente.
- * Quando online, sincroniza automaticamente com o servidor.
- * ============================================================
- */
+
 
 const OfflineEngine = (function () {
     const DB_NAME = 'portaria_offline';
@@ -17,9 +6,7 @@ const OfflineEngine = (function () {
     let db = null;
     let isSincronizando = false;
 
-    // =====================
-    // 1. IndexedDB Setup
-    // =====================
+
     function init() {
         return new Promise((resolve, reject) => {
             const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -211,9 +198,27 @@ const OfflineEngine = (function () {
 
                 console.log(`🔄 Sincronizando: ${visitantes.length} visitantes, ${encomendas.length} encomendas, ${solicitacoes.length} solicitações...`);
 
+                const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]') ? document.querySelector('[name=csrfmiddlewaretoken]').value : (function(){
+                    let cookieValue = null;
+                    if (document.cookie && document.cookie !== '') {
+                        const cookies = document.cookie.split(';');
+                        for (let i = 0; i < cookies.length; i++) {
+                            const cookie = cookies[i].trim();
+                            if (cookie.substring(0, 10) === ('csrftoken=')) {
+                                cookieValue = decodeURIComponent(cookie.substring(10));
+                                break;
+                            }
+                        }
+                    }
+                    return cookieValue;
+                })();
+
                 fetch('/api/sync-offline/', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
                     body: JSON.stringify({
                         visitantes: visitantes.map(v => ({
                             nome_completo: v.nome_completo,
@@ -381,7 +386,7 @@ const OfflineEngine = (function () {
                      const selMorador = document.getElementById('vis_select_morador');
                     if(selMorador) { selMorador.disabled = true; selMorador.innerHTML = '<option value="" disabled selected>--- Aguardando Filtro ---</option>'; }
 
-                    mostrarNotificacao('Visitante salvo offline — será sincronizado automaticamente quando a internet voltar.', 'warning');
+                    alert('Salvo com sucesso! O registro foi armazenado localmente e será sincronizado quando a internet voltar.');
                     atualizarBadgePendentes();
                 });
             });
@@ -411,7 +416,7 @@ const OfflineEngine = (function () {
                      const selMoradorE = document.getElementById('select_morador_final');
                     if(selMoradorE) { selMoradorE.disabled = true; selMoradorE.innerHTML = '<option value="" disabled selected>--- Aguardando Filtro ---</option>'; }
 
-                    mostrarNotificacao('Encomenda salva offline — será sincronizada automaticamente quando a internet voltar.', 'warning');
+                    alert('Salvo com sucesso! A encomenda foi armazenada localmente e será sincronizada quando a internet voltar.');
                     atualizarBadgePendentes();
                 });
             });
@@ -441,7 +446,7 @@ const OfflineEngine = (function () {
                      const selMoradorS = document.getElementById('sol_select_morador');
                     if(selMoradorS) { selMoradorS.innerHTML = '<option value="">-- Área Comum --</option>'; }
                     
-                    mostrarNotificacao('Solicitação salva offline — será sincronizada automaticamente quando a internet voltar.', 'warning');
+                    alert('Salvo com sucesso! A solicitação foi armazenada localmente e será sincronizada quando a internet voltar.');
                     atualizarBadgePendentes();
                 });
             });
@@ -476,6 +481,17 @@ const OfflineEngine = (function () {
             console.log('🟢 Conexão restabelecida!');
             atualizarStatusConexao();
             atualizarBadgePendentes(); // Re-checar o botão Sincronizar
+            
+            const banner = document.getElementById('banner-offline');
+            if (banner) {
+                banner.style.backgroundColor = '#198754';
+                banner.style.color = '#fff';
+                banner.innerHTML = '🟢 Conexão restabelecida. Sincronizando...';
+                setTimeout(() => {
+                    banner.style.display = 'none';
+                }, 4000);
+            }
+
             // Tentar sincronizar automaticamente após 2s (dar tempo para estabilizar)
             setTimeout(() => {
                 sincronizar().then(ok => {
@@ -491,7 +507,14 @@ const OfflineEngine = (function () {
             console.log('🔴 Conexão perdida!');
             atualizarStatusConexao();
             atualizarBadgePendentes(); // Re-checar o botão Sincronizar (deve sumir)
-            mostrarNotificacao('⚠️ Você está sem internet. Os cadastros serão salvos localmente e sincronizados quando a conexão voltar.', 'warning');
+            
+            const banner = document.getElementById('banner-offline');
+            if (banner) {
+                banner.style.display = 'block';
+                banner.style.backgroundColor = '#fc4d4dff';
+                banner.style.color = '#000';
+                banner.innerHTML = '⚠️ Conexão perdida. Operando normalmente em modo offline';
+            }
         });
     }
 
