@@ -146,11 +146,9 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 
-# Configuração de arquivos de mídia (uploads)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Limite de upload de arquivos (50MB)
 DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800
 FILE_UPLOAD_MAX_MEMORY_SIZE = 52428800
 
@@ -162,9 +160,6 @@ LOGIN_REDIRECT_URL = 'home'
 LOGIN_URL = 'login'
 LOGOUT_REDIRECT_URL = 'login'
 
-# ==============================================================================
-# EMAIL (Recuperação de Senha)
-# ==============================================================================
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 465
@@ -175,9 +170,6 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = 'Gestão Condominial <noreply@gestaocondominial.com>'
 
-# ==============================================================================
-# CONFIGURAÇÕES DO UNFOLD (Visual do Admin)
-# ==============================================================================
 from django.urls import reverse_lazy
 
 UNFOLD = {
@@ -300,9 +292,6 @@ UNFOLD = {
     },
 }
 
-# ==============================================================================
-# AUTENTICAÇÃO E LOGIN SOCIAL (ALLAUTH / GOOGLE)
-# ==============================================================================
 SITE_ID = 1
 
 AUTHENTICATION_BACKENDS = [
@@ -327,14 +316,8 @@ SOCIALACCOUNT_ADAPTER = 'portaria.adapters.MySocialAccountAdapter'
 SOCIALACCOUNT_LOGIN_ON_GET = True
 LOGIN_REDIRECT_URL = '/login/popup-close/'
 
-# Configurações para pular a tela crua do Allauth e criar a conta social direto
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
-ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_LOGIN_METHODS = {'email'}
+ACCOUNT_SIGNUP_FIELDS = ['email*']
 ACCOUNT_UNIQUE_EMAIL = True
-ACCOUNT_USERNAME_REQUIRED = False
 SOCIALACCOUNT_AUTO_SIGNUP = True
-
-# O redirecionamento base do projeto é o home (operacional de portaria) ou para dashboard por causa das diretivas de login_view()
-# Em portaria/views.py (função login_view) intercepta essas URLs, o que garante estabilidade de fluxos de login.
-
 

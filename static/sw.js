@@ -68,28 +68,39 @@ self.addEventListener('push', event => {
             data = event.data.json();
         }
     } catch (e) {
-        console.error("Error parsing push data", e);
+        data = { titulo: 'Notificação', mensagem: event.data.text() };
     }
     
-    const title = data.title || "Nova Notificação do Condomínio";
-    const options = {
-        body: data.body || "Você tem uma nova atualização no portal.",
-        icon: data.icon || "/static/img/icon-192.png",
-        badge: "/static/img/icon-192.png",
-        data: {
-            url: data.url || "/"
-        }
-    };
+    const titulo = data.titulo || "Notificação do Condomínio";
+    const mensagem = data.mensagem || data.body || "Você tem uma nova atualização.";
+    const url = data.url || "/";
 
     event.waitUntil(
-        self.registration.showNotification(title, options)
+        self.registration.showNotification(titulo, {
+            body: mensagem,
+            icon: '/static/img/icon-192.png',
+            badge: '/static/img/icon-192.png',
+            data: { url: url }
+        })
     );
 });
 
 // Handle notification click
 self.addEventListener('notificationclick', event => {
     event.notification.close();
+    const urlToOpen = event.notification.data.url || '/';
+
     event.waitUntil(
-        clients.openWindow(event.notification.data.url)
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
+            for (let i = 0; i < windowClients.length; i++) {
+                let client = windowClients[i];
+                if (client.url.includes(urlToOpen) && 'focus' in client) {
+                    return client.focus();
+                }
+            }
+            if (clients.openWindow) {
+                return clients.openWindow(urlToOpen);
+            }
+        })
     );
 });

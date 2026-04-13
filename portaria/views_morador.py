@@ -659,33 +659,7 @@ def ocorrencias(request):
     return render(request, 'morador/ocorrencias.html', context)
 
 
-@login_required
-def salvar_push_subscription(request):
-    """Salva a inscrição (PushSubscription) do usuário logado."""
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            endpoint = data.get('endpoint')
-            keys = data.get('keys', {})
-            p256dh = keys.get('p256dh')
-            auth = keys.get('auth')
 
-            if endpoint and p256dh and auth:
-                # Update or create the subscription for the user
-                PushSubscription.objects.update_or_create(
-                    usuario=request.user,
-                    endpoint=endpoint,
-                    defaults={
-                        'p256dh': p256dh,
-                        'auth': auth
-                    }
-                )
-                return JsonResponse({'status': 'success'}, status=200)
-            return JsonResponse({'status': 'invalid data'}, status=400)
-        except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-    
-    return JsonResponse({'status': 'invalid method'}, status=405)
 
 from .forms import MoradorPerfilForm
 

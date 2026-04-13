@@ -840,3 +840,33 @@ def trocar_condominio(request, condominio_id):
     else:
         messages.error(request, 'Você não tem acesso a este condomínio.')
     return redirect(request.META.get('HTTP_REFERER', '/'))
+# ==========================================
+# WEB PUSH NOTIFICATIONS
+# ==========================================
+from django.views.decorators.csrf import csrf_exempt
+from portaria.models import PushSubscription
+import json
+from django.http import JsonResponse
+
+@csrf_exempt
+@login_required
+def salvar_inscricao_push(request):
+    if request.user.is_authenticated and request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            endpoint = data.get('endpoint')
+            keys = data.get('keys', {})
+            p256dh = keys.get('p256dh')
+            auth = keys.get('auth')
+
+            if endpoint and p256dh and auth:
+                PushSubscription.objects.update_or_create(
+                    usuario=request.user,
+                    endpoint=endpoint,
+                    defaults={'p256dh': p256dh, 'auth': auth}
+                )
+                return JsonResponse({'status': 'ok'})
+        except Exception as e:
+            pass
+    return JsonResponse({'status': 'error'}, status=400)
+

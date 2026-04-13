@@ -194,42 +194,74 @@
             return outputArray;
         }
 
-        if ('serviceWorker' in navigator && 'PushManager' in window) {
-            navigator.serviceWorker.register('/static/sw.js').then(function(registration) {
-                console.log('Service Worker registrado com sucesso.');
-                
-                // Pedir permissão e inscrever
-                const vapidPublicKey = "{{ VAPID_PUBLIC_KEY|default:'' }}";
-                if (vapidPublicKey) {
-                    const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
-
-                    registration.pushManager.getSubscription().then(function(subscription) {
-                        if (subscription === null) {
-                            return registration.pushManager.subscribe({
-                                userVisibleOnly: true,
-                                applicationServerKey: convertedVapidKey
-                            });
-                        } else {
-                            return subscription;
-                        }
-                    }).then(function(subscription) {
-                        // Enviar a inscrição para o backend
-                        fetch('/api/push/subscribe/', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRFToken': '{{ csrf_token }}'
-                            },
-                            body: JSON.stringify(subscription)
-                        }).catch(err => console.error('Erro ao salvar subscription', err));
-                    }).catch(function(err) {
-                        console.log('Erro ao se inscrever para push:', err);
-                    });
-                }
-            }).catch(function(err) {
-                console.log('Falha ao registrar Service Worker:', err);
-            });
+        function assinarNotificacoes() {
+            if ('serviceWorker' in navigator && 'PushManager' in window) {
+                navigator.serviceWorker.register('/static/sw.js').then(function(registration) {
+                    const vapidPublicKey = "{{ VAPID_PUBLIC_KEY|default:'' }}";
+                    if (vapidPublicKey) {
+                        const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+                        registration.pushManager.subscribe({
+                            userVisibleOnly: true,
+                            applicationServerKey: convertedVapidKey
+                        }).then(function(subscription) {
+                            fetch('/api/push/subscribe/', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRFToken': '{{ csrf_token }}'
+                                },
+                                body: JSON.stringify(subscription)
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.status === 'ok') {
+                                    document.getElementById('push-notification-banner').style.display = 'none';
+                                }
+                            })
+                            .catch(err => console.error('Erro ao salvar subscription', err));
+                        }).catch(function(err) {
+                            console.log('Erro ao se inscrever para push:', err);
+                        });
+                    }
+                });
+            }
         }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if ('Notification' in window) {
+                if (Notification.permission === 'default') {
+                    // Criar banner discreto
+                    const banner = document.createElement('div');
+                    banner.id = 'push-notification-banner';
+                    banner.style.cssText = 'position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 10px 20px; border-radius: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); z-index: 1000; display: flex; align-items: center; gap: 10px; font-size: 0.85rem;';
+                    banner.innerHTML = `
+                        <i class="bi bi-bell-fill text-warning"></i>
+                        <span>Ativar notificações?</span>
+                        <button id="btn-enable-push" class="btn btn-sm btn-primary rounded-pill py-0 px-2" style="font-size: 0.8rem;">Sim</button>
+                        <button id="btn-close-push" class="btn btn-sm text-white p-0 border-0"><i class="bi bi-x"></i></button>
+                    `;
+                    document.body.appendChild(banner);
+
+                    document.getElementById('btn-enable-push').addEventListener('click', function() {
+                        Notification.requestPermission().then(permission => {
+                            if (permission === 'granted') {
+                                document.getElementById('push-notification-banner').style.display = 'none';
+                                assinarNotificacoes();
+                            } else {
+                                document.getElementById('push-notification-banner').style.display = 'none';
+                            }
+                        });
+                    });
+
+                    document.getElementById('btn-close-push').addEventListener('click', function() {
+                        document.getElementById('push-notification-banner').style.display = 'none';
+                    });
+                } else if (Notification.permission === 'granted') {
+                    // Já tem permissão, apenas garante que está inscrito
+                    assinarNotificacoes();
+                }
+            }
+        });
         
         document.addEventListener("DOMContentLoaded", function() {
             // A renderização de badge é feita via Django template tags agora

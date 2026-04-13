@@ -29,7 +29,8 @@ from portaria.views import (
     cadastro_morador,
     api_moradores_offline,
     api_sync_offline,
-    CustomPasswordResetView
+    CustomPasswordResetView,
+    salvar_inscricao_push
 )
 
 # Views do Portal do Morador
@@ -46,7 +47,6 @@ from portaria.views_morador import (
     cancelar_reserva,
     mensagens,
     ocorrencias,
-    salvar_push_subscription,
     minhas_cobrancas,
     editar_perfil_morador,
     documentos_morador,
@@ -166,7 +166,7 @@ urlpatterns = [
     path('morador/financeiro/', minhas_cobrancas, name='morador_cobrancas'),
     path('morador/perfil/editar/', editar_perfil_morador, name='editar_perfil_morador'),
     path('morador/documentos/', documentos_morador, name='morador_documentos'),
-    path('api/push/subscribe/', salvar_push_subscription, name='salvar_push_subscription'),
+    path('api/push/subscribe/', salvar_inscricao_push, name='salvar_inscricao_push'),
     
     # --- Portal do Síndico ---
     path('sindico/', portal_sindico_home, name='sindico_home'),
