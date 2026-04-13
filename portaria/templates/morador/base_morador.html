@@ -138,7 +138,6 @@
         {% block content %}{% endblock %}
     </div>
 
-    <!-- Bottom Navigation -->
     <div class="bottom-nav d-md-none d-flex justify-content-between align-items-center w-100 px-2">
         <a href="{% url 'morador_home' %}" class="text-center flex-fill {% if request.resolver_match.url_name == 'morador_home' %}active{% endif %}">
             <span class="icon-badge-wrapper">
@@ -182,10 +181,12 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Função para converter VAPID base64 em Uint8Array
+        // --- INÍCIO DO CÓDIGO DA NOTIFICAÇÃO PUSH ---
+        
+        // 1. Função Auxiliar: Converte a Chave Pública do Django
         function urlBase64ToUint8Array(base64String) {
             const padding = '='.repeat((4 - base64String.length % 4) % 4);
-            const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+            const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
             const rawData = window.atob(base64);
             const outputArray = new Uint8Array(rawData.length);
             for (let i = 0; i < rawData.length; ++i) {
@@ -194,39 +195,70 @@
             return outputArray;
         }
 
+        // 2. A "Casa das Máquinas": Regista e aguarda o motor antes de subscrever
         function assinarNotificacoes() {
+            console.log("Iniciando processo de assinatura push...");
+            
             if ('serviceWorker' in navigator && 'PushManager' in window) {
                 navigator.serviceWorker.register('/static/sw.js').then(function(registration) {
-                    const vapidPublicKey = "{{ VAPID_PUBLIC_KEY|default:'' }}";
-                    if (vapidPublicKey) {
+                    console.log("SW Registado. Verificando estado do motor...");
+
+                    // Função interna que dá o tiro só quando o motor está pronto
+                    function fazerSubscribe() {
+                        const vapidPublicKey = "BMmfQyrCznoXGxPezko8XjnphjNvAJN13V5moSzXlwt7UwD0ErR-hzQ2kYBOgJfDr7UnQ4CP9Q0-EIqPUqDCiR0"; 
                         const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+
                         registration.pushManager.subscribe({
                             userVisibleOnly: true,
                             applicationServerKey: convertedVapidKey
                         }).then(function(subscription) {
+                            console.log("Telemóvel inscrito no Google! Enviando para a KS Tech...");
+                            
                             fetch('/api/push/subscribe/', {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
-                                    'X-CSRFToken': '{{ csrf_token }}'
+                                    'X-CSRFToken': '{{ csrf_token }}' // Proteção de Segurança
                                 },
                                 body: JSON.stringify(subscription)
-                            })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.status === 'ok') {
-                                    document.getElementById('push-notification-banner').style.display = 'none';
+                            }).then(response => {
+                                if(response.ok) {
+                                    console.log("✅ Subscrição guardada no banco de dados com sucesso!");
+                                } else {
+                                    console.error("❌ O Django recusou a subscrição.");
                                 }
-                            })
-                            .catch(err => console.error('Erro ao salvar subscription', err));
-                        }).catch(function(err) {
-                            console.log('Erro ao se inscrever para push:', err);
+                            });
+                        }).catch(function(error) {
+                            console.error('❌ Falha ao subscrever o push no navegador:', error);
                         });
                     }
+
+                    // Verifica se o motor já está a correr
+                    if (registration.active) {
+                        console.log("Motor já estava ativo. Disparando...");
+                        fazerSubscribe();
+                    } else {
+                        // Se estiver a instalar, manda aguardar o sinal verde
+                        let motorEmInstalacao = registration.installing || registration.waiting;
+                        if (motorEmInstalacao) {
+                            console.log("Motor a instalar. Aguardando sinal verde...");
+                            motorEmInstalacao.addEventListener('statechange', function(e) {
+                                if (e.target.state === 'activated') {
+                                    console.log("Sinal verde recebido! Disparando...");
+                                    fazerSubscribe();
+                                }
+                            });
+                        }
+                    }
+                }).catch(function(err) {
+                    console.error("❌ Erro ao ligar o sw.js:", err);
                 });
+            } else {
+                console.error("Este navegador não suporta Web Push Notifications.");
             }
         }
 
+        // 3. A Tela e a Permissão: O Banner
         document.addEventListener('DOMContentLoaded', function() {
             if ('Notification' in window) {
                 if (Notification.permission === 'default') {
@@ -246,7 +278,7 @@
                         Notification.requestPermission().then(permission => {
                             if (permission === 'granted') {
                                 document.getElementById('push-notification-banner').style.display = 'none';
-                                assinarNotificacoes();
+                                assinarNotificacoes(); 
                             } else {
                                 document.getElementById('push-notification-banner').style.display = 'none';
                             }
@@ -256,16 +288,14 @@
                     document.getElementById('btn-close-push').addEventListener('click', function() {
                         document.getElementById('push-notification-banner').style.display = 'none';
                     });
+                    
                 } else if (Notification.permission === 'granted') {
-                    // Já tem permissão, apenas garante que está inscrito
+                    // Já tem permissão de uma vez anterior, apenas garante que a subscrição está ativa
                     assinarNotificacoes();
                 }
             }
         });
-        
-        document.addEventListener("DOMContentLoaded", function() {
-            // A renderização de badge é feita via Django template tags agora
-        });
+        // --- FIM DO CÓDIGO DA NOTIFICAÇÃO PUSH ---
     </script>
     {% block scripts %}{% endblock %}
 </body>

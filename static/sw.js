@@ -1,28 +1,28 @@
-const CACHE_NAME = 'splash-rc-v2';
+const CACHE_NAME = 'splash-rc-v3'; // Versão 3 para forçar o navegador a atualizar
 const ASSETS_TO_CACHE = [
     '/',
-    '/img/logo.ico',
-    '/portaria/',
-    '/portaria/visitantes/',
-    '/portaria/encomendas/',
-    '/portaria/solicitacoes/',
-    '/sindico/visitantes/',
-    '/sindico/encomendas/',
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css',
     'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css',
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js',
 ];
 
-// Install: cache essential assets
+// Install: Faz o cache de forma inteligente (se um falhar, não quebra o resto)
 self.addEventListener('install', event => {
     event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => cache.addAll(ASSETS_TO_CACHE))
-            .then(() => self.skipWaiting())
+        caches.open(CACHE_NAME).then(cache => {
+            return Promise.all(
+                ASSETS_TO_CACHE.map(url => {
+                    return fetch(url).then(response => {
+                        if (!response.ok) throw new TypeError('Falha ao baixar ' + url);
+                        return cache.put(url, response);
+                    }).catch(err => console.warn('Página ignorada no cache offline:', url));
+                })
+            );
+        }).then(() => self.skipWaiting())
     );
 });
 
-// Activate: clean old caches
+// Activate: Limpa os caches velhos
 self.addEventListener('activate', event => {
     event.waitUntil(
         caches.keys().then(keys =>
@@ -34,33 +34,28 @@ self.addEventListener('activate', event => {
     );
 });
 
-// Fetch: network-first strategy (fall back to cache for offline)
+// Fetch: network-first strategy
 self.addEventListener('fetch', event => {
-    // By-pass cache on sensitive auth and admin paths independent of HTTP method
-    const bypassRoutes = ['/login', '/logout', '/admin', '/password_reset', '/reset', '/api/', '/sindico/', '/morador/'];
+    const bypassRoutes = ['/login', '/logout', '/admin', '/password_reset', '/reset', '/api/', '/sindico/', '/morador/', '/portaria/'];
     if (bypassRoutes.some(route => event.request.url.includes(route))) {
-        event.respondWith(fetch(event.request)); // Vai direto para a rede, ignora o cache
+        event.respondWith(fetch(event.request)); 
         return;
     }
 
-    // Skip non-GET requests for the rest
     if (event.request.method !== 'GET') return;
 
     event.respondWith(
         fetch(event.request)
             .then(response => {
-                // Cache successful responses
                 const clone = response.clone();
-                caches.open(CACHE_NAME).then(cache => {
-                    cache.put(event.request, clone);
-                });
+                caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
                 return response;
             })
             .catch(() => caches.match(event.request))
     );
 });
 
-// Push notification listener
+// A CASA DAS MÁQUINAS: Receptor do Push Notification
 self.addEventListener('push', event => {
     let data = {};
     try {
@@ -71,21 +66,22 @@ self.addEventListener('push', event => {
         data = { titulo: 'Notificação', mensagem: event.data.text() };
     }
     
-    const titulo = data.titulo || "Notificação do Condomínio";
-    const mensagem = data.mensagem || data.body || "Você tem uma nova atualização.";
-    const url = data.url || "/";
+    const titulo = data.titulo || "KS Tech - Condomínio";
+    const mensagem = data.mensagem || data.body || "Você tem um novo aviso no painel.";
+    const url = data.link || data.url || "/";
 
     event.waitUntil(
         self.registration.showNotification(titulo, {
             body: mensagem,
             icon: '/static/img/icon-192.png',
             badge: '/static/img/icon-192.png',
+            vibrate: [200, 100, 200, 100, 200], // Vibração tática
             data: { url: url }
         })
     );
 });
 
-// Handle notification click
+// O Gatilho do Clique: Abre a tela certa quando o morador clica no aviso
 self.addEventListener('notificationclick', event => {
     event.notification.close();
     const urlToOpen = event.notification.data.url || '/';

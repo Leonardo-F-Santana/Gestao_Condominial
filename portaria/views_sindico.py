@@ -5,7 +5,12 @@ from django.contrib import messages
 from django.utils import timezone
 from django.db import transaction
 from django.db.models import Sum, Q
-from .models import Condominio, Sindico, Porteiro, Morador, Visitante, Encomenda, Solicitacao, Aviso, Notificacao, AreaComum, Reserva, Cobranca, Mensagem, Ocorrencia
+
+import json
+from pywebpush import webpush, WebPushException
+from django.conf import settings
+
+from .models import Condominio, Sindico, Porteiro, Morador, Visitante, Encomenda, Solicitacao, Aviso, Notificacao, AreaComum, Reserva, Cobranca, Mensagem, Ocorrencia, PushSubscription
 
 User = get_user_model()
 
@@ -665,45 +670,49 @@ def criar_aviso_sindico(request):
             ]
             Notificacao.objects.bulk_create(notificacoes)
             
-            # --- Disparo Web Push ---
-            try:
-                import json
-                from pywebpush import webpush, WebPushException
-                from django.conf import settings
-                from portaria.models import PushSubscription
-
-                payload = json.dumps({
-                    'titulo': titulo,
-                    'mensagem': conteudo[:100] + ('...' if len(conteudo) > 100 else ''),
-                    'url': '/morador/avisos/'
-                })
-
-                usuarios_moradores = [m.usuario for m in moradores if m.usuario]
-                inscricoes = PushSubscription.objects.filter(usuario__in=usuarios_moradores)
-
-                for inscricao in inscricoes:
-                    try:
-                        webpush(
-                            subscription_info={
-                                'endpoint': inscricao.endpoint,
-                                'keys': {
-                                    'p256dh': inscricao.p256dh,
-                                    'auth': inscricao.auth
-                                }
-                            },
-                            data=payload,
-                            vapid_private_key=settings.VAPID_PRIVATE_KEY,
-                            vapid_claims={
-                                'sub': settings.VAPID_ADMIN_EMAIL
+            # --- INÍCIO DO DISPARO PUSH PARA O CELULAR ---
+            print("\n=== INICIANDO OPERAÇÃO DE DISPARO PUSH ===")
+            
+            # Filtra os usuários que realmente possuem conta
+            usuarios_alvo = [m.usuario for m in moradores if m.usuario]
+            print(f"Passo 1: Moradores válidos encontrados no condomínio: {len(usuarios_alvo)}")
+            
+            # Procura as inscrições ativas no banco
+            inscricoes = PushSubscription.objects.filter(usuario__in=usuarios_alvo)
+            print(f"Passo 2: Telemóveis inscritos encontrados para estes moradores: {inscricoes.count()}")
+            
+            # Monta o pacote de dados (Payload)
+            payload = json.dumps({
+                'titulo': f'Novo Aviso: {titulo[:30]}',
+                'mensagem': conteudo[:100],
+                'link': '/morador/avisos/'
+            })
+            
+            sucessos = 0
+            for inscricao in inscricoes:
+                try:
+                    webpush(
+                        subscription_info={
+                            "endpoint": inscricao.endpoint,
+                            "keys": {
+                                "p256dh": inscricao.p256dh,
+                                "auth": inscricao.auth
                             }
-                        )
-                    except WebPushException as ex:
-                        if ex.response and ex.response.status_code in [404, 410]:
-                            inscricao.delete()
-            except Exception as e:
-                print("Erro pywebpush:", str(e))
-                pass
-            # ------------------------
+                        },
+                        data=payload,
+                        vapid_private_key=settings.VAPID_PRIVATE_KEY,
+                        vapid_claims={
+                            "sub": settings.VAPID_ADMIN_EMAIL
+                        }
+                    )
+                    sucessos += 1
+                    print(f"  [+] SUCESSO: Notificação Push enviada para {inscricao.usuario.username}")
+                except Exception as ex:
+                    print(f"  [-] ERRO: Falha ao enviar para {inscricao.usuario.username}. Motivo: {repr(ex)}")
+            
+            print(f"Passo 3: Relatório Final -> {sucessos} disparos bem sucedidos.")
+            print("==========================================\n")
+            # --- FIM DO DISPARO PUSH ---
             
             messages.success(request, f"Aviso '{titulo}' publicado!")
     
