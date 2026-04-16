@@ -205,7 +205,9 @@
 
                     // Função interna que dá o tiro só quando o motor está pronto
                     function fazerSubscribe() {
-                        const vapidPublicKey = "BMmfQyrCznoXGxPezko8XjnphjNvAJN13V5moSzXlwt7UwD0ErR-hzQ2kYBOgJfDr7UnQ4CP9Q0-EIqPUqDCiR0"; 
+                        // --- ATUALIZAÇÃO CIRÚRGICA AQUI ---
+                        const vapidPublicKey = "BFLk6_JdSQnw2tF8upjINQuU831-MEP92iLNSccazaBh5CKAW3qSUkwJSHM8N38cfJO3rNvAGc5CfetVVgWs5NM"; 
+                        // --- FIM DA ATUALIZAÇÃO ---
                         const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
 
                         registration.pushManager.subscribe({
