@@ -87,6 +87,7 @@ class GroupAdmin(BaseGroupAdmin, ModelAdmin):
 @admin.register(Condominio)
 class CondominioAdmin(ModelAdmin):
     list_display = ('nome', 'cnpj', 'get_status_ativo')
+    search_fields = ('nome', 'cnpj')
     inlines = [SindicoUserInline, DocumentoInline]
 
     def get_status_ativo(self, obj):
