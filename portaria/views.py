@@ -11,7 +11,8 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.views.decorators.cache import never_cache
 from django_ratelimit.decorators import ratelimit
-from .models import Visitante, Morador, Encomenda, Solicitacao, Notificacao, Sindico, Porteiro, Condominio, Mensagem
+from .models import Visitante, Morador, Encomenda, Solicitacao, Notificacao, Sindico, Porteiro, Condominio, Mensagem, PushSubscription
+from .utils import enviar_push_notification
 
 # Tenta importar biblioteca de PDF
 try:
@@ -461,6 +462,16 @@ def registrar_visitante(request):
             observacoes=request.POST.get('observacoes'),
             registrado_por=request.user
         )
+        # Disparo de Push Notification para o Morador
+        if morador and morador.usuario and PushSubscription.objects.filter(usuario=morador.usuario).exists():
+            nome_visitante = request.POST.get('nome_completo')
+            print(f"[RADAR] Disparando Push de Visitante para {morador.usuario.username}")
+            enviar_push_notification(
+                usuario=morador.usuario,
+                title="👤 Visitante Anunciado",
+                body=f"O visitante {nome_visitante} acabou de ser registrado para a sua unidade."
+            )
+            
         messages.success(request, "Visitante registrado!")
     return redirect('home')
 
@@ -490,6 +501,15 @@ def registrar_encomenda(request):
                 destinatario_alternativo=request.POST.get('destinatario_alternativo'),
                 porteiro_cadastro=request.user
             )
+            # Disparo de Push Notification para o Morador
+            if morador.usuario and PushSubscription.objects.filter(usuario=morador.usuario).exists():
+                print(f"[RADAR] Disparando Push de Encomenda para {morador.usuario.username}")
+                enviar_push_notification(
+                    usuario=morador.usuario,
+                    title="📦 Encomenda na Portaria",
+                    body="Olá, uma nova encomenda chegou para você. Retire quando puder!"
+                )
+                
             messages.success(request, "Encomenda registrada!")
         else:
             messages.error(request, "Selecione um morador.")
