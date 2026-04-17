@@ -201,8 +201,9 @@
             console.log("Iniciando processo de assinatura push...");
             
             if ('serviceWorker' in navigator && 'PushManager' in window) {
-                navigator.serviceWorker.register('/static/sw.js').then(function(registration) {
-                    console.log("SW Registado. Verificando estado do motor...");
+                // Atualização do registro para forçar atualização de cache
+                navigator.serviceWorker.register('/static/sw.js?v=10').then(function(registration) {
+                    console.log("✅ Service Worker registrado com a versão 10! Verificando estado do motor...");
 
                     // Função interna que dá o tiro só quando o motor está pronto
                     function fazerSubscribe() {
@@ -254,7 +255,7 @@
                         }
                     }
                 }).catch(function(err) {
-                    console.error("❌ Erro ao ligar o sw.js:", err);
+                    console.error("❌ Erro ao registrar o Service Worker:", err);
                 });
             } else {
                 console.error("Este navegador não suporta Web Push Notifications.");
