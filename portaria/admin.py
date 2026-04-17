@@ -15,9 +15,10 @@ from .forms import CustomUserChangeForm, CustomUserCreationForm
 
 User = get_user_model()
 
-# --- MIXIN DE SEGURANÇA MULTI-TENANT ---
+# --- MIXIN DE SEGURANÇA MULTI-TENANT (SaaS) ---
 
 class TenantAdminMixin:
+    """Garante que cada condomínio só veja seus próprios dados"""
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         if request.user.is_superuser:
@@ -32,21 +33,50 @@ class TenantAdminMixin:
                 obj.condominio = request.user.condominio
         super().save_model(request, obj, form, change)
 
-# --- CONFIGURAÇÃO DE USUÁRIOS ---
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if not request.user.is_superuser and hasattr(request.user, 'condominio') and request.user.condominio:
+            if db_field.name == "morador":
+                kwargs["queryset"] = Morador.objects.filter(condominio=request.user.condominio)
+            if db_field.name == "condominio":
+                kwargs["queryset"] = Condominio.objects.filter(id=request.user.condominio.id)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
-admin.site.unregister(Group)
+# --- INLINES PARA O PAINEL DO CONDOMÍNIO ---
+
+class DocumentoInline(TabularInline):
+    model = DocumentoCondominio
+    extra = 0
 
 class MoradorInline(StackedInline):
     model = Morador
     extra = 0
     can_delete = False
+    autocomplete_fields = ['condominio']
+
+class SindicoUserInline(TabularInline):
+    model = User.condominios.through
+    extra = 0
+    verbose_name = "Síndico vinculado"
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(customuser__tipo_usuario='sindico')
+
+# --- CONFIGURAÇÃO DE USUÁRIOS ---
+
+admin.site.unregister(Group)
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin, ModelAdmin):
     form = CustomUserChangeForm
     add_form = CustomUserCreationForm
-    list_display = ('username', 'email', 'tipo_usuario', 'is_active')
+    list_display = ('username', 'first_name', 'email', 'tipo_usuario', 'is_active')
+    list_filter = ('condominios', 'tipo_usuario', 'is_active')
     inlines = [MoradorInline]
+    fieldsets = (
+        (None, {'fields': ('username', 'password')}),
+        ('Classificação', {'fields': ('tipo_usuario', 'condominios')}),
+        ('Informações Pessoais', {'fields': ('first_name', 'last_name', 'email')}),
+        ('Permissões', {'fields': ('is_active', 'is_staff', 'is_superuser')}),
+    )
 
 @admin.register(Group)
 class GroupAdmin(BaseGroupAdmin, ModelAdmin):
@@ -56,18 +86,23 @@ class GroupAdmin(BaseGroupAdmin, ModelAdmin):
 
 @admin.register(Condominio)
 class CondominioAdmin(ModelAdmin):
-    list_display = ('nome', 'cnpj', 'ativo')
-    search_fields = ('nome', 'cnpj')
+    list_display = ('nome', 'cnpj', 'get_status_ativo')
+    inlines = [SindicoUserInline, DocumentoInline]
+
+    def get_status_ativo(self, obj):
+        color = "#22c55e" if obj.ativo else "#ef4444"
+        return format_html('<span style="color: {}; font-weight: bold;">● {}</span>', color, "Ativo" if obj.ativo else "Inativo")
+    get_status_ativo.short_description = 'Status'
 
 @admin.register(Sindico)
 class SindicoAdmin(TenantAdminMixin, ModelAdmin):
-    list_display = ('nome', 'usuario', 'condominio')
+    list_display = ('nome', 'usuario', 'telefone')
 
 @admin.register(Porteiro)
 class PorteiroAdmin(TenantAdminMixin, ModelAdmin):
     list_display = ('nome', 'condominio', 'cargo')
 
-# --- OPERACIONAL MORADORES ---
+# --- MORADORES COM AUTO-USER E IMPORTAÇÃO ---
 
 class MoradorResource(resources.ModelResource):
     class Meta:
@@ -78,8 +113,31 @@ class MoradorResource(resources.ModelResource):
 @admin.register(Morador)
 class MoradorAdmin(TenantAdminMixin, ModelAdmin):
     resource_class = MoradorResource
-    list_display = ('nome', 'condominio', 'bloco', 'apartamento')
+    list_display = ('nome', 'condominio', 'bloco', 'apartamento', 'get_usuario_status')
     search_fields = ('nome', 'cpf', 'apartamento')
+
+    def get_usuario_status(self, obj):
+        color = "green" if obj.usuario and obj.usuario.is_active else "gray"
+        return format_html('<span style="color: {};">{}</span>', color, "Ativo" if obj.usuario else "Sem Login")
+
+    def save_model(self, request, obj, form, change):
+        if not obj.pk and not obj.usuario:
+            # Lógica comercial de criar usuário automático ao cadastrar morador
+            username = f"{obj.nome.split()[0].lower()}.{obj.apartamento}"
+            user = User.objects.create_user(username=username, password='mudar123', email=obj.email or '', tipo_usuario='morador')
+            cond = obj.condominio if obj.condominio else request.user.condominio
+            if cond: user.condominios.add(cond)
+            obj.usuario = user
+        super().save_model(request, obj, form, change)
+
+# --- OPERACIONAL ---
+
+@admin.register(Cobranca)
+class CobrancaAdmin(TenantAdminMixin, ModelAdmin):
+    list_display = ('descricao', 'morador', 'valor', 'get_status_html')
+    def get_status_html(self, obj):
+        cores = {'PENDENTE': 'orange', 'PAGO': 'green', 'ATRASADO': 'red'}
+        return format_html('<b style="color: {};">{}</b>', cores.get(obj.status, 'black'), obj.status)
 
 @admin.register(Visitante)
 class VisitanteAdmin(TenantAdminMixin, ModelAdmin):
@@ -87,62 +145,19 @@ class VisitanteAdmin(TenantAdminMixin, ModelAdmin):
 
 @admin.register(Encomenda)
 class EncomendaAdmin(TenantAdminMixin, ModelAdmin):
-    list_display = ('id', 'morador', 'condominio', 'entregue')
+    list_display = ('id', 'morador', 'entregue')
 
 @admin.register(Solicitacao)
 class SolicitacaoAdmin(TenantAdminMixin, ModelAdmin):
-    list_display = ('tipo', 'morador', 'status', 'data_criacao')
-
-@admin.register(Cobranca)
-class CobrancaAdmin(TenantAdminMixin, ModelAdmin):
-    list_display = ('descricao', 'morador', 'valor', 'status')
-
-@admin.register(Aviso)
-class AvisoAdmin(TenantAdminMixin, ModelAdmin):
-    list_display = ('titulo', 'condominio', 'data_publicacao')
-
-@admin.register(Notificacao)
-class NotificacaoAdmin(ModelAdmin):
-    list_display = ('usuario', 'mensagem', 'lida')
-
-@admin.register(AreaComum)
-class AreaComumAdmin(TenantAdminMixin, ModelAdmin):
-    list_display = ('nome', 'condominio', 'capacidade')
-
-@admin.register(Reserva)
-class ReservaAdmin(ModelAdmin):
-    list_display = ('area', 'morador', 'data', 'status')
-
-@admin.register(Mensagem)
-class MensagemAdmin(TenantAdminMixin, ModelAdmin):
-    list_display = ('remetente', 'destinatario', 'data_envio')
-
-@admin.register(Ocorrencia)
-class OcorrenciaAdmin(TenantAdminMixin, ModelAdmin):
-    list_display = ('autor', 'condominio', 'status')
-
-@admin.register(DocumentoCondominio)
-class DocumentoCondominioAdmin(TenantAdminMixin, ModelAdmin):
-    list_display = ('titulo', 'condominio', 'data_upload')
-
-# --- NOTIFICAÇÕES WEB PUSH (CORRIGIDO) ---
+    list_display = ('tipo', 'morador', 'status')
 
 @admin.register(PushSubscription)
 class PushSubscriptionAdmin(ModelAdmin):
     list_display = ('usuario', 'get_condominio_name', 'endpoint', 'criado_em')
-    list_filter = ('criado_em',)
     readonly_fields = ('usuario', 'endpoint', 'p256dh', 'auth', 'criado_em')
-
     def get_condominio_name(self, obj):
         cond = obj.usuario.condominios.first()
         return cond.nome if cond else "Nenhum"
-    get_condominio_name.short_description = 'Condomínio'
 
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        if request.user.is_superuser:
-            return qs
-        condominio_ativo = getattr(request.user, 'get_condominio_ativo', None)
-        if condominio_ativo:
-            return qs.filter(usuario__condominios=condominio_ativo)
-        return qs.none()
+# Registrar os demais modelos básicos
+admin.site.register([Aviso, Notificacao, AreaComum, Reserva, Mensagem, Ocorrencia, DocumentoCondominio])
