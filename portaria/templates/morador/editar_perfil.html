@@ -53,6 +53,84 @@
                 <i class="bi bi-key me-2"></i> Alterar Minha Senha
             </a>
         </form>
+
+        <!-- === CENTRAL DE PREFERÊNCIAS VAPID === -->
+        <hr class="my-4 border-secondary opacity-25">
+        <h5 class="fw-bold mb-3 text-stone-600"><i class="bi bi-bell-fill text-warning me-2"></i>Notificações</h5>
+
+        <div class="form-check form-switch mb-2">
+          <input class="form-check-input" type="checkbox" id="push-switch" style="cursor: pointer;">
+          <label class="form-check-label fw-semibold text-stone-600 ms-2" for="push-switch" style="cursor: pointer;">
+              Receber Notificações Push
+          </label>
+        </div>
+        <p class="text-muted small mb-0 ms-1">Alertas no seu celular quando houver novidades no condomínio.</p>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const switchPush = document.getElementById('push-switch');
+    
+    // 1. Verificar estado atual (carregamento da página)
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+        navigator.serviceWorker.ready.then(function(registration) {
+            registration.pushManager.getSubscription().then(function(subscription) {
+                // Se o navegador já está subscrito, marca o switch como ON
+                if (subscription) {
+                    switchPush.checked = true;
+                }
+            });
+        });
+    }
+
+    // 2. Ação ao plugar / desplugar
+    switchPush.addEventListener('change', function() {
+        if (this.checked) {
+            // Ligar notificações (reaproveitar função do base_morador)
+            if (typeof assinarNotificacoes === 'function') {
+                assinarNotificacoes();
+            } else {
+                console.error("Função assinarNotificacoes() invisível.");
+                this.checked = false; 
+            }
+        } else {
+            // Desligar notificações
+            desativarNotificacoes();
+        }
+    });
+
+    // 3. A Função Unsubscribe
+    function desativarNotificacoes() {
+        navigator.serviceWorker.ready.then(function(registration) {
+            registration.pushManager.getSubscription().then(function(subscription) {
+                if (subscription) {
+                    // A. Apagar da tabela no Django
+                    fetch('/api/push/unsubscribe/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: JSON.stringify({ endpoint: subscription.endpoint })
+                    }).then(response => {
+                        if (response.ok) {
+                            console.log("Central: Desligado no banco de dados com sucesso.");
+                        }
+                    });
+
+                    // B. Desativar do navegador (Gateway Apple/Google)
+                    subscription.unsubscribe().then(function(successful) {
+                        if (successful) {
+                            console.log('Central: Push desinscrito localmente.');
+                        }
+                    }).catch(function(e) {
+                        console.error('Falha ao desinscrever no navegador: ', e);
+                    });
+                }
+            });
+        });
+    }
+});
+</script>
 {% endblock %}

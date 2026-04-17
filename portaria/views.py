@@ -870,3 +870,21 @@ def salvar_inscricao_push(request):
             pass
     return JsonResponse({'status': 'error'}, status=400)
 
+
+@csrf_exempt
+@login_required
+def remover_subscricao(request):
+    """Remove a inscrição do Push Notification para o dispositivo atual no BD"""
+    if request.user.is_authenticated and request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            endpoint = data.get('endpoint')
+            if endpoint:
+                # Remove apenas a subscrição deste dispositivo (navegador) vinculada ao usuário
+                PushSubscription.objects.filter(usuario=request.user, endpoint=endpoint).delete()
+                print(f"[RADAR] Subscrição removida para o logado {request.user.username}")
+                return JsonResponse({'status': 'sucesso', 'mensagem': 'Subscrição removida.'})
+        except json.JSONDecodeError:
+            print("[RADAR ERRO] Falha ao decodificar JSON na remoção de subscrição.")
+    return JsonResponse({'status': 'erro', 'mensagem': 'Requisição inválida.'}, status=400)
+
