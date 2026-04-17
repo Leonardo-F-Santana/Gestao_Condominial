@@ -8,7 +8,8 @@ from unfold.admin import ModelAdmin
 from unfold.contrib.import_export.forms import ExportForm, ImportForm
 from unfold.forms import AdminPasswordChangeForm, UserChangeForm, UserCreationForm
 from .models import (
-    Condominio, Sindico, Porteiro, Visitante, Morador, Encomenda, Solicitacao, Aviso, Notificacao, AreaComum, Reserva, Cobranca, Mensagem, Ocorrencia, DocumentoCondominio
+    Condominio, Sindico, Porteiro, Visitante, Morador, Encomenda, Solicitacao, Aviso, Notificacao, 
+    AreaComum, Reserva, Cobranca, Mensagem, Ocorrencia, DocumentoCondominio, PushSubscription
 )
 from .forms import CustomUserChangeForm, CustomUserCreationForm
 
@@ -70,7 +71,6 @@ class SindicoUserInline(TabularInline):
     verbose_name = "Síndico"
     verbose_name_plural = "Síndicos"
     readonly_fields = ('customuser',)
-    # show_change_link não funcionará bem para through model focado em read/delete.
 
     def get_queryset(self, request):
         return super().get_queryset(request).filter(customuser__tipo_usuario='sindico')
@@ -204,16 +204,12 @@ class PorteiroAdmin(TenantAdminMixin, ModelAdmin):
     autocomplete_fields = ('usuario', 'condominio')
 
 
-# --- CONFIGURAÇÃO DE MORADORES (COM IMPORTAÇÃO) ---
+# --- CONFIGURAÇÃO DE MORADORES ---
 
-
-# 1. Receita de como ler o Excel
 class MoradorResource(resources.ModelResource):
     class Meta:
         model = Morador
-        # Campos que podem vir no Excel
         fields = ('nome', 'cpf', 'bloco', 'apartamento', 'telefone', 'email')
-        # Identificador único (se o CPF já existir, ele atualiza em vez de duplicar)
         import_id_fields = ('cpf',)
 
 @admin.register(Morador)
@@ -236,12 +232,10 @@ class MoradorAdmin(TenantAdminMixin, ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         if not obj.pk and not obj.usuario:
-            # Generate a default user
             username = f"{obj.nome.split()[0].lower()}.{obj.apartamento}"
             if obj.bloco:
                 username += f".{obj.bloco.lower()}"
-                
-            # Ensure uniqueness
+            
             base_username = username
             counter = 1
             while User.objects.filter(username=username).exists():
@@ -259,18 +253,11 @@ class MoradorAdmin(TenantAdminMixin, ModelAdmin):
             if cond:
                 user.condominios.add(cond)
             obj.usuario = user
-            
-            # Show a success message to the admin
             from django.contrib import messages
             messages.success(request, f"Conta criada automaticamente: Login = '{username}' | Senha = 'mudar123'")
-
         super().save_model(request, obj, form, change)
 
-# --- OUTROS CADASTROS (REMOVIDOS DO ADMIN GLOBAL) ---
-
-# Os models operacionais (Visitante, Encomenda, Solicitacao, Aviso, Notificacao, AreaComum, Reserva)
-# foram ocultados do painel global de administração conforme o requisito 4.
-# (Porém Visitante, Encomenda e Solicitacao voltam conforme diretriz Saas)
+# --- OUTROS CADASTROS ---
 
 @admin.register(Visitante)
 class VisitanteAdmin(TenantAdminMixin, ModelAdmin):
@@ -301,19 +288,9 @@ class CobrancaAdmin(TenantAdminMixin, ModelAdmin):
     autocomplete_fields = ['morador', 'condominio']
     
     def get_status_html(self, obj):
-        cores = {
-            'PENDENTE': 'orange',
-            'PAGO': 'green',
-            'ATRASADO': 'red',
-            'CANCELADO': 'gray',
-        }
+        cores = {'PENDENTE': 'orange', 'PAGO': 'green', 'ATRASADO': 'red', 'CANCELADO': 'gray'}
         cor = cores.get(obj.status, 'black')
-        from django.utils.html import format_html
-        return format_html(
-            '<span style="color: {}; font-weight: bold;">{}</span>',
-            cor,
-            obj.get_status_display()
-        )
+        return format_html('<span style="color: {}; font-weight: bold;">{}</span>', cor, obj.get_status_display())
     get_status_html.short_description = 'Status'
 
 @admin.register(Mensagem)
@@ -330,12 +307,18 @@ class OcorrenciaAdmin(TenantAdminMixin, ModelAdmin):
     search_fields = ('autor__nome', 'infrator', 'descricao')
     autocomplete_fields = ['autor', 'condominio']
 
-
-# --- CENTRAL DE DOCUMENTOS ---
-
 @admin.register(DocumentoCondominio)
 class DocumentoCondominioAdmin(TenantAdminMixin, ModelAdmin):
     list_display = ('titulo', 'condominio', 'categoria', 'data_upload')
     list_filter = ('condominio', 'categoria')
     search_fields = ('titulo', 'condominio__nome')
     autocomplete_fields = ['condominio']
+
+# --- CENTRAL DE NOTIFICAÇÕES WEB PUSH ---
+
+@admin.register(PushSubscription)
+class PushSubscriptionAdmin(TenantAdminMixin, ModelAdmin):
+    list_display = ('user', 'condominio', 'endpoint', 'created_at')
+    list_filter = ('condominio', 'created_at')
+    search_fields = ('user__username', 'endpoint')
+    readonly_fields = ('endpoint', 'p256dh', 'auth', 'created_at')
