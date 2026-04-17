@@ -1,11 +1,11 @@
-const CACHE_NAME = 'splash-rc-v3'; // Versão 3 para forçar o navegador a atualizar
+const CACHE_NAME = 'splash-rc-v11'; // Versão 11 para garantir que o navegador descarte o erro antigo
 const ASSETS_TO_CACHE = [
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css',
     'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css',
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js',
 ];
 
-// Install: Faz o cache de forma inteligente (se um falhar, não quebra o resto)
+// Install: Faz o cache de forma inteligente (resiliente - sem addAll)
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME).then(cache => {
@@ -21,7 +21,7 @@ self.addEventListener('install', event => {
     );
 });
 
-// Activate: Limpa os caches velhos
+// Activate: Limpa os caches velhos e assume o controle imediatamente
 self.addEventListener('activate', event => {
     event.waitUntil(
         caches.keys().then(keys =>
@@ -33,12 +33,11 @@ self.addEventListener('activate', event => {
     );
 });
 
-// Fetch: network-first strategy
+// Fetch: Estratégia Network-First (Tenta internet, se falhar usa cache)
 self.addEventListener('fetch', event => {
     const bypassRoutes = ['/login', '/logout', '/admin', '/password_reset', '/reset', '/api/', '/sindico/', '/morador/', '/portaria/'];
     if (bypassRoutes.some(route => event.request.url.includes(route))) {
-        event.respondWith(fetch(event.request)); 
-        return;
+        return; // Não interfere em rotas de sistema/auth
     }
 
     if (event.request.method !== 'GET') return;
@@ -74,7 +73,7 @@ self.addEventListener('push', event => {
             body: mensagem,
             icon: '/static/img/icon-192.png',
             badge: '/static/img/icon-192.png',
-            vibrate: [200, 100, 200, 100, 200], // Vibração tática
+            vibrate: [200, 100, 200, 100, 200],
             data: { url: url }
         })
     );
