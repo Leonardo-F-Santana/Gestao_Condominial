@@ -1,6 +1,5 @@
 const CACHE_NAME = 'splash-rc-v3'; // Versão 3 para forçar o navegador a atualizar
 const ASSETS_TO_CACHE = [
-    '/',
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css',
     'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css',
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js',
@@ -15,7 +14,7 @@ self.addEventListener('install', event => {
                     return fetch(url).then(response => {
                         if (!response.ok) throw new TypeError('Falha ao baixar ' + url);
                         return cache.put(url, response);
-                    }).catch(err => console.warn('Página ignorada no cache offline:', url));
+                    }).catch(err => console.warn('Arquivo ignorado no cache offline:', url));
                 })
             );
         }).then(() => self.skipWaiting())
