@@ -62,6 +62,58 @@ def sindico_context(request, extra=None, active_page=''):
     return context_data
 
 
+def disparar_push_individual(usuario, titulo, mensagem, link):
+    """Dispara Web Push individual mantendo segurança do modelo SaaS"""
+    if not usuario or not getattr(usuario, 'receber_push', False):
+        return
+    try:
+        from pywebpush import webpush
+        import json
+        from django.conf import settings
+        from .models import PushSubscription
+        
+        print(f"\n=== INICIANDO DISPARO PUSH INDIVIDUAL PARA {usuario.username} ===")
+        inscricoes = PushSubscription.objects.filter(usuario=usuario)
+        print(f"Passo 1: Inscrições encontradas para {usuario.username}: {inscricoes.count()}")
+        
+        if inscricoes.count() == 0:
+            print("==========================================\n")
+            return
+            
+        payload = json.dumps({
+            'titulo': titulo,
+            'mensagem': mensagem,
+            'link': link
+        })
+        
+        sucessos = 0
+        for inscricao in inscricoes:
+            try:
+                webpush(
+                    subscription_info={
+                        "endpoint": inscricao.endpoint,
+                        "keys": {
+                            "p256dh": inscricao.p256dh,
+                            "auth": inscricao.auth
+                        }
+                    },
+                    data=payload,
+                    vapid_private_key=settings.VAPID_PRIVATE_KEY,
+                    vapid_claims={
+                        "sub": settings.VAPID_ADMIN_EMAIL
+                    }
+                )
+                sucessos += 1
+                print(f"  [+] SUCESSO: Push individual enviado p/ {inscricao.usuario.username}")
+            except Exception as ex:
+                print(f"  [-] ERRO: Falha ao enviar para {inscricao.usuario.username}. Motivo: {repr(ex)}")
+        
+        print(f"Passo 2: Relatório Final -> {sucessos} disparos bem sucedidos.")
+        print("==========================================\n")
+    except Exception as e:
+        print(f"\n[-] ERRO CRÍTICO NO DISPARO PUSH INDIVIDUAL: {repr(e)}\n==========================================\n")
+
+
 # ==========================================
 # SELEÇÃO DE CONDOMÍNIO
 # ==========================================
@@ -594,6 +646,12 @@ def responder_solicitacao_sindico(request, solicitacao_id):
                 mensagem=f'Sua solicitação #{solicitacao.id} foi respondida',
                 link=f'/morador/solicitacoes/{solicitacao.id}/'
             )
+            disparar_push_individual(
+                solicitacao.morador.usuario,
+                titulo="Resposta da Administração",
+                mensagem=f"Sua solicitação #{solicitacao.id} foi respondida.",
+                link=f'/morador/solicitacoes/{solicitacao.id}/'
+            )
         
         messages.success(request, "Solicitação atualizada!")
     return redirect('sindico_solicitacoes')
@@ -673,12 +731,12 @@ def criar_aviso_sindico(request):
             # --- INÍCIO DO DISPARO PUSH PARA O CELULAR ---
             print("\n=== INICIANDO OPERAÇÃO DE DISPARO PUSH ===")
             
-            # Filtra os usuários que realmente possuem conta
+            # Filtra os moradores com usuário associado
             usuarios_alvo = [m.usuario for m in moradores if m.usuario]
-            print(f"Passo 1: Moradores válidos encontrados no condomínio: {len(usuarios_alvo)}")
+            print(f"Passo 1: Moradores válidos no condomínio: {len(usuarios_alvo)}")
             
-            # Procura as inscrições ativas no banco
-            inscricoes = PushSubscription.objects.filter(usuario__in=usuarios_alvo)
+            # Procura as inscrições ativas no banco respeitando a flag receber_push
+            inscricoes = PushSubscription.objects.filter(usuario__in=usuarios_alvo, usuario__receber_push=True)
             print(f"Passo 2: Telemóveis inscritos encontrados para estes moradores: {inscricoes.count()}")
             
             # Monta o pacote de dados (Payload)
@@ -1056,6 +1114,12 @@ def aprovar_reserva_sindico(request, reserva_id):
             mensagem=f'Sua reserva de {reserva.area.nome} para {reserva.data.strftime("%d/%m")} foi aprovada! ✅',
             link='/morador/reservas/'
         )
+        disparar_push_individual(
+            reserva.morador.usuario,
+            titulo="Reserva Aprovada!",
+            mensagem=f'Sua reserva de {reserva.area.nome} para {reserva.data.strftime("%d/%m")} foi aprovada!',
+            link='/morador/reservas/'
+        )
 
     messages.success(request, msg)
     return redirect('sindico_reservas')
@@ -1077,6 +1141,12 @@ def recusar_reserva_sindico(request, reserva_id):
         Notificacao.objects.create(
             usuario=reserva.morador.usuario,
             tipo='reserva',
+            mensagem=f'Sua reserva de {reserva.area.nome} para {reserva.data.strftime("%d/%m")} foi recusada.',
+            link='/morador/reservas/'
+        )
+        disparar_push_individual(
+            reserva.morador.usuario,
+            titulo="Reserva Recusada",
             mensagem=f'Sua reserva de {reserva.area.nome} para {reserva.data.strftime("%d/%m")} foi recusada.',
             link='/morador/reservas/'
         )
@@ -1129,6 +1199,16 @@ def financeiro_sindico(request):
                 if chave_pix:
                     cobranca.chave_pix = chave_pix
                 cobranca.save()
+                
+                # Push individual para a cobrança gerada
+                if morador.usuario:
+                    disparar_push_individual(
+                        morador.usuario,
+                        titulo="Nova Cobrança",
+                        mensagem=f"Foi gerada a cobrança '{descricao}' no valor de R$ {valor} com vencimento em {data_vencimento}.",
+                        link="/morador/cobrancas/"
+                    )
+
                 messages.success(request, f'Cobrança "{descricao}" gerada para {morador.nome}.')
             else:
                 messages.error(request, 'Preencha todos os campos obrigatórios da cobrança.')

@@ -44,3 +44,34 @@ class KSTech_Testes_Blindagem(TestCase):
             self.assertIn('visitantes_no_local', dados)
         except Exception:
             pass
+
+from unittest.mock import patch
+from .models import Morador, PushSubscription, Solicitacao
+from .views_sindico import disparar_push_individual
+
+class WebPushAutomatedTests(TestCase):
+    def setUp(self):
+        # 1. Cria um usuário morador para teste
+        self.user = User.objects.create_user(username='morador_teste', password='123')
+        
+        # 2. Insere uma inscrição (Subscription) falsa no banco
+        self.inscricao = PushSubscription.objects.create(
+            usuario=self.user,
+            endpoint='https://fcm.googleapis.com/fcm/send/fake-endpoint',
+            p256dh='fake_key',
+            auth='fake_auth'
+        )
+
+    @patch('pywebpush.webpush')
+    def test_disparo_push_isolado(self, mock_webpush):
+        """Testa se a função utilitária invoca a biblioteca pywebpush corretamente"""
+        
+        disparar_push_individual(
+            self.user, 
+            titulo="Teste Unitário", 
+            mensagem="Isso é automatizado", 
+            link="/morador/"
+        )
+        
+        # Confirma que a biblioteca real pywebpush foi acionada 1 vez
+        self.assertEqual(mock_webpush.call_count, 1)

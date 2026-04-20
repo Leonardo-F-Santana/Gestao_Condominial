@@ -41,6 +41,7 @@ class CustomUser(AbstractUser):
     )
     tipo_usuario = models.CharField(max_length=20, choices=TIPO_CHOICES, default='morador', verbose_name="Tipo de Usuário")
     condominios = models.ManyToManyField(Condominio, blank=True, related_name='usuarios')
+    receber_push = models.BooleanField(default=False, verbose_name="Permitir Push")
 
     @property
     def get_condominio_ativo(self):

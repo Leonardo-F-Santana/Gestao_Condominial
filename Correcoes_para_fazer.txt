@@ -1,5 +1,4 @@
-no app do morador, não aparece a notificação para cobranças; reorganizar as ordens que aparece os boletos os mais novos em cima e os mais antigos abaixo;
-email aceira errado, exemplo .co e não .com;
-quando facó login com uma conta, saio entro em outra, depois saio novamente e entro na primeira conta, dá erro de CSRF;
-esqueci a senha não redefine a senha por email;
-retirar a questão de enviar video pelo sistema;
+botão pra receber ou não notificações não funciona corretamente;
+ as notificações individuais tbm não funcionam, quero que gere notificação push para cobranças lançadas pelo sindico pro morador A, encomendas respostas de: livro negro, reserva de areas comuns;
+no titulo da mensagem push, não quero que apareca o nome da KS Tech, quero assim exemplo de nova encomenda,: Sua encomenda chegou!  
+Olá (nome do morador), tem uma entrega esperando por você na portaria. Passe quando puder para retirar.;

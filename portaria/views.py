@@ -885,6 +885,11 @@ def salvar_inscricao_push(request):
                     endpoint=endpoint,
                     defaults={'p256dh': p256dh, 'auth': auth}
                 )
+                
+                # Sincronização da preferência do usuário
+                request.user.receber_push = True
+                request.user.save(update_fields=['receber_push'])
+                
                 return JsonResponse({'status': 'ok'})
         except Exception as e:
             pass
@@ -894,17 +899,28 @@ def salvar_inscricao_push(request):
 @csrf_exempt
 @login_required
 def remover_subscricao(request):
-    """Remove a inscrição do Push Notification para o dispositivo atual no BD"""
+    """Remove a inscrição do Push Notification e desativa preferência do usuário."""
     if request.user.is_authenticated and request.method == 'POST':
         try:
             data = json.loads(request.body)
             endpoint = data.get('endpoint')
+            
+            # Independentemente de ter ou não o endpoint, setar a preferência para False
+            request.user.receber_push = False
+            request.user.save(update_fields=['receber_push'])
+            print(f"[RADAR] Preferência de Push desativada para {request.user.username}")
+            
             if endpoint:
                 # Remove apenas a subscrição deste dispositivo (navegador) vinculada ao usuário
                 PushSubscription.objects.filter(usuario=request.user, endpoint=endpoint).delete()
-                print(f"[RADAR] Subscrição removida para o logado {request.user.username}")
-                return JsonResponse({'status': 'sucesso', 'mensagem': 'Subscrição removida.'})
+                print(f"[RADAR] Subscrição endpoint removida para o logado {request.user.username}")
+                
+            return JsonResponse({'status': 'sucesso', 'mensagem': 'Subscrição e preferências removidas.'})
         except json.JSONDecodeError:
             print("[RADAR ERRO] Falha ao decodificar JSON na remoção de subscrição.")
+            # Como fallback de segurança
+            request.user.receber_push = False
+            request.user.save(update_fields=['receber_push'])
+            return JsonResponse({'status': 'sucesso', 'mensagem': 'Desativado.'})
     return JsonResponse({'status': 'erro', 'mensagem': 'Requisição inválida.'}, status=400)
 

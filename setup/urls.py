@@ -51,7 +51,8 @@ from portaria.views_morador import (
     minhas_cobrancas,
     editar_perfil_morador,
     documentos_morador,
-    completar_cadastro
+    completar_cadastro,
+    atualizar_preferencia_push
 )
 
 # Views do Portal do Síndico
@@ -169,6 +170,7 @@ urlpatterns = [
     path('morador/documentos/', documentos_morador, name='morador_documentos'),
     path('api/push/subscribe/', salvar_inscricao_push, name='salvar_inscricao_push'),
     path('api/push/unsubscribe/', remover_subscricao, name='remover_subscricao'),
+    path('atualizar_preferencia_push/', atualizar_preferencia_push, name='atualizar_preferencia_push'),
     
     # --- Portal do Síndico ---
     path('sindico/', portal_sindico_home, name='sindico_home'),

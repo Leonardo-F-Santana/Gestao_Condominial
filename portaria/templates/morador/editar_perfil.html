@@ -50,7 +50,7 @@
             <h5 class="fw-bold mb-3 text-stone-600"><i class="bi bi-bell-fill text-warning me-2"></i>Notificações</h5>
 
             <div class="form-check form-switch mb-2">
-              <input class="form-check-input" type="checkbox" id="push-switch" style="cursor: pointer;">
+              <input class="form-check-input" type="checkbox" id="push-switch" name="receber_push" style="cursor: pointer;" {% if request.user.receber_push %}checked{% endif %}>
               <label class="form-check-label fw-semibold text-stone-600 ms-2" for="push-switch" style="cursor: pointer;">
                   Receber Notificações Push
               </label>
@@ -72,13 +72,16 @@
 document.addEventListener('DOMContentLoaded', function() {
     const switchPush = document.getElementById('push-switch');
     
-    // 1. Verificar estado atual (carregamento da página)
-    if ('serviceWorker' in navigator && 'PushManager' in window) {
+    // 1. O estado inicial é carregado pelo Django.
+    // Garantir que a subscrição nativa acompanha o banco se estiver ligado
+    if (switchPush.checked && 'serviceWorker' in navigator && 'PushManager' in window) {
         navigator.serviceWorker.ready.then(function(registration) {
             registration.pushManager.getSubscription().then(function(subscription) {
-                // Se o navegador já está subscrito, marca o switch como ON
-                if (subscription) {
-                    switchPush.checked = true;
+                if (!subscription) {
+                    // O backend diz "sim", mas não há subscrição neste navegador.
+                    if (typeof assinarNotificacoes === 'function') {
+                        assinarNotificacoes();
+                    }
                 }
             });
         });
@@ -86,51 +89,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 2. Ação ao plugar / desplugar
     switchPush.addEventListener('change', function() {
-        if (this.checked) {
-            // Ligar notificações (reaproveitar função do base_morador)
+        let isEnabled = this.checked;
+
+        if (isEnabled) {
+            // Ligar notificações nativas para dar prompt se ainda não tiver
             if (typeof assinarNotificacoes === 'function') {
                 assinarNotificacoes();
-            } else {
-                console.error("Função assinarNotificacoes() invisível.");
-                this.checked = false; 
             }
-        } else {
-            // Desligar notificações
-            desativarNotificacoes();
         }
+
+        // Tocar a API explícita
+        fetch('/atualizar_preferencia_push/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({'valor': isEnabled})
+        }).then(response => {
+            if (response.ok) {
+                console.log("Preferencia de Push salva como " + isEnabled);
+            }
+        });
     });
 
-    // 3. A Função Unsubscribe
-    function desativarNotificacoes() {
-        navigator.serviceWorker.ready.then(function(registration) {
-            registration.pushManager.getSubscription().then(function(subscription) {
-                if (subscription) {
-                    // A. Apagar da tabela no Django
-                    fetch('/api/push/unsubscribe/', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': '{{ csrf_token }}'
-                        },
-                        body: JSON.stringify({ endpoint: subscription.endpoint })
-                    }).then(response => {
-                        if (response.ok) {
-                            console.log("Central: Desligado no banco de dados com sucesso.");
-                        }
-                    });
-
-                    // B. Desativar do navegador (Gateway Apple/Google)
-                    subscription.unsubscribe().then(function(successful) {
-                        if (successful) {
-                            console.log('Central: Push desinscrito localmente.');
-                        }
-                    }).catch(function(e) {
-                        console.error('Falha ao desinscrever no navegador: ', e);
-                    });
-                }
-            });
-        });
-    }
 });
 </script>
 {% endblock %}

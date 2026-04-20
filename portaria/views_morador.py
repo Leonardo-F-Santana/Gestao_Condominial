@@ -774,3 +774,25 @@ def completar_cadastro(request):
         'user_name': request.user.get_full_name() or request.user.username,
         'convite_condominio_id': convite_condominio_id,
     })
+
+# ==========================================
+# ROTA DE PREFERÊNCIA DE PUSH EXTERNA
+# ==========================================
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt
+@login_required
+def atualizar_preferencia_push(request):
+    """Adiciona/Remove o checkbox de receber_push via Ajax Fetch."""
+    if request.user.is_authenticated and request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            # Lê o valor enviado
+            valor = data.get('valor', False)
+            
+            request.user.receber_push = valor
+            request.user.save(update_fields=['receber_push'])
+            return JsonResponse({'status': 'ok', 'receber_push': valor})
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'JSON Invalido'}, status=400)
+    return JsonResponse({'error': 'Acesso negado'}, status=403)

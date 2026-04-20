@@ -12,6 +12,9 @@ def enviar_push_notification(usuario, title, body, icon='/static/img/icon-192.pn
 
     if not vapid_private_key or not vapid_admin_email:
         return
+        
+    if not getattr(usuario, 'receber_push', False):
+        return
 
     payload = json.dumps({
         'title': title,

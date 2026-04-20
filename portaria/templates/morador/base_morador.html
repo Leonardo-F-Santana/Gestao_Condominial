@@ -277,19 +277,31 @@
                     `;
                     document.body.appendChild(banner);
 
+                    function sinalizarDesinteresse() {
+                        document.getElementById('push-notification-banner').style.display = 'none';
+                        fetch('/atualizar_preferencia_push/', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': '{{ csrf_token }}'
+                            },
+                            body: JSON.stringify({'valor': false})
+                        });
+                    }
+
                     document.getElementById('btn-enable-push').addEventListener('click', function() {
                         Notification.requestPermission().then(permission => {
                             if (permission === 'granted') {
                                 document.getElementById('push-notification-banner').style.display = 'none';
                                 assinarNotificacoes(); 
                             } else {
-                                document.getElementById('push-notification-banner').style.display = 'none';
+                                sinalizarDesinteresse();
                             }
                         });
                     });
 
                     document.getElementById('btn-close-push').addEventListener('click', function() {
-                        document.getElementById('push-notification-banner').style.display = 'none';
+                        sinalizarDesinteresse();
                     });
                     
                 } else if (Notification.permission === 'granted') {
