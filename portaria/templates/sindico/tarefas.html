@@ -1,0 +1,113 @@
+{% extends 'sindico/base_sindico.html' %}
+
+{% block title %}Central de Tarefas — {{ condominio.nome }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-check2-square text-primary me-2"></i> Central de Tarefas</h2>
+</div>
+
+<div class="row g-4">
+    <!-- Coluna 1: Solicitações dos Moradores -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+            <div class="card-header bg-white border-bottom border-light py-3">
+                <h5 class="mb-0 fw-bold text-dark d-flex align-items-center">
+                    <i class="bi bi-people-fill text-warning me-2"></i> Demandas de Moradores
+                    <span class="badge bg-warning text-dark ms-auto rounded-pill">{{ solicitacoes.count }}</span>
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush rounded-bottom-4">
+                    {% for sol in solicitacoes %}
+                    <div class="list-group-item py-3 px-4 border-light hover-bg-light transition-all">
+                        <div class="d-flex w-100 justify-content-between align-items-start">
+                            <h6 class="mb-1 fw-bold text-dark">{{ sol.descricao|truncatewords:8 }}</h6>
+                            <small class="text-muted text-nowrap ms-2">{{ sol.data_criacao|timesince }} atrás</small>
+                        </div>
+                        <p class="mb-2 small text-muted">
+                            <i class="bi bi-person me-1"></i> {{ sol.morador }}
+                            <span class="ms-2 badge bg-light text-dark border">{{ sol.get_tipo_display }}</span>
+                        </p>
+                        <a href="{% url 'sindico_responder_solicitacao' sol.id %}" class="btn btn-sm btn-outline-primary rounded-pill mt-1">
+                            Responder Solicitação →
+                        </a>
+                    </div>
+                    {% empty %}
+                    <div class="p-5 text-center text-muted">
+                        <i class="bi bi-emoji-smile fs-1 opacity-25"></i>
+                        <p class="mt-3 mb-0">Nenhuma demanda pendente dos moradores.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Coluna 2: Tarefas Manuais / To-Do -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+            <div class="card-header bg-white border-bottom border-light py-3">
+                <h5 class="mb-0 fw-bold text-dark d-flex align-items-center">
+                    <i class="bi bi-journal-check text-primary me-2"></i> Minhas Tarefas
+                    <span class="badge bg-primary ms-auto rounded-pill">{{ tarefas.count }}</span>
+                </h5>
+            </div>
+            
+            <div class="card-body p-4 bg-light bg-opacity-50">
+                <!-- Add Task Form -->
+                <form method="POST" action="{% url 'sindico_tarefas' %}" class="mb-4">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="adicionar_tarefa">
+                    <div class="input-group shadow-sm rounded-pill overflow-hidden">
+                        <input type="text" name="descricao" class="form-control border-0 px-4 py-3" placeholder="O que precisa ser feito?" required>
+                        <button class="btn btn-primary px-4 fw-bold" type="submit">
+                            <i class="bi bi-plus-lg"></i> Adicionar
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Task List -->
+                <div class="list-group list-group-flush bg-transparent gap-2">
+                    {% for tarefa in tarefas %}
+                    <div class="list-group-item d-flex align-items-center border-0 rounded-3 shadow-sm bg-white p-3 {% if tarefa.concluida %}opacity-75{% endif %}">
+                        
+                        <form method="POST" action="{% url 'sindico_tarefas' %}" class="m-0 p-0 me-3">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="alternar_status">
+                            <input type="hidden" name="tarefa_id" value="{{ tarefa.id }}">
+                            <button type="submit" class="btn btn-link p-0 text-decoration-none {% if tarefa.concluida %}text-success{% else %}text-secondary{% endif %}">
+                                {% if tarefa.concluida %}
+                                    <i class="bi bi-check-circle-fill fs-4"></i>
+                                {% else %}
+                                    <i class="bi bi-circle fs-4"></i>
+                                {% endif %}
+                            </button>
+                        </form>
+                        
+                        <div class="flex-grow-1 {% if tarefa.concluida %}text-decoration-line-through text-muted{% else %}text-dark fw-medium{% endif %}">
+                            {{ tarefa.descricao }}
+                        </div>
+                        
+                        <form method="POST" action="{% url 'sindico_tarefas' %}" class="m-0 p-0 ms-2">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="excluir_tarefa">
+                            <input type="hidden" name="tarefa_id" value="{{ tarefa.id }}">
+                            <button type="submit" class="btn btn-link p-0 text-danger opacity-50 hover-opacity-100" onclick="return confirm('Deseja excluir esta tarefa?');">
+                                <i class="bi bi-trash fs-5"></i>
+                            </button>
+                        </form>
+
+                    </div>
+                    {% empty %}
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-check2-all fs-1 opacity-25"></i>
+                        <p class="mt-2 mb-0">Seu checklist está vazio.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

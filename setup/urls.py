@@ -78,6 +78,7 @@ from portaria.views_sindico import (
     aprovar_reserva_sindico,
     recusar_reserva_sindico,
     financeiro_sindico,
+    buscar_moradores_ajax,
     mensagens_sindico,
     ocorrencias_sindico,
     alterar_status_ocorrencia,
@@ -86,7 +87,8 @@ from portaria.views_sindico import (
     documentos_sindico,
     redirecionar_notificacao,
     gerar_advertencia_pdf,
-    gerenciar_portaria
+    gerenciar_portaria,
+    central_tarefas_sindico
 )
 
 urlpatterns = [
@@ -173,6 +175,7 @@ urlpatterns = [
     path('sindico/selecionar/<int:condominio_id>/', selecionar_condominio, name='sindico_selecionar'),
     path('sindico/novo-condominio/', criar_condominio, name='sindico_criar_condominio'),
     path('sindico/painel/', painel_sindico, name='sindico_painel'),
+    path('sindico/tarefas/', central_tarefas_sindico, name='sindico_tarefas'),
     path('sindico/moradores/', moradores_sindico, name='sindico_moradores'),
     path('sindico/moradores/<int:id>/editar/', sindico_morador_editar, name='sindico_morador_editar'),
     path('sindico/moradores/<int:id>/excluir/', sindico_morador_excluir, name='sindico_morador_excluir'),
@@ -187,9 +190,10 @@ urlpatterns = [
     path('sindico/areas-comuns/', areas_comuns_sindico, name='sindico_areas_comuns'),
     path('sindico/areas-comuns/<int:area_id>/excluir/', excluir_area_sindico, name='sindico_excluir_area'),
     path('sindico/reservas/', reservas_sindico, name='sindico_reservas'),
-    path('sindico/reservas/<int:reserva_id>/aprovar/', aprovar_reserva_sindico, name='sindico_aprovar_reserva'),
-    path('sindico/reservas/<int:reserva_id>/recusar/', recusar_reserva_sindico, name='sindico_recusar_reserva'),
+    path('sindico/reservas/aprovar/<int:reserva_id>/', aprovar_reserva_sindico, name='sindico_aprovar_reserva'),
+    path('sindico/reservas/recusar/<int:reserva_id>/', recusar_reserva_sindico, name='sindico_recusar_reserva'),
     path('sindico/financeiro/', financeiro_sindico, name='sindico_financeiro'),
+    path('sindico/api/buscar-moradores/', buscar_moradores_ajax, name='buscar_moradores_ajax'),
     path('sindico/mensagens/', mensagens_sindico, name='sindico_mensagens'),
     path('sindico/ocorrencias/', ocorrencias_sindico, name='sindico_ocorrencias'),
     path('sindico/ocorrencias/<int:ocorrencia_id>/status/', alterar_status_ocorrencia, name='sindico_alterar_status_ocorrencia'),

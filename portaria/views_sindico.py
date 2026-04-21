@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from django.contrib import messages
@@ -1135,6 +1136,7 @@ def financeiro_sindico(request):
 
     cobrancas = Cobranca.objects.filter(condominio=condominio).select_related('morador').order_by('-data_vencimento')
     moradores = Morador.objects.filter(condominio=condominio).order_by('bloco', 'apartamento')
+    blocos_unicos = Morador.objects.filter(condominio=condominio).exclude(bloco='').values_list('bloco', flat=True).distinct().order_by('bloco')
     
     # Atualizar status de atrasadas automaticamente na view
     hoje = timezone.now().date()
@@ -1147,6 +1149,7 @@ def financeiro_sindico(request):
     context = sindico_context(request, {
         'cobrancas': cobrancas,
         'moradores': moradores,
+        'blocos_unicos': blocos_unicos,
     }, active_page='financeiro')
     
     return render(request, 'sindico/financeiro.html', context)
@@ -1494,4 +1497,98 @@ def documentos_sindico(request):
     }, active_page='documentos')
 
     return render(request, 'sindico/central_documentos.html', ctx)
+
+# ==========================================
+# API DE BUSCA EM CASCATA DE MORADORES
+# ==========================================
+
+@login_required
+def buscar_moradores_ajax(request):
+    """API para retornar apartamentos e moradores baseado no bloco e apto (Filtro Cascata)"""
+    if not is_sindico(request.user):
+        return JsonResponse({'error': 'Acesso negado'}, status=403)
+
+    condominio = get_condominio_ativo(request)
+    if not condominio:
+        return JsonResponse({'error': 'Condomínio não encontrado'}, status=400)
+
+    bloco = request.GET.get('bloco', '').strip()
+    apartamento = request.GET.get('apartamento', '').strip()
+
+    if bloco and not apartamento:
+        # Retorna lista de apartamentos únicos no bloco
+        aptos = list(Morador.objects.filter(condominio=condominio, bloco=bloco)
+                     .exclude(apartamento='')
+                     .values_list('apartamento', flat=True).distinct().order_by('apartamento'))
+        return JsonResponse({'apartamentos': aptos})
+
+    elif bloco and apartamento:
+        # Retorna lista de moradores (id e nome) na unidade
+        moradores_qs = Morador.objects.filter(condominio=condominio, bloco=bloco, apartamento=apartamento).order_by('nome')
+        moradores_lista = [{'id': m.id, 'nome': m.nome} for m in moradores_qs]
+        return JsonResponse({'moradores': moradores_lista})
+
+    return JsonResponse({'error': 'Parâmetros inválidos'}, status=400)
+
+
+# ==========================================
+# CENTRAL DE TAREFAS
+# ==========================================
+
+@login_required
+def central_tarefas_sindico(request):
+    """Checklist Inteligente do Síndico"""
+    if not is_sindico(request.user):
+        return redirect('home')
+
+    condominio = get_condominio_ativo(request)
+    if not condominio:
+        return redirect('sindico_home')
+
+    from .models import TarefaSindico
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'adicionar_tarefa':
+            descricao = request.POST.get('descricao', '').strip()
+            if descricao:
+                TarefaSindico.objects.create(condominio=condominio, descricao=descricao)
+                messages.success(request, 'Tarefa adicionada com sucesso!')
+            else:
+                messages.error(request, 'A descrição da tarefa não pode estar vazia.')
+                
+        elif action == 'alternar_status':
+            tarefa_id = request.POST.get('tarefa_id')
+            if tarefa_id:
+                tarefa = TarefaSindico.objects.filter(id=tarefa_id, condominio=condominio).first()
+                if tarefa:
+                    tarefa.concluida = not tarefa.concluida
+                    tarefa.save()
+                    status_lbl = "concluída" if tarefa.concluida else "pendente"
+                    messages.success(request, f'Tarefa marcada como {status_lbl}!')
+                else:
+                    messages.error(request, 'Tarefa não encontrada.')
+        
+        elif action == 'excluir_tarefa':
+            tarefa_id = request.POST.get('tarefa_id')
+            if tarefa_id:
+                tarefa = TarefaSindico.objects.filter(id=tarefa_id, condominio=condominio).first()
+                if tarefa:
+                    tarefa.delete()
+                    messages.success(request, 'Tarefa excluída com sucesso!')
+                else:
+                    messages.error(request, 'Tarefa não encontrada.')
+
+        return redirect('sindico_tarefas')
+
+    tarefas_manuais = TarefaSindico.objects.filter(condominio=condominio)
+    solicitacoes_pendentes = Solicitacao.objects.filter(condominio=condominio, status='PENDENTE').select_related('morador').order_by('-data_criacao')
+
+    context = sindico_context(request, {
+        'tarefas': tarefas_manuais,
+        'solicitacoes': solicitacoes_pendentes,
+    }, active_page='tarefas')
+
+    return render(request, 'sindico/tarefas.html', context)
 

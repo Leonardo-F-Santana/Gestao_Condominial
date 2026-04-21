@@ -58,14 +58,28 @@
                 {% csrf_token %}
                 <input type="hidden" name="action" value="criar_cobranca">
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label>Morador</label>
-                        <select name="morador_id" class="form-select" required>
-                            <option value="">Selecione um morador...</option>
-                            {% for m in moradores %}
-                            <option value="{{ m.id }}">{{ m }}</option>
-                            {% endfor %}
-                        </select>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label>Bloco</label>
+                            <select id="blocoSelect" class="form-select" required>
+                                <option value="">Selecione o Bloco...</option>
+                                {% for b in blocos_unicos %}
+                                <option value="{{ b }}">{{ b }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label>Apartamento</label>
+                            <select id="apartamentoSelect" class="form-select" required disabled>
+                                <option value="">Selecione o Bloco primeiro</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label>Morador</label>
+                            <select name="morador_id" id="moradorSelect" class="form-select" required disabled>
+                                <option value="">Selecione o Apto primeiro</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label>Descrição</label>
@@ -168,4 +182,73 @@
     </div>
     {% endfor %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const blocoSelect = document.getElementById('blocoSelect');
+    const apartamentoSelect = document.getElementById('apartamentoSelect');
+    const moradorSelect = document.getElementById('moradorSelect');
+
+    blocoSelect.addEventListener('change', function() {
+        const bloco = this.value;
+        
+        // Reset and disable downstream selects
+        apartamentoSelect.innerHTML = '<option value="">Carregando...</option>';
+        apartamentoSelect.disabled = true;
+        
+        moradorSelect.innerHTML = '<option value="">Selecione o Apto primeiro</option>';
+        moradorSelect.disabled = true;
+
+        if (bloco) {
+            fetch(`/sindico/api/buscar-moradores/?bloco=${encodeURIComponent(bloco)}`)
+                .then(response => response.json())
+                .then(data => {
+                    apartamentoSelect.innerHTML = '<option value="">Selecione o Apto...</option>';
+                    if (data.apartamentos && data.apartamentos.length > 0) {
+                        data.apartamentos.forEach(apto => {
+                            apartamentoSelect.innerHTML += `<option value="${apto}">${apto}</option>`;
+                        });
+                        apartamentoSelect.disabled = false;
+                    } else {
+                        apartamentoSelect.innerHTML = '<option value="">Vazio</option>';
+                    }
+                }).catch(error => {
+                    apartamentoSelect.innerHTML = '<option value="">Erro</option>';
+                });
+        } else {
+            apartamentoSelect.innerHTML = '<option value="">Selecione o Bloco primeiro</option>';
+        }
+    });
+
+    apartamentoSelect.addEventListener('change', function() {
+        const bloco = blocoSelect.value;
+        const apartamento = this.value;
+
+        moradorSelect.innerHTML = '<option value="">Carregando...</option>';
+        moradorSelect.disabled = true;
+
+        if (bloco && apartamento) {
+            fetch(`/sindico/api/buscar-moradores/?bloco=${encodeURIComponent(bloco)}&apartamento=${encodeURIComponent(apartamento)}`)
+                .then(response => response.json())
+                .then(data => {
+                    moradorSelect.innerHTML = '<option value="">Selecione o Morador...</option>';
+                    if (data.moradores && data.moradores.length > 0) {
+                        data.moradores.forEach(morador => {
+                            moradorSelect.innerHTML += `<option value="${morador.id}">${morador.nome}</option>`;
+                        });
+                        moradorSelect.disabled = false;
+                    } else {
+                        moradorSelect.innerHTML = '<option value="">Vazio</option>';
+                    }
+                }).catch(error => {
+                    moradorSelect.innerHTML = '<option value="">Erro</option>';
+                });
+        } else {
+            moradorSelect.innerHTML = '<option value="">Selecione o Apto primeiro</option>';
+        }
+    });
+});
+</script>
 {% endblock %}

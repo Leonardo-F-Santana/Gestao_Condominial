@@ -447,3 +447,21 @@ class DocumentoCondominio(models.Model):
         verbose_name_plural = "Documentos"
         ordering = ['-data_upload']
 
+
+# ==============================================================================
+# CENTRAL DE TAREFAS
+# ==============================================================================
+
+class TarefaSindico(models.Model):
+    condominio = models.ForeignKey(Condominio, on_delete=models.CASCADE, related_name='tarefas_sindico')
+    descricao = models.CharField(max_length=255, verbose_name="Descrição da Tarefa")
+    concluida = models.BooleanField(default=False, verbose_name="Concluída")
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Tarefa do Síndico"
+        verbose_name_plural = "Tarefas do Síndico"
+        ordering = ['concluida', '-criado_em']
+
+    def __str__(self):
+        return f"{self.condominio.nome} - {self.descricao[:30]}"
