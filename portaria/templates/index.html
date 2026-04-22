@@ -451,7 +451,11 @@
         const abaAlvo = urlParams.get('aba');
         if (abaAlvo) { const botaoAba = document.getElementById(abaAlvo + '-tab'); if (botaoAba) { new bootstrap.Tab(botaoAba).show(); } }
         
-        // === POLLING AJAX: Atualiza cards a cada 30 segundos ===
+        // === POLLING AJAX: Atualiza cards a cada 30 segundos (recursivo) ===
+        function agendarProximaAtualizacao() {
+            setTimeout(atualizarStats, 30000);
+        }
+
         function atualizarStats() {
             fetch('/api/stats/')
                 .then(response => response.json())
@@ -468,15 +472,20 @@
                         card.style.transform = 'scale(1.02)';
                         setTimeout(() => card.style.transform = 'scale(1)', 200);
                     });
+
+                    agendarProximaAtualizacao();
                 })
-                .catch(err => console.log('Erro ao atualizar stats:', err));
+                .catch(err => {
+                    console.log('Erro ao atualizar stats:', err);
+                    agendarProximaAtualizacao();
+                });
         }
         
-        // Atualiza a cada 30 segundos
-        setInterval(atualizarStats, 30000);
+        // Dispara o primeiro ciclo
+        agendarProximaAtualizacao();
         
         // Indicador visual de polling ativo
-        console.log('✅ Polling AJAX ativo - atualizando a cada 30s');
+        console.log('✅ Polling AJAX ativo - atualizando a cada 30s (recursivo)');
     });
 </script>
 {% endblock %}

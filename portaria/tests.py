@@ -47,7 +47,7 @@ class KSTech_Testes_Blindagem(TestCase):
 
 from unittest.mock import patch
 from .models import Morador, PushSubscription, Solicitacao
-from .views_sindico import disparar_push_individual
+from .utils import disparar_push_individual
 
 class WebPushAutomatedTests(TestCase):
     def setUp(self):

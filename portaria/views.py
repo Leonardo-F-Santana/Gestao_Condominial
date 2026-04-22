@@ -12,7 +12,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.views.decorators.cache import never_cache
 from django_ratelimit.decorators import ratelimit
 from .models import Visitante, Morador, Encomenda, Solicitacao, Notificacao, Sindico, Porteiro, Condominio, Mensagem, PushSubscription
-from .utils import enviar_push_notification
+from .utils import enviar_push_notification, disparar_push_individual
 
 # Tenta importar biblioteca de PDF
 try:
@@ -275,27 +275,19 @@ from django.http import JsonResponse
 
 @login_required
 def api_stats(request):
-    """Retorna estatísticas em JSON para atualização via AJAX."""
-    if not request.user.is_staff:
+    """Retorna estatísticas em JSON para atualização via AJAX.
+    Otimizado para escala: delega contagens diretamente ao banco (COUNT SQL).
+    """
+    if not (request.user.is_staff or is_porteiro(request.user)):
         return JsonResponse({'error': 'Não autorizado'}, status=403)
     
     cond = get_condominio_porteiro(request.user)
-    visitantes_qs = Visitante.objects.all()
-    encomendas_qs = Encomenda.objects.all()
-    solicitacoes_qs = Solicitacao.objects.all()
-    if cond:
-        visitantes_qs = visitantes_qs.filter(condominio=cond)
-        encomendas_qs = encomendas_qs.filter(condominio=cond)
-        solicitacoes_qs = solicitacoes_qs.filter(condominio=cond)
-    
-    visitantes_no_local = visitantes_qs.filter(horario_saida__isnull=True).count()
-    encomendas_pendentes = encomendas_qs.filter(entregue=False).count()
-    solicitacoes_pendentes = solicitacoes_qs.filter(status='PENDENTE').count()
+    filtro_cond = {'condominio': cond} if cond else {}
     
     return JsonResponse({
-        'visitantes_no_local': visitantes_no_local,
-        'encomendas_pendentes': encomendas_pendentes,
-        'solicitacoes_pendentes': solicitacoes_pendentes,
+        'visitantes_no_local': Visitante.objects.filter(horario_saida__isnull=True, **filtro_cond).count(),
+        'encomendas_pendentes': Encomenda.objects.filter(entregue=False, **filtro_cond).count(),
+        'solicitacoes_pendentes': Solicitacao.objects.filter(status='PENDENTE', **filtro_cond).count(),
     })
 
 # ==========================================
@@ -463,13 +455,13 @@ def registrar_visitante(request):
             registrado_por=request.user
         )
         # Disparo de Push Notification para o Morador
-        if morador and morador.usuario and PushSubscription.objects.filter(usuario=morador.usuario).exists():
+        if morador and morador.usuario:
             nome_visitante = request.POST.get('nome_completo')
-            print(f"[RADAR] Disparando Push de Visitante para {morador.usuario.username}")
-            enviar_push_notification(
-                usuario=morador.usuario,
-                title="👤 Visitante Anunciado",
-                body=f"O visitante {nome_visitante} acabou de ser registrado para a sua unidade."
+            disparar_push_individual(
+                morador.usuario,
+                '🔔 Visitante na Portaria',
+                f'O visitante {nome_visitante} acabou de ser registrado.',
+                '/morador/visitantes/'
             )
             
         messages.success(request, "Visitante registrado!")
@@ -502,12 +494,13 @@ def registrar_encomenda(request):
                 porteiro_cadastro=request.user
             )
             # Disparo de Push Notification para o Morador
-            if morador.usuario and PushSubscription.objects.filter(usuario=morador.usuario).exists():
-                print(f"[RADAR] Disparando Push de Encomenda para {morador.usuario.username}")
-                enviar_push_notification(
-                    usuario=morador.usuario,
-                    title="📦 Encomenda na Portaria",
-                    body="Olá, uma nova encomenda chegou para você. Retire quando puder!"
+            if morador.usuario:
+                volume = request.POST.get('volume', 'pacote')
+                disparar_push_individual(
+                    morador.usuario,
+                    '📦 Nova Encomenda',
+                    f'Uma nova encomenda ({volume}) chegou na portaria.',
+                    '/morador/encomendas/'
                 )
                 
             messages.success(request, "Encomenda registrada!")
@@ -604,6 +597,16 @@ def registrar_solicitacao(request):
                 ) for s in sindicos if s.usuario
             ]
             Notificacao.objects.bulk_create(notificacoes)
+
+        # Disparo de Push Notification para o Morador vinculado
+        if morador and morador.usuario:
+            descricao = request.POST.get('descricao', '')
+            disparar_push_individual(
+                morador.usuario,
+                '⚠️ Aviso da Portaria',
+                descricao[:50],
+                '/morador/solicitacoes/'
+            )
 
         messages.success(request, "Solicitação registrada!")
     return redirect('/?aba=solicitacoes')
