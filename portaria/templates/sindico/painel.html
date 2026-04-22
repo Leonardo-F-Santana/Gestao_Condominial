@@ -10,7 +10,7 @@
     </div>
 </div>
 
-<!-- Stats -->
+
 <div class="stat-row auto-cols-2">
     <div class="stat-card blue">
         <div class="stat-value">{{ stats.moradores }}</div>
@@ -22,7 +22,7 @@
     </div>
 </div>
 
-<!-- Acesso Rápido: Central de Documentos -->
+
 <div class="card-section mt-3">
     <div class="card-section-body p-0">
         <a href="{% url 'sindico_documentos' %}" class="d-flex align-items-center gap-3 text-decoration-none p-3" style="color: inherit;">
@@ -38,21 +38,21 @@
     </div>
 </div>
 
-<!-- Panorama Financeiro -->
+
 <div class="card-section mt-4">
     <div class="card-section-header d-flex justify-content-between">
         <span class="card-section-title"><i class="bi bi-wallet2"></i> Saúde Financeira</span>
         <a href="{% url 'sindico_financeiro' %}" class="text-decoration-none card-section-link">Ver cobranças →</a>
     </div>
     <div class="card-section-body text-center p-3 chart-container">
-        <!-- Canvas do Chart.js -->
+        
         <canvas id="financeChart"></canvas>
     </div>
 </div>
 
 
 
-<!-- Solicitações Recentes -->
+
 <div class="card-section">
     <div class="card-section-header">
         <span class="card-section-title"><i class="bi bi-clipboard"></i> Solicitações</span>
@@ -79,7 +79,7 @@
 </div>
 </div>
 
-<!-- Importando Chart.js via CDN -->
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
@@ -96,9 +96,9 @@ document.addEventListener("DOMContentLoaded", function() {
                     {{ stats.cobrancas_atrasadas|default:0 }}
                 ],
                 backgroundColor: [
-                    '#10b981', // Verde (Pagas)
-                    '#f59e0b', // Laranja (Pendentes)
-                    '#ef4444'  // Vermelho (Atrasadas)
+                    '#10b981', 
+                    '#f59e0b', 
+                    '#ef4444'  
                 ],
                 borderWidth: 0,
                 hoverOffset: 4

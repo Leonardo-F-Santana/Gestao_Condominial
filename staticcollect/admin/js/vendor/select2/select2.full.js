@@ -1,22 +1,16 @@
-/*!
- * Select2 4.0.13
- * https://select2.github.io
- *
- * Released under the MIT license
- * https://github.com/select2/select2/blob/master/LICENSE.md
- */
+
 ;(function (factory) {
   if (typeof define === 'function' && define.amd) {
-    // AMD. Register as an anonymous module.
+    
     define(['jquery'], factory);
   } else if (typeof module === 'object' && module.exports) {
-    // Node/CommonJS
+    
     module.exports = function (root, jQuery) {
       if (jQuery === undefined) {
-        // require('jQuery') returns a factory that requires window to
-        // build a jQuery instance, we normalize how we use modules
-        // that require this pattern but the window provided is a noop
-        // if it's defined (how jquery works)
+        
+        
+        
+        
         if (typeof window !== 'undefined') {
           jQuery = require('jquery');
         }
@@ -28,28 +22,25 @@
       return jQuery;
     };
   } else {
-    // Browser globals
+    
     factory(jQuery);
   }
 } (function (jQuery) {
-  // This is needed so we can catch the AMD loader configuration and use it
-  // The inner file should be wrapped (by `banner.start.js`) in a function that
-  // returns the AMD loader references.
+  
+  
+  
   var S2 =(function () {
-  // Restore the Select2 AMD loader so it can be used
-  // Needed mostly in the language files, where the loader is not inserted
+  
+  
   if (jQuery && jQuery.fn && jQuery.fn.select2 && jQuery.fn.select2.amd) {
     var S2 = jQuery.fn.select2.amd;
   }
 var S2;(function () { if (!S2 || !S2.requirejs) {
 if (!S2) { S2 = {}; } else { require = S2; }
-/**
- * @license almond 0.3.3 Copyright jQuery Foundation and other contributors.
- * Released under MIT license, http://github.com/requirejs/almond/LICENSE
- */
-//Going sloppy to avoid 'use strict' string cost, but strict practices should
-//be followed.
-/*global setTimeout: false */
+
+
+
+
 
 var requirejs, require, define;
 (function (undef) {
@@ -66,14 +57,7 @@ var requirejs, require, define;
         return hasOwn.call(obj, prop);
     }
 
-    /**
-     * Given a relative module name, like ./something, normalize it to
-     * a real name that can be mapped to a path.
-     * @param {String} name the relative name
-     * @param {String} baseName a real name that the name arg is relative
-     * to.
-     * @returns {String} normalized name
-     */
+    
     function normalize(name, baseName) {
         var nameParts, nameSegment, mapValue, foundMap, lastIndex,
             foundI, foundStarMap, starI, i, j, part, normalizedBaseParts,
@@ -81,42 +65,42 @@ var requirejs, require, define;
             map = config.map,
             starMap = (map && map['*']) || {};
 
-        //Adjust any relative paths.
+        
         if (name) {
             name = name.split('/');
             lastIndex = name.length - 1;
 
-            // If wanting node ID compatibility, strip .js from end
-            // of IDs. Have to do this here, and not in nameToUrl
-            // because node allows either .js or non .js to map
-            // to same file.
+            
+            
+            
+            
             if (config.nodeIdCompat && jsSuffixRegExp.test(name[lastIndex])) {
                 name[lastIndex] = name[lastIndex].replace(jsSuffixRegExp, '');
             }
 
-            // Starts with a '.' so need the baseName
+            
             if (name[0].charAt(0) === '.' && baseParts) {
-                //Convert baseName to array, and lop off the last part,
-                //so that . matches that 'directory' and not name of the baseName's
-                //module. For instance, baseName of 'one/two/three', maps to
-                //'one/two/three.js', but we want the directory, 'one/two' for
-                //this normalization.
+                
+                
+                
+                
+                
                 normalizedBaseParts = baseParts.slice(0, baseParts.length - 1);
                 name = normalizedBaseParts.concat(name);
             }
 
-            //start trimDots
+            
             for (i = 0; i < name.length; i++) {
                 part = name[i];
                 if (part === '.') {
                     name.splice(i, 1);
                     i -= 1;
                 } else if (part === '..') {
-                    // If at the start, or previous value is still ..,
-                    // keep them so that when converted to a path it may
-                    // still work when converted to a path, even though
-                    // as an ID it is less than ideal. In larger point
-                    // releases, may be better to just kick out an error.
+                    
+                    
+                    
+                    
+                    
                     if (i === 0 || (i === 1 && name[2] === '..') || name[i - 1] === '..') {
                         continue;
                     } else if (i > 0) {
@@ -125,12 +109,12 @@ var requirejs, require, define;
                     }
                 }
             }
-            //end trimDots
+            
 
             name = name.join('/');
         }
 
-        //Apply map config if available.
+        
         if ((baseParts || starMap) && map) {
             nameParts = name.split('/');
 
@@ -138,17 +122,17 @@ var requirejs, require, define;
                 nameSegment = nameParts.slice(0, i).join("/");
 
                 if (baseParts) {
-                    //Find the longest baseName segment match in the config.
-                    //So, do joins on the biggest to smallest lengths of baseParts.
+                    
+                    
                     for (j = baseParts.length; j > 0; j -= 1) {
                         mapValue = map[baseParts.slice(0, j).join('/')];
 
-                        //baseName segment has  config, find if it has one for
-                        //this name.
+                        
+                        
                         if (mapValue) {
                             mapValue = mapValue[nameSegment];
                             if (mapValue) {
-                                //Match, update name to the new value.
+                                
                                 foundMap = mapValue;
                                 foundI = i;
                                 break;
@@ -161,9 +145,9 @@ var requirejs, require, define;
                     break;
                 }
 
-                //Check for a star map match, but just hold on to it,
-                //if there is a shorter segment match later in a matching
-                //config, then favor over this star map.
+                
+                
+                
                 if (!foundStarMap && starMap && starMap[nameSegment]) {
                     foundStarMap = starMap[nameSegment];
                     starI = i;
@@ -186,14 +170,14 @@ var requirejs, require, define;
 
     function makeRequire(relName, forceSync) {
         return function () {
-            //A version of a require function that passes a moduleName
-            //value for items that may need to
-            //look up paths relative to the moduleName
+            
+            
+            
             var args = aps.call(arguments, 0);
 
-            //If first arg is not require('string'), and there is only
-            //one arg, it is the array form without a callback. Insert
-            //a null so that the following concat is correct.
+            
+            
+            
             if (typeof args[0] !== 'string' && args.length === 1) {
                 args.push(null);
             }
@@ -227,9 +211,9 @@ var requirejs, require, define;
         return defined[name];
     }
 
-    //Turns a plugin!resource to [plugin, resource]
-    //with the plugin being undefined if the name
-    //did not have a plugin prefix.
+    
+    
+    
     function splitPrefix(name) {
         var prefix,
             index = name ? name.indexOf('!') : -1;
@@ -240,17 +224,13 @@ var requirejs, require, define;
         return [prefix, name];
     }
 
-    //Creates a parts array for a relName where first part is plugin ID,
-    //second part is resource ID. Assumes relName has already been normalized.
+    
+    
     function makeRelParts(relName) {
         return relName ? splitPrefix(relName) : [];
     }
 
-    /**
-     * Makes a name map, normalizing the name, and using a plugin
-     * for normalization if necessary. Grabs a ref to plugin
-     * too, as an optimization.
-     */
+    
     makeMap = function (name, relParts) {
         var plugin,
             parts = splitPrefix(name),
@@ -264,7 +244,7 @@ var requirejs, require, define;
             plugin = callDep(prefix);
         }
 
-        //Normalize according
+        
         if (prefix) {
             if (plugin && plugin.normalize) {
                 name = plugin.normalize(name, makeNormalize(relResourceName));
@@ -281,9 +261,9 @@ var requirejs, require, define;
             }
         }
 
-        //Using ridiculous property names for space reasons
+        
         return {
-            f: prefix ? prefix + '!' + name : name, //fullName
+            f: prefix ? prefix + '!' + name : name, 
             n: name,
             pr: prefix,
             p: plugin
@@ -324,29 +304,29 @@ var requirejs, require, define;
             callbackType = typeof callback,
             usingExports;
 
-        //Use name if no relName
+        
         relName = relName || name;
         relParts = makeRelParts(relName);
 
-        //Call the callback to define the module, if necessary.
+        
         if (callbackType === 'undefined' || callbackType === 'function') {
-            //Pull out the defined dependencies and pass the ordered
-            //values to the callback.
-            //Default to [require, exports, module] if no deps
+            
+            
+            
             deps = !deps.length && callback.length ? ['require', 'exports', 'module'] : deps;
             for (i = 0; i < deps.length; i += 1) {
                 map = makeMap(deps[i], relParts);
                 depName = map.f;
 
-                //Fast path CommonJS standard dependencies.
+                
                 if (depName === "require") {
                     args[i] = handlers.require(name);
                 } else if (depName === "exports") {
-                    //CommonJS module spec 1.1
+                    
                     args[i] = handlers.exports(name);
                     usingExports = true;
                 } else if (depName === "module") {
-                    //CommonJS module spec 1.1
+                    
                     cjsModule = args[i] = handlers.module(name);
                 } else if (hasProp(defined, depName) ||
                            hasProp(waiting, depName) ||
@@ -363,20 +343,20 @@ var requirejs, require, define;
             ret = callback ? callback.apply(defined[name], args) : undefined;
 
             if (name) {
-                //If setting exports via "module" is in play,
-                //favor that over return value and exports. After that,
-                //favor a non-undefined return value over exports use.
+                
+                
+                
                 if (cjsModule && cjsModule.exports !== undef &&
                         cjsModule.exports !== defined[name]) {
                     defined[name] = cjsModule.exports;
                 } else if (ret !== undef || !usingExports) {
-                    //Use the return value from the function.
+                    
                     defined[name] = ret;
                 }
             }
         } else if (name) {
-            //May just be an object definition for the module. Only
-            //worry about defining if have a module name.
+            
+            
             defined[name] = callback;
         }
     };
@@ -384,16 +364,16 @@ var requirejs, require, define;
     requirejs = require = req = function (deps, callback, relName, forceSync, alt) {
         if (typeof deps === "string") {
             if (handlers[deps]) {
-                //callback in this case is really relName
+                
                 return handlers[deps](callback);
             }
-            //Just return the module wanted. In this scenario, the
-            //deps arg is the module name, and second arg (if passed)
-            //is just the relName.
-            //Normalize module name, if it contains . or ..
+            
+            
+            
+            
             return callDep(makeMap(deps, makeRelParts(callback)).f);
         } else if (!deps.splice) {
-            //deps is a config object, not an array.
+            
             config = deps;
             if (config.deps) {
                 req(config.deps, config.callback);
@@ -403,8 +383,8 @@ var requirejs, require, define;
             }
 
             if (callback.splice) {
-                //callback is an array, which means it is a dependency list.
-                //Adjust args if there are dependencies
+                
+                
                 deps = callback;
                 callback = relName;
                 relName = null;
@@ -413,26 +393,26 @@ var requirejs, require, define;
             }
         }
 
-        //Support require(['a'])
+        
         callback = callback || function () {};
 
-        //If relName is a function, it is an errback handler,
-        //so remove it.
+        
+        
         if (typeof relName === 'function') {
             relName = forceSync;
             forceSync = alt;
         }
 
-        //Simulate async callback;
+        
         if (forceSync) {
             main(undef, deps, callback, relName);
         } else {
-            //Using a non-zero value because of concern for what old browsers
-            //do, and latest browsers "upgrade" to 4 if lower value is used:
-            //http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#dom-windowtimers-settimeout:
-            //If want a value immediately, use require('id') instead -- something
-            //that works in almond on the global level, but not guaranteed and
-            //unlikely to work in other AMD implementations.
+            
+            
+            
+            
+            
+            
             setTimeout(function () {
                 main(undef, deps, callback, relName);
             }, 4);
@@ -441,17 +421,12 @@ var requirejs, require, define;
         return req;
     };
 
-    /**
-     * Just drops the config on the floor, but returns req in case
-     * the config return value is used.
-     */
+    
     req.config = function (cfg) {
         return req(cfg);
     };
 
-    /**
-     * Expose module registry for debugging and tooling
-     */
+    
     requirejs._defined = defined;
 
     define = function (name, deps, callback) {
@@ -459,11 +434,11 @@ var requirejs, require, define;
             throw new Error('See almond README: incorrect module build, no module name');
         }
 
-        //This module may not have dependencies
+        
         if (!deps.splice) {
-            //deps is not an array, so probably means
-            //an object literal or factory function for
-            //the value. Adjust args.
+            
+            
+            
             callback = deps;
             deps = [];
         }
@@ -483,7 +458,7 @@ S2.requirejs = requirejs;S2.require = require;S2.define = define;
 }());
 S2.define("almond", function(){});
 
-/* global jQuery:false, $:false */
+
 S2.define('jquery',[],function () {
   var _$ = jQuery || $;
 
@@ -581,7 +556,7 @@ S2.define('select2/utils',[
     }
 
     var calledMethod = function (methodName) {
-      // Stub out the original method if it's not decorating an actual method
+      
       var originalMethod = function () {};
 
       if (methodName in DecoratedClass.prototype) {
@@ -628,17 +603,17 @@ S2.define('select2/utils',[
 
     this.listeners = this.listeners || {};
 
-    // Params should always come in as an array
+    
     if (params == null) {
       params = [];
     }
 
-    // If there are no arguments to the event, use a temporary object
+    
     if (params.length === 0) {
       params.push({});
     }
 
-    // Set the `_type` of the first object to the event
+    
     params[0]._type = event;
 
     if (event in this.listeners) {
@@ -688,8 +663,8 @@ S2.define('select2/utils',[
       for (var k = 0; k < keys.length; k++) {
         var key = keys[k];
 
-        // Lowercase the first letter
-        // By default, dash-separated becomes camelCase
+        
+        
         key = key.substring(0, 1).toLowerCase() + key.substring(1);
 
         if (!(key in dataLevel)) {
@@ -710,17 +685,17 @@ S2.define('select2/utils',[
   };
 
   Utils.hasScroll = function (index, el) {
-    // Adapted from the function created by @ShadowScripter
-    // and adapted by @BillBarry on the Stack Exchange Code Review website.
-    // The original code can be found at
-    // http://codereview.stackexchange.com/q/13338
-    // and was designed to be used with the Sizzle selector engine.
+    
+    
+    
+    
+    
 
     var $el = $(el);
     var overflowX = el.style.overflowX;
     var overflowY = el.style.overflowY;
 
-    //Check both x and y declarations
+    
     if (overflowX === overflowY &&
         (overflowY === 'hidden' || overflowY === 'visible')) {
       return false;
@@ -745,7 +720,7 @@ S2.define('select2/utils',[
       '/': '&#47;'
     };
 
-    // Do not try to escape the markup if it's not a string
+    
     if (typeof markup !== 'string') {
       return markup;
     }
@@ -6518,23 +6493,17 @@ S2.define('select2/selection/stopPropagation',[
   return StopPropagation;
 });
 
-/*!
- * jQuery Mousewheel 3.1.13
- *
- * Copyright jQuery Foundation and other contributors
- * Released under the MIT license
- * http://jquery.org/license
- */
+
 
 (function (factory) {
     if ( typeof S2.define === 'function' && S2.define.amd ) {
-        // AMD. Register as an anonymous module.
+        
         S2.define('jquery-mousewheel',['jquery'], factory);
     } else if (typeof exports === 'object') {
-        // Node/CommonJS style for Browserify
+        
         module.exports = factory;
     } else {
-        // Browser globals
+        
         factory(jQuery);
     }
 }(function ($) {
@@ -6562,7 +6531,7 @@ S2.define('select2/selection/stopPropagation',[
             } else {
                 this.onmousewheel = handler;
             }
-            // Store the line height and page height for this particular element
+            
             $.data(this, 'mousewheel-line-height', special.getLineHeight(this));
             $.data(this, 'mousewheel-page-height', special.getPageHeight(this));
         },
@@ -6575,7 +6544,7 @@ S2.define('select2/selection/stopPropagation',[
             } else {
                 this.onmousewheel = null;
             }
-            // Clean up the data we added to the element
+            
             $.removeData(this, 'mousewheel-line-height');
             $.removeData(this, 'mousewheel-page-height');
         },
@@ -6594,8 +6563,8 @@ S2.define('select2/selection/stopPropagation',[
         },
 
         settings: {
-            adjustOldDeltas: true, // see shouldAdjustOldDeltas() below
-            normalizeOffset: true  // calls getBoundingClientRect for each event
+            adjustOldDeltas: true, 
+            normalizeOffset: true  
         }
     };
 
@@ -6622,22 +6591,22 @@ S2.define('select2/selection/stopPropagation',[
         event = $.event.fix(orgEvent);
         event.type = 'mousewheel';
 
-        // Old school scrollwheel delta
+        
         if ( 'detail'      in orgEvent ) { deltaY = orgEvent.detail * -1;      }
         if ( 'wheelDelta'  in orgEvent ) { deltaY = orgEvent.wheelDelta;       }
         if ( 'wheelDeltaY' in orgEvent ) { deltaY = orgEvent.wheelDeltaY;      }
         if ( 'wheelDeltaX' in orgEvent ) { deltaX = orgEvent.wheelDeltaX * -1; }
 
-        // Firefox < 17 horizontal scrolling related to DOMMouseScroll event
+        
         if ( 'axis' in orgEvent && orgEvent.axis === orgEvent.HORIZONTAL_AXIS ) {
             deltaX = deltaY * -1;
             deltaY = 0;
         }
 
-        // Set delta to be deltaY or deltaX if deltaY is 0 for backwards compatabilitiy
+        
         delta = deltaY === 0 ? deltaX : deltaY;
 
-        // New school wheel delta (wheel event)
+        
         if ( 'deltaY' in orgEvent ) {
             deltaY = orgEvent.deltaY * -1;
             delta  = deltaY;
@@ -6647,14 +6616,14 @@ S2.define('select2/selection/stopPropagation',[
             if ( deltaY === 0 ) { delta  = deltaX * -1; }
         }
 
-        // No change actually happened, no reason to go any further
+        
         if ( deltaY === 0 && deltaX === 0 ) { return; }
 
-        // Need to convert lines and pages to pixels if we aren't already in pixels
-        // There are three delta modes:
-        //   * deltaMode 0 is by pixels, nothing to do
-        //   * deltaMode 1 is by lines
-        //   * deltaMode 2 is by pages
+        
+        
+        
+        
+        
         if ( orgEvent.deltaMode === 1 ) {
             var lineHeight = $.data(this, 'mousewheel-line-height');
             delta  *= lineHeight;
@@ -6667,56 +6636,56 @@ S2.define('select2/selection/stopPropagation',[
             deltaX *= pageHeight;
         }
 
-        // Store lowest absolute delta to normalize the delta values
+        
         absDelta = Math.max( Math.abs(deltaY), Math.abs(deltaX) );
 
         if ( !lowestDelta || absDelta < lowestDelta ) {
             lowestDelta = absDelta;
 
-            // Adjust older deltas if necessary
+            
             if ( shouldAdjustOldDeltas(orgEvent, absDelta) ) {
                 lowestDelta /= 40;
             }
         }
 
-        // Adjust older deltas if necessary
+        
         if ( shouldAdjustOldDeltas(orgEvent, absDelta) ) {
-            // Divide all the things by 40!
+            
             delta  /= 40;
             deltaX /= 40;
             deltaY /= 40;
         }
 
-        // Get a whole, normalized value for the deltas
+        
         delta  = Math[ delta  >= 1 ? 'floor' : 'ceil' ](delta  / lowestDelta);
         deltaX = Math[ deltaX >= 1 ? 'floor' : 'ceil' ](deltaX / lowestDelta);
         deltaY = Math[ deltaY >= 1 ? 'floor' : 'ceil' ](deltaY / lowestDelta);
 
-        // Normalise offsetX and offsetY properties
+        
         if ( special.settings.normalizeOffset && this.getBoundingClientRect ) {
             var boundingRect = this.getBoundingClientRect();
             offsetX = event.clientX - boundingRect.left;
             offsetY = event.clientY - boundingRect.top;
         }
 
-        // Add information to the event object
+        
         event.deltaX = deltaX;
         event.deltaY = deltaY;
         event.deltaFactor = lowestDelta;
         event.offsetX = offsetX;
         event.offsetY = offsetY;
-        // Go ahead and set deltaMode to 0 since we converted to pixels
-        // Although this is a little odd since we overwrite the deltaX/Y
-        // properties with normalized deltas.
+        
+        
+        
         event.deltaMode = 0;
 
-        // Add event and delta to the front of the arguments
+        
         args.unshift(event, delta, deltaX, deltaY);
 
-        // Clearout lowestDelta after sometime to better
-        // handle multiple device types that give different
-        // a different lowestDelta
-        // Ex: trackpad = 3 and mouse wheel = 120
+        
+        
+        
+        
         if (nullLowestDeltaTimeout) { clearTimeout(nullLowestDeltaTimeout); }
         nullLowestDeltaTimeout = setTimeout(nullLowestDelta, 200);
 
@@ -6728,13 +6697,13 @@ S2.define('select2/selection/stopPropagation',[
     }
 
     function shouldAdjustOldDeltas(orgEvent, absDelta) {
-        // If this is an older event and the delta is divisable by 120,
-        // then we are assuming that the browser is treating this as an
-        // older mouse wheel event and that we should divide the deltas
-        // by 40 to try and get a more usable deltaFactor.
-        // Side note, this actually impacts the reported scroll distance
-        // in older browsers and can cause scrolling to be slower than native.
-        // Turn this off by setting $.event.special.mousewheel.settings.adjustOldDeltas to false.
+        
+        
+        
+        
+        
+        
+        
         return special.settings.adjustOldDeltas && orgEvent.type === 'mousewheel' && absDelta % 120 === 0;
     }
 
@@ -6749,7 +6718,7 @@ S2.define('jquery.select2',[
   './select2/utils'
 ], function ($, _, Select2, Defaults, Utils) {
   if ($.fn.select2 == null) {
-    // All methods that should return the element
+    
     var thisMethods = ['open', 'close', 'destroy'];
 
     $.fn.select2 = function (options) {
@@ -6780,7 +6749,7 @@ S2.define('jquery.select2',[
           ret = instance[options].apply(instance, args);
         });
 
-        // Check if we should be returning `this`
+        
         if ($.inArray(options, thisMethods) > -1) {
           return this;
         }
@@ -6799,22 +6768,22 @@ S2.define('jquery.select2',[
   return Select2;
 });
 
-  // Return the AMD loader configuration so it can be used outside of this file
+  
   return {
     define: S2.define,
     require: S2.require
   };
 }());
 
-  // Autoload the jQuery bindings
-  // We know that all of the modules exist above this, so we're safe
+  
+  
   var select2 = S2.require('jquery.select2');
 
-  // Hold the AMD module references on the jQuery function that was just loaded
-  // This allows Select2 to use the internal loader outside of this file, such
-  // as in the language files.
+  
+  
+  
   jQuery.fn.select2.amd = S2;
 
-  // Return the Select2 instance for anyone who is importing it.
+  
   return select2;
 }));

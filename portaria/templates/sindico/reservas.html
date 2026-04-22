@@ -8,7 +8,7 @@
     <p class="page-subtitle">Gerenciar reservas de áreas comuns</p>
 </div>
 
-<!-- Ações -->
+
 <div class="mb-4 d-flex gap-2 flex-wrap">
     <a href="{% url 'sindico_areas_comuns' %}" class="btn-exec bg-slate-600">
         <i class="bi bi-building"></i> Áreas Comuns
@@ -18,7 +18,7 @@
     </button>
 </div>
 
-<!-- Filtros -->
+
 <div class="mb-3 d-flex gap-2 flex-wrap">
     <a href="{% url 'sindico_reservas' %}" class="btn-exec btn-exec-sm 
         {% if not status_filtro %}bg-navy{% else %}bg-slate-400{% endif %}">
@@ -38,7 +38,7 @@
     </a>
 </div>
 
-<!-- Lista -->
+
 <div class="card-section">
     <div class="card-section-body">
         {% for r in reservas %}
@@ -60,7 +60,7 @@
             <i class="bi bi-chevron-right text-slate-300"></i>
         </div>
 
-        <!-- Modal Detalhe -->
+        
         <div class="modal fade" id="modalRes{{ r.id }}" tabindex="-1">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
@@ -140,7 +140,7 @@
     </div>
 </div>
 
-<!-- Modal Nova Área -->
+
 <div class="modal fade" id="modalNovaArea" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">

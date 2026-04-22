@@ -40,9 +40,9 @@ const OfflineEngine = (function () {
         });
     }
 
-    // =====================
-    // 2. Cache de Moradores
-    // =====================
+    
+    
+    
     function cacheMoradores() {
         return fetch('/api/moradores-offline/')
             .then(r => r.json())
@@ -52,7 +52,7 @@ const OfflineEngine = (function () {
                 store.clear();
                 data.moradores.forEach(m => store.put(m));
                 console.log(`✅ ${data.moradores.length} moradores em cache`);
-                // Salvar username do porteiro logado
+                
                 localStorage.setItem('porteiro_username', data.porteiro);
                 return data.moradores;
             })
@@ -71,9 +71,9 @@ const OfflineEngine = (function () {
         });
     }
 
-    // =====================
-    // 3. Salvar Pendentes
-    // =====================
+    
+    
+    
     function salvarVisitante(dados) {
         return new Promise((resolve, reject) => {
             dados.timestamp = new Date().toISOString();
@@ -110,9 +110,9 @@ const OfflineEngine = (function () {
         });
     }
 
-    // =====================
-    // 4. Contar Pendentes
-    // =====================
+    
+    
+    
     function contarPendentes() {
         return new Promise((resolve) => {
             let total = 0;
@@ -132,9 +132,9 @@ const OfflineEngine = (function () {
         });
     }
 
-    // =====================
-    // 5. Sincronização
-    // =====================
+    
+    
+    
     function sincronizar() {
         if (!navigator.onLine) {
             console.log('⏸️ Ainda offline, sync adiado');
@@ -250,7 +250,7 @@ const OfflineEngine = (function () {
                     .then(result => {
                         console.log('✅ Sync resultado:', result);
 
-                        // Remover apenas os registros enviados com sucesso
+                        
                         const clearTx = db.transaction(['visitantes_pendentes', 'encomendas_pendentes', 'solicitacoes_pendentes'], 'readwrite');
                         
                         visitantes.forEach(v => clearTx.objectStore('visitantes_pendentes').delete(v.tempId));
@@ -275,7 +275,7 @@ const OfflineEngine = (function () {
                     .catch(err => {
                         console.error('❌ Erro no sync:', err);
                         
-                        // Reverter flag "sincronizando"
+                        
                         const revertTx = db.transaction(['visitantes_pendentes', 'encomendas_pendentes', 'solicitacoes_pendentes'], 'readwrite');
                         
                         visitantes.forEach(v => {
@@ -305,9 +305,9 @@ const OfflineEngine = (function () {
         });
     }
 
-    // =====================
-    // 6. UI Helpers
-    // =====================
+    
+    
+    
     function atualizarBadgePendentes() {
         contarPendentes().then(count => {
             const badge = document.getElementById('offline-pendentes-badge');
@@ -352,21 +352,21 @@ const OfflineEngine = (function () {
         `;
         container.insertBefore(alerta, container.firstChild);
 
-        // Auto-remover após 6s
+        
         setTimeout(() => {
             if (alerta.parentNode) alerta.remove();
         }, 6000);
     }
 
-    // =====================
-    // 7. Interceptar Forms
-    // =====================
+    
+    
+    
     function interceptarFormularios() {
-        // --- Formulário de Visitantes ---
+        
         const formVisitante = document.getElementById('form-visitante');
         if (formVisitante) {
             formVisitante.addEventListener('submit', function (e) {
-                if (navigator.onLine) return; // Online: deixa o form normal funcionar
+                if (navigator.onLine) return; 
 
                 e.preventDefault();
                 const formData = new FormData(formVisitante);
@@ -380,7 +380,7 @@ const OfflineEngine = (function () {
                     observacoes: formData.get('observacoes') || ''
                 }).then(() => {
                     formVisitante.reset();
-                    // Restaurar Select2/Filtros simulando os fields originais se tiverem JS
+                    
                     const selApto = document.getElementById('vis_filtro_apto');
                     if(selApto) { selApto.disabled = true; selApto.innerHTML = '<option value="">Apto...</option>'; }
                      const selMorador = document.getElementById('vis_select_morador');
@@ -392,7 +392,7 @@ const OfflineEngine = (function () {
             });
         }
 
-        // --- Formulário de Encomendas ---
+        
         const formEncomenda = document.getElementById('form-encomenda');
         if (formEncomenda) {
             formEncomenda.addEventListener('submit', function (e) {
@@ -422,7 +422,7 @@ const OfflineEngine = (function () {
             });
         }
 
-        // --- Formulário de Solicitações ---
+        
         const formSolicitacao = document.getElementById('form-solicitacao');
         if (formSolicitacao) {
             formSolicitacao.addEventListener('submit', function (e) {
@@ -452,7 +452,7 @@ const OfflineEngine = (function () {
             });
         }
 
-        // --- Botão de sync manual ---
+        
         const syncBtn = document.getElementById('btn-sync-manual');
         if (syncBtn) {
             syncBtn.addEventListener('click', function () {
@@ -461,7 +461,7 @@ const OfflineEngine = (function () {
                 sincronizar().then(() => {
                     syncBtn.disabled = false;
                     syncBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Sincronizar';
-                    // Recarregar a página para mostrar os novos registros
+                    
                     if (navigator.onLine) {
                         setTimeout(() => window.location.reload(), 1500);
                     }
@@ -470,9 +470,9 @@ const OfflineEngine = (function () {
         }
     }
 
-    // =====================
-    // 8. Monitor de Conexão
-    // =====================
+    
+    
+    
     function iniciarMonitor() {
         atualizarStatusConexao();
         atualizarBadgePendentes();
@@ -480,7 +480,7 @@ const OfflineEngine = (function () {
         window.addEventListener('online', () => {
             console.log('🟢 Conexão restabelecida!');
             atualizarStatusConexao();
-            atualizarBadgePendentes(); // Re-checar o botão Sincronizar
+            atualizarBadgePendentes(); 
             
             const banner = document.getElementById('banner-offline');
             if (banner) {
@@ -492,11 +492,11 @@ const OfflineEngine = (function () {
                 }, 4000);
             }
 
-            // Tentar sincronizar automaticamente após 2s (dar tempo para estabilizar)
+            
             setTimeout(() => {
                 sincronizar().then(ok => {
                     if (ok) {
-                        // Recarregar para atualizar os dados na tela
+                        
                         setTimeout(() => window.location.reload(), 2000);
                     }
                 });
@@ -506,7 +506,7 @@ const OfflineEngine = (function () {
         window.addEventListener('offline', () => {
             console.log('🔴 Conexão perdida!');
             atualizarStatusConexao();
-            atualizarBadgePendentes(); // Re-checar o botão Sincronizar (deve sumir)
+            atualizarBadgePendentes(); 
             
             const banner = document.getElementById('banner-offline');
             if (banner) {
@@ -518,9 +518,9 @@ const OfflineEngine = (function () {
         });
     }
 
-    // =====================
-    // PUBLIC API
-    // =====================
+    
+    
+    
     return {
         init: init,
         cacheMoradores: cacheMoradores,
@@ -536,11 +536,11 @@ const OfflineEngine = (function () {
     };
 })();
 
-// =====================
-// AUTO-INICIALIZAÇÃO
-// =====================
+
+
+
 document.addEventListener('DOMContentLoaded', function () {
-    // Só inicializa na portaria (não no portal do morador/síndico)
+    
     const isPortaria = document.querySelector('.brand-text');
     if (!isPortaria) return;
 
@@ -548,12 +548,12 @@ document.addEventListener('DOMContentLoaded', function () {
         OfflineEngine.iniciarMonitor();
         OfflineEngine.interceptarFormularios();
 
-        // Cachear moradores quando online
+        
         if (navigator.onLine) {
             OfflineEngine.cacheMoradores();
         }
 
-        // Verificar se há pendentes para sincronizar
+        
         OfflineEngine.contarPendentes().then(count => {
             if (count > 0 && navigator.onLine) {
                 OfflineEngine.sincronizar();

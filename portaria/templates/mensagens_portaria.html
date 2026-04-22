@@ -8,7 +8,7 @@
     </button>
 </div>
 
-<!-- Modal Nova Mensagem -->
+
 <div class="modal fade" id="novaMensagemModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -59,7 +59,7 @@
             </li>
         </ul>
         <div class="tab-content" id="chatTabContent">
-            <!-- Aba Conversas Ativas -->
+            
             <div class="tab-pane fade show active" id="conversas-pane" role="tabpanel" aria-labelledby="conversas-tab" tabindex="0">
                 <div class="accordion accordion-flush" id="accordionConversas">
                     {% for contato, msgs in conversas.items %}
@@ -87,7 +87,7 @@
                                 <div class="chat-messages p-3 chat-messages-container">
                                     {% for m in msgs %}
                                         {% if m.remetente == request.user %}
-                                        <!-- Mensagem Enviada (Direita, Verde) -->
+                                        
                                         <div class="d-flex justify-content-end mb-3">
                                             <div class="msg-balloon bg-success text-white p-2 rounded-3 shadow-sm chat-balloon-max-w br-bottom-right-0">
                                                 <p class="mb-1 text-break fs-09">{{ m.conteudo }}</p>
@@ -98,7 +98,7 @@
                                             </div>
                                         </div>
                                         {% else %}
-                                        <!-- Mensagem Recebida (Esquerda, Branca) -->
+                                        
                                         <div class="d-flex justify-content-start mb-3">
                                             <div class="msg-balloon bg-white text-dark p-2 rounded-3 shadow-sm chat-balloon-max-w br-bottom-left-0">
                                                 <p class="mb-1 text-break fs-09">{{ m.conteudo }}</p>

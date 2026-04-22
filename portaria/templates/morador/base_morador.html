@@ -182,9 +182,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // --- INÍCIO DO CÓDIGO DA NOTIFICAÇÃO PUSH ---
         
-        // 1. Função Auxiliar: Converte a Chave Pública do Django
+        
+        
         function urlBase64ToUint8Array(base64String) {
             const padding = '='.repeat((4 - base64String.length % 4) % 4);
             const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
@@ -196,7 +196,7 @@
             return outputArray;
         }
 
-        // 2. A "Casa das Máquinas": Regista e aguarda o motor antes de subscrever
+        
         function assinarNotificacoes() {
             console.log("Iniciando processo de assinatura push...");
             
@@ -204,11 +204,11 @@
                 navigator.serviceWorker.register('/static/sw.js').then(function(registration) {
                     console.log("SW Registado. Verificando estado do motor...");
 
-                    // Função interna que dá o tiro só quando o motor está pronto
+                    
                     function fazerSubscribe() {
-                        // --- ATUALIZAÇÃO CIRÚRGICA AQUI ---
+                        
                         const vapidPublicKey = "BFLk6_JdSQnw2tF8upjINQuU831-MEP92iLNSccazaBh5CKAW3qSUkwJSHM8N38cfJO3rNvAGc5CfetVVgWs5NM"; 
-                        // --- FIM DA ATUALIZAÇÃO ---
+                        
                         const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
 
                         registration.pushManager.subscribe({
@@ -221,7 +221,7 @@
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
-                                    'X-CSRFToken': '{{ csrf_token }}' // Proteção de Segurança
+                                    'X-CSRFToken': '{{ csrf_token }}' 
                                 },
                                 body: JSON.stringify(subscription)
                             }).then(response => {
@@ -236,12 +236,12 @@
                         });
                     }
 
-                    // Verifica se o motor já está a correr
+                    
                     if (registration.active) {
                         console.log("Motor já estava ativo. Disparando...");
                         fazerSubscribe();
                     } else {
-                        // Se estiver a instalar, manda aguardar o sinal verde
+                        
                         let motorEmInstalacao = registration.installing || registration.waiting;
                         if (motorEmInstalacao) {
                             console.log("Motor a instalar. Aguardando sinal verde...");
@@ -261,11 +261,11 @@
             }
         }
 
-        // 3. A Tela e a Permissão: O Banner
+        
         document.addEventListener('DOMContentLoaded', function() {
             if ('Notification' in window) {
                 if (Notification.permission === 'default') {
-                    // Criar banner discreto
+                    
                     const banner = document.createElement('div');
                     banner.id = 'push-notification-banner';
                     banner.style.cssText = 'position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 10px 20px; border-radius: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); z-index: 1000; display: flex; align-items: center; gap: 10px; font-size: 0.85rem;';
@@ -305,12 +305,12 @@
                     });
                     
                 } else if (Notification.permission === 'granted') {
-                    // Já tem permissão de uma vez anterior, apenas garante que a subscrição está ativa
+                    
                     assinarNotificacoes();
                 }
             }
         });
-        // --- FIM DO CÓDIGO DA NOTIFICAÇÃO PUSH ---
+        
     </script>
     {% block scripts %}{% endblock %}
 </body>

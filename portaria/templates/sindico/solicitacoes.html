@@ -8,7 +8,7 @@
     <p class="page-subtitle">{{ solicitacoes.count }} registradas</p>
 </div>
 
-<!-- Lista -->
+
 <div class="card-section">
     <div class="card-section-body">
         {% for s in solicitacoes %}
@@ -26,7 +26,7 @@
             <i class="bi bi-chevron-right text-slate-300"></i>
         </div>
 
-        <!-- Modal Detalhe -->
+        
         <div class="modal fade" id="modal{{ s.id }}" tabindex="-1">
             <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
                 <div class="modal-content">

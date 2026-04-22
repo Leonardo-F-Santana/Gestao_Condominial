@@ -3,7 +3,7 @@
 {% block title %}Início - Portal do Morador{% endblock %}
 
 {% block content %}
-<!-- Saudação -->
+
 <div class="mb-4">
     <h4 class="fw-bold mb-1 text-white" id="saudacao">
         <span id="emoji-tempo"></span> Olá, {{ morador.nome.split.0 }}!
@@ -13,7 +13,7 @@
     </p>
 </div>
 
-<!-- Alertas Dinâmicos -->
+
 {% if encomendas_pendentes > 0 %}
 <div class="glass-card card-animate delay-1 mb-3 border-start border-4 border-warning">
     <div class="card-body p-3 d-flex justify-content-between align-items-center">
@@ -38,7 +38,7 @@
 </div>
 {% endif %}
 
-<!-- Stats Cards - COM ANIMAÇÃO -->
+
 <div class="row g-3 mb-4">
     <div class="col-6 col-md-4">
         <div class="glass-card stat-card card-animate delay-1 h-100">
@@ -66,7 +66,7 @@
     </div>
 </div>
 
-<!-- Ações Rápidas -->
+
 <div class="row g-3 mb-4">
     <div class="col-6">
         <a href="{% url 'morador_cobrancas' %}" class="text-decoration-none d-flex align-items-center p-2 rounded-4 shadow-sm bg-white h-100 card-animate delay-1" style="border: 1px solid rgba(0,0,0,0.05); transition: transform 0.2s;">
@@ -110,7 +110,7 @@
     </div>
 </div>
 
-<!-- Avisos Recentes -->
+
 {% if avisos %}
 <div class="mb-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -137,7 +137,7 @@
 </div>
 {% endif %}
 
-<!-- Minhas Solicitações -->
+
 {% if solicitacoes_recentes %}
 <div class="mb-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -179,12 +179,12 @@
 {% endblock %}
 
 {% block scripts %}
-<!-- Modal Push: Detalhes do Visitante -->
+
 {% if abrir_modal_visitante and visitante_detalhes %}
 <div class="modal fade" id="modalVisitantePush" tabindex="-1" aria-labelledby="modalVisitanteLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
-            <!-- Header -->
+            
             <div class="modal-header border-0 text-center" style="background: linear-gradient(135deg, #4f46e5, #7c3aed); padding: 1.5rem 1.5rem 1rem;">
                 <div class="w-100 text-center">
                     <div class="mx-auto mb-2 d-flex align-items-center justify-content-center rounded-circle bg-white bg-opacity-25" style="width: 56px; height: 56px;">
@@ -195,10 +195,10 @@
                 </div>
                 <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Fechar"></button>
             </div>
-            <!-- Body -->
+            
             <div class="modal-body px-4 pt-4 pb-2">
                 <div class="list-group list-group-flush">
-                    <!-- Nome -->
+                    
                     <div class="list-group-item border-0 px-0 py-2 d-flex align-items-center">
                         <div class="d-flex align-items-center justify-content-center rounded-3 me-3" style="width: 38px; height: 38px; background: rgba(79,70,229,0.1);">
                             <i class="bi bi-person-fill" style="color: #4f46e5;"></i>
@@ -208,7 +208,7 @@
                             <span class="fw-bold text-dark">{{ visitante_detalhes.nome_completo }}</span>
                         </div>
                     </div>
-                    <!-- CPF -->
+                    
                     {% if visitante_detalhes.cpf %}
                     <div class="list-group-item border-0 px-0 py-2 d-flex align-items-center">
                         <div class="d-flex align-items-center justify-content-center rounded-3 me-3" style="width: 38px; height: 38px; background: rgba(79,70,229,0.1);">
@@ -220,7 +220,7 @@
                         </div>
                     </div>
                     {% endif %}
-                    <!-- Placa -->
+                    
                     {% if visitante_detalhes.placa_veiculo %}
                     <div class="list-group-item border-0 px-0 py-2 d-flex align-items-center">
                         <div class="d-flex align-items-center justify-content-center rounded-3 me-3" style="width: 38px; height: 38px; background: rgba(234,179,8,0.12);">
@@ -232,7 +232,7 @@
                         </div>
                     </div>
                     {% endif %}
-                    <!-- Horário -->
+                    
                     <div class="list-group-item border-0 px-0 py-2 d-flex align-items-center">
                         <div class="d-flex align-items-center justify-content-center rounded-3 me-3" style="width: 38px; height: 38px; background: rgba(16,185,129,0.12);">
                             <i class="bi bi-clock-fill" style="color: #059669;"></i>
@@ -242,7 +242,7 @@
                             <span class="fw-semibold text-dark">{{ visitante_detalhes.horario_chegada|date:"d/m/Y \à\s H:i" }}</span>
                         </div>
                     </div>
-                    <!-- Quem autorizou -->
+                    
                     {% if visitante_detalhes.quem_autorizou %}
                     <div class="list-group-item border-0 px-0 py-2 d-flex align-items-center">
                         <div class="d-flex align-items-center justify-content-center rounded-3 me-3" style="width: 38px; height: 38px; background: rgba(79,70,229,0.1);">
@@ -254,7 +254,7 @@
                         </div>
                     </div>
                     {% endif %}
-                    <!-- Observações -->
+                    
                     {% if visitante_detalhes.observacoes %}
                     <div class="list-group-item border-0 px-0 py-2 d-flex align-items-center">
                         <div class="d-flex align-items-center justify-content-center rounded-3 me-3" style="width: 38px; height: 38px; background: rgba(107,114,128,0.1);">
@@ -268,7 +268,7 @@
                     {% endif %}
                 </div>
             </div>
-            <!-- Footer -->
+            
             <div class="modal-footer border-0 justify-content-center pb-4 pt-2">
                 <button type="button" class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm" data-bs-dismiss="modal" style="background: linear-gradient(135deg, #4f46e5, #7c3aed); border: none;">
                     <i class="bi bi-check-lg me-1"></i> Entendido
@@ -280,7 +280,7 @@
 {% endif %}
 
 <script>
-    // Saudação dinâmica com emoji
+    
     const hora = new Date().getHours();
     const elSaudacao = document.getElementById('saudacao');
     const elEmoji = document.getElementById('emoji-tempo');
@@ -302,7 +302,7 @@
     elEmoji.textContent = emoji;
     elSaudacao.innerHTML = '<span id="emoji-tempo">' + emoji + '</span> ' + msg + ', {{ morador.nome.split.0 }}!';
 
-    // Auto-abertura do modal de visitante (via push notification)
+    
     {% if abrir_modal_visitante %}
     document.addEventListener('DOMContentLoaded', function() {
         var modal = new bootstrap.Modal(document.getElementById('modalVisitantePush'));

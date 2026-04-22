@@ -19,7 +19,7 @@
 </head>
 <body>
     {% include "includes/splash_screen.html" %}
-    <!-- Top Bar -->
+    
     <header class="topbar">
         <div class="d-flex justify-content-between align-items-center topbar-container">
             <span class="topbar-brand">
@@ -71,7 +71,7 @@
         </div>
     </header>
 
-    <!-- Offcanvas Menu Sindico -->
+    
     <div class="offcanvas offcanvas-end offcanvas-menu" tabindex="-1" id="menuSindico" aria-labelledby="menuSindicoLabel">
         <div class="offcanvas-header border-bottom border-light border-opacity-10 opacity-100">
             <h5 class="offcanvas-title fw-bold text-white" id="menuSindicoLabel"><i class="bi bi-grid-fill me-2 text-primary"></i>Menu Principal</h5>
@@ -115,7 +115,7 @@
         </div>
     </div>
 
-    <!-- Main -->
+    
     <main class="main-container">
         {% if messages %}
             {% for message in messages %}
@@ -129,7 +129,7 @@
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Bottom Nav -->
+    
     {% if condominio %}
     <nav class="bottom-nav">
         <a href="{% url 'sindico_painel' %}" class="nav-item {% if active_page == 'painel' %}active{% endif %}">

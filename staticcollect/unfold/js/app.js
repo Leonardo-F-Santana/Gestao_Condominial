@@ -14,9 +14,7 @@ window.addEventListener("load", (e) => {
   scrollSidebarNav();
 });
 
-/*************************************************************
- * Scroll sidebar to active item
- *************************************************************/
+
 function scrollSidebarNav() {
   const sidebarNav = document.getElementById("nav-sidebar-apps");
 
@@ -45,9 +43,7 @@ function scrollSidebarNav() {
   }
 }
 
-/*************************************************************
- * Move not visible tab items to dropdown
- *************************************************************/
+
 function tabNavigation() {
   const itemsDropdown = document.getElementById("tabs-dropdown");
   const itemsList = document.getElementById("tabs-items");
@@ -77,7 +73,7 @@ function tabNavigation() {
         itemsList.removeChild(lastTabItem);
         itemsDropdown.appendChild(lastTabItem);
 
-        // If there is still not enough space, move the last item to the dropdown again
+        
         if (
           document.getElementById("content").offsetWidth <
           document.getElementById("tabs-wrapper").scrollWidth
@@ -98,7 +94,7 @@ function tabNavigation() {
       }
     }
 
-    // Show/hide dropdown based on the number of items in dropdown
+    
     if (itemsDropdown.childElementCount === 0) {
       itemsDropdown.parentElement.classList.add("hidden");
     } else {
@@ -107,9 +103,7 @@ function tabNavigation() {
   }
 }
 
-/*************************************************************
- * Alpine.sort.js callback after sorting
- *************************************************************/
+
 const sortRecords = (e) => {
   const orderingField = e.from.dataset.orderingField;
 
@@ -124,9 +118,7 @@ const sortRecords = (e) => {
   });
 };
 
-/*************************************************************
- * Search form
- *************************************************************/
+
 function searchForm() {
   return {
     applyShortcut(event) {
@@ -143,9 +135,7 @@ function searchForm() {
   };
 }
 
-/*************************************************************
- * Search dropdown
- *************************************************************/
+
 function searchDropdown() {
   return {
     openSearchResults: false,
@@ -182,9 +172,7 @@ function searchDropdown() {
   };
 }
 
-/*************************************************************
- * Search command
- *************************************************************/
+
 function searchCommand() {
   return {
     el: document.getElementById("command-results"),
@@ -352,9 +340,7 @@ function searchCommand() {
   };
 }
 
-/*************************************************************
- * Warn without saving
- *************************************************************/
+
 const warnWithoutSaving = () => {
   let formChanged = false;
   const form = document.querySelector("form.warn-unsaved-form");
@@ -394,9 +380,7 @@ const warnWithoutSaving = () => {
   window.addEventListener("beforeunload", preventLeaving);
 };
 
-/*************************************************************
- * Filter form
- *************************************************************/
+
 const filterForm = () => {
   const filterForm = document.getElementById("filter-form");
 
@@ -411,9 +395,7 @@ const filterForm = () => {
   });
 };
 
-/*************************************************************
- * Class watcher
- *************************************************************/
+
 const watchClassChanges = (selector, callback) => {
   const body = document.querySelector(selector);
 
@@ -431,9 +413,7 @@ const watchClassChanges = (selector, callback) => {
   observer.observe(body, { attributes: true, attributeFilter: ["class"] });
 };
 
-/*************************************************************
- * Calendar & clock
- *************************************************************/
+
 const dateTimeShortcutsOverlay = () => {
   const observer = new MutationObserver((mutations) => {
     for (const mutationRecord of mutations) {
@@ -458,9 +438,7 @@ const dateTimeShortcutsOverlay = () => {
   }
 };
 
-/*************************************************************
- * File upload path
- *************************************************************/
+
 const fileInputUpdatePath = () => {
   const checkInputChanged = () => {
     for (const input of document.querySelectorAll("input[type=file]")) {
@@ -491,9 +469,7 @@ const fileInputUpdatePath = () => {
   checkInputChanged();
 };
 
-/*************************************************************
- * Chart
- *************************************************************/
+
 const DEFAULT_CHART_OPTIONS = {
   animation: false,
   barPercentage: 1,

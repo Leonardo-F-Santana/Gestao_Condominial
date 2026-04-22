@@ -1,14 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-/* global.css - Estilos base e Login */
+
 
 * {
     font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
 }
 
-/* =========================================
-   LOGIN PAGE
-   ========================================= */
+
 
 body.login-body {
     min-height: 100vh;
@@ -228,7 +226,7 @@ body.login-body::before {
     color: #9ca3af;
 }
 
-/* Utils genéricos da tela de login */
+
 .forgot-password-link {
     color: #3A89C9; 
     font-size: 0.85rem; 
@@ -236,9 +234,7 @@ body.login-body::before {
     font-weight: 600;
 }
 
-/* =========================================
-   PASSWORD RESET / CHANGE PAGES
-   ========================================= */
+
 
 .card-pass {
     background: white;
@@ -282,9 +278,7 @@ body.login-body::before {
     color: #0f172a; 
 }
 
-/* =========================================
-   PORTARIA (INDEX.HTML) HELPERS
-   ========================================= */
+
 
 .text-slate-800 { color: #1e293b; }
 .select-readonly { 
@@ -298,9 +292,7 @@ body.login-body::before {
     cursor: pointer;
 }
 
-/* =========================================
-   CADASTRO MORADOR (PWA) HELPERS
-   ========================================= */
+
 
 .register-container {
     width: 100%;
@@ -406,9 +398,7 @@ button[type="submit"] {
     cursor: pointer;
 }
 
-/* =========================================
-   MISC HELPERS (PORTARIA)
-   ========================================= */
+
 
 .min-w-100 { min-width: 100px; }
 .max-w-300 { max-width: 300px; }
@@ -418,7 +408,7 @@ button[type="submit"] {
 .br-bottom-right-0 { border-bottom-right-radius: 0 !important; }
 .br-bottom-left-0 { border-bottom-left-radius: 0 !important; }
 
-/* Chat Customization */
+
 .chat-messages-container {
     max-height: 400px;
     overflow-y: auto;
@@ -437,9 +427,7 @@ button[type="submit"] {
     justify-content: center;
 }
 
-/* =========================================
-   AUTH AND PASSWORD RESET HELPERS
-   ========================================= */
+
 
 .reset-container {
     width: 100%;
@@ -544,7 +532,7 @@ button[type="submit"] {
     color: #3A89C9;
 }
 
-/* Auth Checklists */
+
 .success-checklist {
     text-align: left;
     margin: 1.5rem 0;
@@ -566,7 +554,7 @@ button[type="submit"] {
     flex-shrink: 0;
 }
 
-/* Misc Auth */
+
 .fs-3rem { font-size: 3rem; }
 .text-decoration-underline-hover:hover { text-decoration: underline; }
 .card-header-success {

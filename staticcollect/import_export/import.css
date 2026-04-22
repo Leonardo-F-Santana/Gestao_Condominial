@@ -113,10 +113,7 @@ html[data-theme="light"] table.import-preview td del {
     background-color: #003e3e;
   }
 
-  /*
-  these declarations are necessary to forcibly override the
-  formatting applied by the diff-match-patch python library
-   */
+  
   table.import-preview td ins {
     background-color: #190019 !important;
   }
@@ -146,10 +143,7 @@ html[data-theme="dark"] .validation-error-container {
   background-color: #003e3e;
 }
 
-/*
-these declarations are necessary to forcibly override the
-formatting applied by the diff-match-patch python library
- */
+
 html[data-theme="dark"] table.import-preview td ins {
   background-color: #190019 !important;
 }

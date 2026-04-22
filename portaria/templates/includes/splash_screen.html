@@ -1,10 +1,6 @@
-<!--
-  PWA SPLASH SCREEN
-  - Script inline no topo impede flash de conteúdo
-  - sessionStorage garante que aparece SÓ na abertura do app
--->
+
 <script>
-    // Se já mostrou nesta sessão, nem renderiza o splash
+    
     if (sessionStorage.getItem('splashDone')) {
         document.currentScript.dataset.skip = '1';
     }
@@ -47,23 +43,23 @@
 
 <script>
 (function() {
-    // Pula se já mostrou nesta sessão
+    
     var scripts = document.querySelectorAll('script');
     var marker = document.querySelector('script[data-skip]');
     if (marker && marker.dataset.skip === '1') return;
 
-    // Marca que já mostrou — NÃO mostrará nas próximas páginas
+    
     sessionStorage.setItem('splashDone', '1');
 
-    // Injeta o splash do template
+    
     var tpl = document.getElementById('splashTemplate');
     var splash = tpl.content.cloneNode(true);
     document.body.prepend(splash);
 
-    // Esconde o conteúdo real até o splash terminar
+    
     document.body.style.overflow = 'hidden';
 
-    // PWA standalone = 3s, navegador = 2.2s
+    
     var isStandalone = window.matchMedia('(display-mode: standalone)').matches
                     || window.navigator.standalone === true;
     var duration = isStandalone ? 3000 : 2200;
@@ -103,7 +99,7 @@
         pointer-events: none;
     }
 
-    /* === PARTÍCULAS === */
+    
     .splash-particles { position: absolute; inset: 0; overflow: hidden; }
 
     .particle {
@@ -129,7 +125,7 @@
         75% { transform: translateY(-40px) translateX(5px) scale(1.1); opacity: .6; }
     }
 
-    /* === ANÉIS === */
+    
     .splash-rings {
         position: absolute;
         width: 300px; height: 300px;
@@ -148,7 +144,7 @@
         50% { transform: scale(1.1); opacity: .8; border-color: rgba(59,130,246,.3); }
     }
 
-    /* === LOGO === */
+    
     .splash-logo-wrapper {
         position: relative;
         animation: logoEntrance .8s cubic-bezier(.34,1.56,.64,1) .2s forwards;
@@ -182,7 +178,7 @@
         50% { opacity: 1; transform: scale(1.15); }
     }
 
-    /* === TEXTO === */
+    
     .splash-text {
         text-align: center; margin-top: 28px;
         animation: textEntrance .7s cubic-bezier(.34,1.56,.64,1) .6s forwards;
@@ -205,7 +201,7 @@
         100% { opacity: 1; transform: translateY(0); }
     }
 
-    /* === LOADING BAR === */
+    
     .splash-loader {
         position: absolute; bottom: 80px;
         width: 140px; height: 3px;

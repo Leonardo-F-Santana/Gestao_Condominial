@@ -138,12 +138,12 @@
             const txt = document.getElementById('txtGoogle');
             const spinner = document.getElementById('spinnerGoogle');
             
-            // Estado visual de loading
+            
             btnElement.classList.add('disabled');
             txt.innerText = 'Conectando...';
             spinner.style.display = 'inline-block';
 
-            // Parâmetros da nova janela
+            
             const width = 500;
             const height = 600;
             const left = (window.innerWidth / 2) - (width / 2);
@@ -151,13 +151,13 @@
 
             googlePopup = window.open(url, 'GoogleLogin', `width=${width},height=${height},top=${top},left=${left}`);
 
-            // Fica checando se o popup fechou a cada meio segundo
+            
             if (googlePollTimer) clearInterval(googlePollTimer);
             googlePollTimer = setInterval(() => {
                 if (!googlePopup || googlePopup.closed || googlePopup.closed === undefined) {
                     clearInterval(googlePollTimer);
                     txt.innerText = 'Redirecionando...';
-                    window.location.reload(); // Recarrega para que o backend decida a view final (Dashboard) com mensagens OK
+                    window.location.reload(); 
                 }
             }, 500);
         }

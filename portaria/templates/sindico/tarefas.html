@@ -8,7 +8,7 @@
 </div>
 
 <div class="row g-4">
-    <!-- Coluna 1: Solicitações dos Moradores -->
+    
     <div class="col-md-6">
         <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
             <div class="card-header bg-white border-bottom border-light py-3">
@@ -44,7 +44,7 @@
         </div>
     </div>
 
-    <!-- Coluna 2: Tarefas Manuais / To-Do -->
+    
     <div class="col-md-6">
         <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
             <div class="card-header bg-white border-bottom border-light py-3">
@@ -55,7 +55,7 @@
             </div>
             
             <div class="card-body p-4 bg-light bg-opacity-50">
-                <!-- Add Task Form -->
+                
                 <form method="POST" action="{% url 'sindico_tarefas' %}" class="mb-4">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="adicionar_tarefa">
@@ -67,7 +67,7 @@
                     </div>
                 </form>
 
-                <!-- Task List -->
+                
                 <div class="list-group list-group-flush bg-transparent gap-2">
                     {% for tarefa in tarefas %}
                     <div class="list-group-item d-flex align-items-center border-0 rounded-3 shadow-sm bg-white p-3 {% if tarefa.concluida %}opacity-75{% endif %}">

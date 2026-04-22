@@ -8,7 +8,7 @@
     </button>
 </div>
 
-<!-- Filtros de Busca Avançada -->
+
 <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
     <div class="card-body p-3">
         <form method="GET" action="{% url 'sindico_financeiro' %}" class="row g-2 align-items-end">
@@ -46,7 +46,7 @@
     </div>
 </div>
 
-<!-- Modal Nova Cobrança -->
+
 <div class="modal fade" id="novaCobrancaModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -120,14 +120,14 @@
         <div class="card border-0 shadow-sm rounded-4 h-100 cobranca-card">
             <div class="card-body p-4">
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-                    <!-- Detalhes -->
+                    
                     <div class="flex-grow-1">
                         <h5 class="fw-bold mb-1 text-dark">{{ c.descricao }}</h5>
                         <p class="text-muted small mb-2"><i class="bi bi-person me-1"></i> Morador: <strong>{{ c.morador }}</strong></p>
                         <p class="text-muted small mb-0"><i class="bi bi-calendar-event me-1"></i> Vence em: <strong>{{ c.data_vencimento|date:"d/m/Y" }}</strong></p>
                     </div>
                     
-                    <!-- Valor e Status -->
+                    
                     <div class="text-md-end text-start">
                         <h4 class="fw-bold mb-2 text-primary">R$ {{ c.valor }}</h4>
                         {% if c.status == 'PAGO' %}
@@ -143,7 +143,7 @@
                         {% endif %}
                     </div>
                     
-                    <!-- Ações -->
+                    
                     <div class="mt-3 mt-md-0 d-flex flex-wrap align-items-center justify-content-md-end gap-2 border-top border-md-top-0 pt-3 pt-md-0 ps-md-3 min-w-180">
                         {% if c.comprovante %}
                             <a href="{{ c.comprovante.url }}" target="_blank" class="btn btn-outline-info rounded-pill px-3 py-2 fw-semibold shadow-sm w-100" title="Ver Comprovante Anexado">
@@ -194,7 +194,7 @@ document.addEventListener("DOMContentLoaded", function() {
     blocoSelect.addEventListener('change', function() {
         const bloco = this.value;
         
-        // Reset and disable downstream selects
+        
         apartamentoSelect.innerHTML = '<option value="">Carregando...</option>';
         apartamentoSelect.disabled = true;
         

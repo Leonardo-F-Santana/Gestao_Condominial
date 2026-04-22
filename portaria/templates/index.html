@@ -4,12 +4,12 @@
 {% block content %}
 <div class="mb-5">
     
-    <!-- Banner Offline Mínimo -->
+    
     <div id="banner-offline" class="shadow" style="display: none; background-color: #ffc107; color: #000; text-align: center; padding: 12px; font-weight: bold; border-radius: 6px; margin-bottom: 20px; z-index: 1000; position: relative;">
         ⚠️ Conexão perdida. Operando normalmente em modo offline
     </div>
 
-    <!-- Saudação -->
+    
     <div class="mb-4">
         <h2 class="fw-bold mb-1 text-slate-800">
             <span id="saudacao-icon">👋</span> Olá, {{ user.username }}!
@@ -17,7 +17,7 @@
         <p class="text-muted mb-0">Painel de Controle da Portaria</p>
     </div>
 
-    <!-- Cards de Estatísticas Modernos -->
+    
     <div class="row g-3 mb-4">
         <div class="col-4 col-md-3">
             <div class="stat-card bg-success">
@@ -463,7 +463,7 @@
         const abaAlvo = urlParams.get('aba');
         if (abaAlvo) { const botaoAba = document.getElementById(abaAlvo + '-tab'); if (botaoAba) { new bootstrap.Tab(botaoAba).show(); } }
         
-        // === POLLING AJAX: Atualiza cards a cada 30 segundos (recursivo) ===
+        
         function agendarProximaAtualizacao() {
             setTimeout(atualizarStats, 30000);
         }
@@ -472,13 +472,13 @@
             fetch('/api/stats/')
                 .then(response => response.json())
                 .then(data => {
-                    // Atualiza os números nos cards
+                    
                     const cards = document.querySelectorAll('.stat-card');
                     if (cards[0]) cards[0].querySelector('.stat-value').textContent = data.visitantes_no_local;
                     if (cards[1]) cards[1].querySelector('.stat-value').textContent = data.encomendas_pendentes;
                     if (cards[2]) cards[2].querySelector('.stat-value').textContent = data.solicitacoes_pendentes;
                     
-                    // Efeito visual de atualização
+                    
                     cards.forEach(card => {
                         card.style.transition = 'transform 0.2s';
                         card.style.transform = 'scale(1.02)';
@@ -493,10 +493,10 @@
                 });
         }
         
-        // Dispara o primeiro ciclo
+        
         agendarProximaAtualizacao();
         
-        // Indicador visual de polling ativo
+        
         console.log('✅ Polling AJAX ativo - atualizando a cada 30s (recursivo)');
     });
 </script>

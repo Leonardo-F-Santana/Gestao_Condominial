@@ -45,7 +45,7 @@
                 {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors }}</div>{% endif %}
             </div>
 
-            <!-- === CENTRAL DE PREFERÊNCIAS VAPID === -->
+            
             <hr class="my-4 border-secondary opacity-25">
             <h5 class="fw-bold mb-3 text-stone-600"><i class="bi bi-bell-fill text-warning me-2"></i>Notificações</h5>
 
@@ -72,13 +72,13 @@
 document.addEventListener('DOMContentLoaded', function() {
     const switchPush = document.getElementById('push-switch');
     
-    // 1. O estado inicial é carregado pelo Django.
-    // Garantir que a subscrição nativa acompanha o banco se estiver ligado
+    
+    
     if (switchPush.checked && 'serviceWorker' in navigator && 'PushManager' in window) {
         navigator.serviceWorker.ready.then(function(registration) {
             registration.pushManager.getSubscription().then(function(subscription) {
                 if (!subscription) {
-                    // O backend diz "sim", mas não há subscrição neste navegador.
+                    
                     if (typeof assinarNotificacoes === 'function') {
                         assinarNotificacoes();
                     }
@@ -87,18 +87,18 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 2. Ação ao plugar / desplugar
+    
     switchPush.addEventListener('change', function() {
         let isEnabled = this.checked;
 
         if (isEnabled) {
-            // Ligar notificações nativas para dar prompt se ainda não tiver
+            
             if (typeof assinarNotificacoes === 'function') {
                 assinarNotificacoes();
             }
         }
 
-        // Tocar a API explícita
+        
         fetch('/atualizar_preferencia_push/', {
             method: 'POST',
             headers: {

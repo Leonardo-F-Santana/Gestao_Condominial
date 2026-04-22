@@ -144,7 +144,7 @@
     </div>
     {% endfor %}
 
-    {# Preservar permissões de outros apps que estavam selecionadas #}
+    
     {% for perm in other_selected %}
     <input type="hidden" name="{{ field_name }}" value="{{ perm.id }}">
     {% endfor %}

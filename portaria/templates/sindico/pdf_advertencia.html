@@ -14,7 +14,7 @@
             line-height: 1.6;
         }
 
-        /* Cabeçalho timbrado */
+        
         .header {
             text-align: center;
             border-bottom: 3px solid #1a3a5c;
@@ -34,7 +34,7 @@
             margin: 2px 0;
         }
 
-        /* Título do documento */
+        
         .titulo-documento {
             text-align: center;
             margin: 35px 0 30px;
@@ -50,7 +50,7 @@
             margin: 0;
         }
 
-        /* Info box */
+        
         .info-box {
             background-color: #f5f5f5;
             border: 1px solid #ddd;
@@ -72,7 +72,7 @@
             width: 180px;
         }
 
-        /* Corpo do texto */
+        
         .corpo-texto {
             text-align: justify;
             margin-bottom: 20px;
@@ -81,7 +81,7 @@
             margin: 0 0 12px 0;
         }
 
-        /* Destaque */
+        
         .destaque {
             background-color: #fef9e7;
             border-left: 4px solid #f39c12;
@@ -90,7 +90,7 @@
             font-size: 11px;
         }
 
-        /* Assinatura */
+        
         .assinatura {
             margin-top: 60px;
             text-align: center;
@@ -109,7 +109,7 @@
             color: #666;
         }
 
-        /* Rodapé */
+        
         .rodape {
             position: fixed;
             bottom: 0;
@@ -125,7 +125,7 @@
 </head>
 <body>
 
-    <!-- Cabeçalho Timbrado -->
+    
     <div class="header">
         <h1>{{ condominio.nome }}</h1>
         {% if condominio.endereco %}<p>{{ condominio.endereco }}</p>{% endif %}
@@ -133,12 +133,12 @@
         {% if condominio.telefone %}<p>Tel: {{ condominio.telefone }}{% if condominio.email %} | {{ condominio.email }}{% endif %}</p>{% endif %}
     </div>
 
-    <!-- Título -->
+    
     <div class="titulo-documento">
         <h2>Notificação de Advertência Formal</h2>
     </div>
 
-    <!-- Dados da Ocorrência -->
+    
     <div class="info-box">
         <table>
             <tr>
@@ -156,7 +156,7 @@
         </table>
     </div>
 
-    <!-- Corpo Jurídico -->
+    
     <div class="corpo-texto">
         <p>
             Prezado(a) morador(a),
@@ -193,7 +193,7 @@
         </p>
     </div>
 
-    <!-- Assinatura -->
+    
     <div class="assinatura">
         <p style="text-align: left; font-size: 11px; color: #555; margin-bottom: 40px;">
             {{ condominio.nome }}, {% now "d" %} de {% now "F" %} de {% now "Y" %}.
@@ -204,7 +204,7 @@
         <p class="cargo">Síndico(a) — {{ condominio.nome }}</p>
     </div>
 
-    <!-- Rodapé -->
+    
     <div class="rodape">
         Documento gerado eletronicamente pelo sistema Gestão Condominial em {% now "d/m/Y H:i" %}. 
         Este documento não requer assinatura física para ter validade interna.

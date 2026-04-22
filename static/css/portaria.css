@@ -18,7 +18,7 @@ body {
     background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f0f9ff 100%);
 }
 
-/* Navbar Moderna */
+
 .navbar-modern {
     background: rgba(255, 255, 255, 0.95) !important;
     backdrop-filter: blur(20px);
@@ -49,7 +49,7 @@ body {
     background-clip: text;
 }
 
-/* Cards Modernos */
+
 .card {
     border: none;
     border-radius: 16px;
@@ -61,7 +61,7 @@ body {
     box-shadow: 0 8px 25px rgba(0,0,0,0.1);
 }
 
-/* Cards de Estatísticas */
+
 .stat-card {
     border-radius: 14px;
     padding: 0.9rem 1rem;
@@ -103,7 +103,7 @@ body {
     white-space: nowrap;
 }
 
-/* Botões */
+
 .btn {
     border-radius: 10px;
     font-weight: 600;
@@ -122,7 +122,7 @@ body {
     background: linear-gradient(135deg, var(--primary), var(--secondary));
 }
 
-/* Tabs */
+
 .nav-tabs {
     border: none;
     background: white;
@@ -150,7 +150,7 @@ body {
     color: white;
 }
 
-/* Tabelas */
+
 .table {
     margin: 0;
 }
@@ -176,7 +176,7 @@ body {
     background: #f8fafc;
 }
 
-/* Forms */
+
 .form-control, .form-select {
     border: 2px solid #e5e7eb;
     border-radius: 10px;
@@ -189,14 +189,14 @@ body {
     box-shadow: 0 0 0 4px rgba(58, 137, 201, 0.15);
 }
 
-/* Badges */
+
 .badge {
     font-weight: 600;
     padding: 0.4rem 0.8rem;
     border-radius: 8px;
 }
 
-/* Modals */
+
 .modal-content {
     border: none;
     border-radius: 20px;
@@ -206,19 +206,19 @@ body {
     border-radius: 20px 20px 0 0;
 }
 
-/* Alerts */
+
 .alert {
     border: none;
     border-radius: 12px;
 }
 
-/* Container Principal */
+
 .main-container {
     padding-top: 1.5rem;
     padding-bottom: 2rem;
 }
 
-/* Quick Actions */
+
 .quick-action {
     display: flex;
     align-items: center;
@@ -241,19 +241,19 @@ body {
     box-shadow: 0 4px 15px rgba(58, 137, 201, 0.3);
 }
 
-/* Scrollbar */
+
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: #f1f5f9; }
 ::-webkit-scrollbar-thumb { background: var(--primary-light); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
-/* Responsivo */
+
 @media (max-width: 768px) {
     .stat-card { margin-bottom: 1rem; }
     .nav-tabs { flex-wrap: nowrap; overflow-x: auto; }
     .nav-tabs .nav-link { white-space: nowrap; padding: 0.5rem 1rem; }
 }
-/* Animação para indicador offline */
+
 .pulse-offline {
     animation: pulseOffline 1.5s infinite;
 }
@@ -269,9 +269,7 @@ body {
     to { transform: rotate(360deg); }
 }
 
-/* =========================================
-   PORTARIA BASE.HTML HELPERS
-   ========================================= */
+
 
 .badge-mensagens {
     font-size: 0.55rem; 

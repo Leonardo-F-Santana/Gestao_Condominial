@@ -8,7 +8,7 @@
     <p class="page-subtitle">{{ areas.count }} espaço{{ areas.count|pluralize:"s" }} cadastrado{{ areas.count|pluralize:"s" }}</p>
 </div>
 
-<!-- Botão Adicionar -->
+
 <div class="mb-4">
     <button class="btn-exec" data-bs-toggle="modal" data-bs-target="#modalCriar">
         <i class="bi bi-plus-lg"></i> Nova Área
@@ -18,7 +18,7 @@
     </a>
 </div>
 
-<!-- Lista de Áreas -->
+
 <div class="card-section">
     <div class="card-section-body">
         {% for area in areas %}
@@ -41,7 +41,7 @@
                 {% endif %}
             </div>
             
-            <!-- Ações Inline (Lápis e Lixeira) -->
+            
             <div class="d-flex gap-2 mt-2 mt-md-0">
                 <button class="btn btn-sm btn-outline-primary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#modalEditar{{ area.id }}" title="Editar {{ area.nome }}">
                     <i class="bi bi-pencil"></i> Editar
@@ -52,7 +52,7 @@
             </div>
         </div>
 
-        <!-- Modal Editar -->
+        
         <div class="modal fade" id="modalEditar{{ area.id }}" tabindex="-1">
             <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
                 <div class="modal-content">
@@ -118,7 +118,7 @@
     </div>
 </div>
 
-<!-- Modal Criar -->
+
 <div class="modal fade" id="modalCriar" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">

@@ -1,10 +1,19 @@
 from django import template
 
+
+
 register = template.Library()
 
+
+
 @register.filter
+
 def somente_numeros(valor):
-    """Remove tudo que não for número do telefone"""
+
+    pass
+
     if valor:
+
         return ''.join(filter(str.isdigit, valor))
+
     return ''

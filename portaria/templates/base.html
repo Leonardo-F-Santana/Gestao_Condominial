@@ -32,7 +32,7 @@
                         <i class="bi bi-gear-fill"></i> Admin
                     </a>
                 {% endif %}
-                <!-- Chat Portaria (Apenas visível se for porteiro) -->
+                
                 {% if request.resolver_match.url_name != 'login' %}
                     <a href="{% url 'mensagens_portaria' %}" class="quick-action position-relative me-2">
                         <i class="bi bi-chat-dots-fill"></i> <span class="d-none d-md-inline">Mensagens</span>

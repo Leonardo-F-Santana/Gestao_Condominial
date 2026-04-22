@@ -27,9 +27,7 @@ document.addEventListener("DOMContentLoaded", function () {
       },
     });
 
-    /*************************************************************
-     * Update slider when input values change
-     *************************************************************/
+    
     fromInput.addEventListener("keyup", function () {
       clearTimeout(this._sliderUpdateTimeout);
       this._sliderUpdateTimeout = setTimeout(() => {
@@ -50,9 +48,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }, 500);
     });
 
-    /*************************************************************
-     * Updated inputs when slider is moved
-     *************************************************************/
+    
     slider.noUiSlider.on("update", function (values, handle) {
       const parent = this.target.closest(".admin-numeric-filter-wrapper");
       const from = parent.querySelectorAll(

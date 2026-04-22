@@ -18,7 +18,7 @@
     </div>
 </div>
 
-<!-- Link de Convite -->
+
 <div class="card-section mb-08">
     <div class="card-section-body p-08-1">
         <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
@@ -54,7 +54,7 @@ function copiarLink() {
 }
 </script>
 
-<!-- Barra de Pesquisa -->
+
 <div class="card-section mb-08 p-3">
     <form method="GET" action="{% url 'sindico_moradores' %}" class="d-flex gap-2">
         <div class="input-group">
@@ -132,7 +132,7 @@ function copiarLink() {
             </div>
         </div>
 
-        <!-- Modal Reset Senha -->
+        
         <div class="modal fade" id="modalSenha{{ m.id }}" tabindex="-1">
             <div class="modal-dialog modal-dialog-centered modal-sm">
                 <div class="modal-content">
@@ -173,7 +173,7 @@ function copiarLink() {
             </div>
         </div>
         
-        <!-- Modal Editar Morador -->
+        
         <div class="modal fade" id="modalEditar{{ m.id }}" tabindex="-1">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
@@ -181,7 +181,7 @@ function copiarLink() {
                         <h5 class="modal-title"><i class="bi bi-pencil"></i> Editar Morador</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-                    <!-- Endpoint customizado do síndico em vez do Admin -->
+                    
                     <form class="form-admin-ajax" data-url="{% url 'sindico_morador_editar' m.id %}" onsubmit="submitAdminAjax(event, this, 'Editar')">
                         <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                         
@@ -223,7 +223,7 @@ function copiarLink() {
             </div>
         </div>
 
-        <!-- Modal Excluir Morador -->
+        
         <div class="modal fade" id="modalExcluir{{ m.id }}" tabindex="-1">
             <div class="modal-dialog modal-dialog-centered modal-sm">
                 <div class="modal-content">
@@ -258,7 +258,7 @@ function copiarLink() {
     </div>
 </div>
 
-<!-- Modal Novo Morador -->
+
 <div class="modal fade" id="modalNovo" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -317,7 +317,7 @@ function copiarLink() {
     </div>
 </div>
 
-<!-- Modal Importar Moradores -->
+
 <div class="modal fade" id="modalImportar" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -357,7 +357,7 @@ function copiarLink() {
     </div>
 </div>
 
-<!-- REMOVIDO: Iframe Admin por incompatibilidade com Unfold e bloqueios de navegação -->
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 async function submitAdminAjax(event, form, acaoTitle) {
@@ -366,7 +366,7 @@ async function submitAdminAjax(event, form, acaoTitle) {
     const btnText = btn.querySelector('.btn-text');
     const spinner = btn.querySelector('.spinner-border');
     
-    // Status visual
+    
     btn.disabled = true;
     spinner.classList.remove('d-none');
     btnText.innerText = acaoTitle === 'Excluir' ? 'Excluindo...' : 'Salvando...';
@@ -374,7 +374,7 @@ async function submitAdminAjax(event, form, acaoTitle) {
     const url = form.getAttribute('data-url');
     const formData = new FormData(form);
     
-    // Se o CPF estiver em branco, remove do payload para que o Django backend não falhe na validação "'' is not a valid CPF" ou Unique constraints
+    
     if (formData.has('cpf') && formData.get('cpf').trim() === '') {
         formData.delete('cpf');
     }
@@ -385,19 +385,19 @@ async function submitAdminAjax(event, form, acaoTitle) {
             body: formData,
             credentials: 'same-origin',
             headers: {
-                // Necessário para o Django aceitar a requisição AJAX corretamente sem bloquear
+                
                 'X-Requested-With': 'XMLHttpRequest'
             }
         });
 
-        // Como agora enviamos para nossa própria View, o Django apenas fará o processamento 
-        // e retornará um Redirect (302) para a própria lista de Moradores (com a mensagem de sucesso na session).
+        
+        
         if (response.redirected) {
             window.location.reload();
         } else if (response.ok) {
             window.location.reload();
         } else {
-            // Em caso de erro 500 do servidor ou erro nosso
+            
             alert(`Ocorreu um erro HTTP ${response.status} no servidor ao tentar ${acaoTitle.toLowerCase()} o morador.`);
         }
     } catch (error) {
@@ -438,7 +438,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 text = text.replace(/^\uFEFF/, '');
                 let lines = text.split(/\r?\n/);
                 let delimiter = text.includes(';') ? ';' : ',';
-                // Regex rudimentar para garantir divisão, mas como vamos limpar vírgulas, não há problema de aspas
+                
                 processedRows = lines.map(line => line.split(delimiter).map(cell => cell.replace(/^["']|["']$/g, '').trim()));
             } else {
                 const data = await file.arrayBuffer();

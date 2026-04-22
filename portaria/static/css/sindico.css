@@ -1,6 +1,6 @@
-/* sindico.css - Custom styles for the Sindico application */
 
-/* Typography & Utilities */
+
+
 .txt-07 { font-size: 0.7rem; }
 .txt-072 { font-size: 0.72rem; }
 .txt-075 { font-size: 0.75rem; }
@@ -21,7 +21,7 @@
 .text-green { color: var(--green); }
 .text-amber { color: var(--amber); }
 
-/* Icons & Layout */
+
 .icon-1xl { font-size: 1.1rem; }
 .icon-2xl { font-size: 2rem; }
 .icon-3xl { font-size: 3rem; }
@@ -35,7 +35,7 @@
 .max-w-600 { max-width: 600px; }
 .mh-400 { max-height: 400px; }
 
-/* Buttons & Links */
+
 .btn-icon-round {
     width: 40px;
     height: 40px;
@@ -78,7 +78,7 @@
     word-break: break-all;
 }
 
-/* Specific UI Components */
+
 .cobranca-card {
     background: white;
     transition: transform 0.2s, box-shadow 0.2s;
@@ -103,7 +103,7 @@
     border-left: 3px solid var(--green);
 }
 
-/* Chat & Messaging */
+
 .chat-bg-wpp {
     background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
 }
@@ -113,7 +113,7 @@
     color: rgba(255,255,255,0.8);
 }
 
-/* Empty States */
+
 .empty-state-card {
     background: white;
     border: 1px solid #e2e8f0;
@@ -128,7 +128,7 @@
     margin-bottom: 0.5rem;
 }
 
-/* Helpers */
+
 .min-w-180 { min-width: 180px; }
 .solicitacao-img-preview {
     max-width: 100%;
