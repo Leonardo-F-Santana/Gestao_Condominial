@@ -151,7 +151,7 @@
                                         {% if visitante.horario_saida %}
                                             <span class="badge bg-secondary">Saiu {{ visitante.horario_saida|date:"H:i" }}</span>
                                         {% else %}
-                                            <a href="{% url 'registrar_saida' visitante.id %}" class="btn btn-danger btn-sm">🚪 Marcar Saída</a>
+                                            <a href="{% url 'registrar_saida' visitante.id %}?page={{ lista_visitantes.number }}&busca={{ query_busca|default:'' }}" class="btn btn-danger btn-sm">🚪 Marcar Saída</a>
                                         {% endif %}
                                     </td>
                                 </tr>
@@ -165,14 +165,26 @@
                 {% if lista_visitantes.has_other_pages %}
                 <div class="card-footer bg-light d-flex justify-content-center">
                     <nav>
-                        <ul class="pagination mb-0">
+                        <ul class="pagination pagination-sm mb-0">
                             {% if lista_visitantes.has_previous %}
-                                <li class="page-item"><a class="page-link" href="?page={{ lista_visitantes.previous_page_number }}&busca={{ query_busca|default:'' }}">Anterior</a></li>
-                            {% else %}<li class="page-item disabled"><span class="page-link">Anterior</span></li>{% endif %}
-                            <li class="page-item active"><span class="page-link">{{ lista_visitantes.number }}</span></li>
+                                <li class="page-item"><a class="page-link" href="?page={{ lista_visitantes.previous_page_number }}&busca={{ query_busca|default:'' }}">« Anterior</a></li>
+                            {% else %}<li class="page-item disabled"><span class="page-link">« Anterior</span></li>{% endif %}
+
+                            {% for pg in lista_visitantes.paginator.page_range %}
+                                {% if pg == lista_visitantes.number %}
+                                    <li class="page-item active"><span class="page-link">{{ pg }}</span></li>
+                                {% elif pg >= lista_visitantes.number|add:"-3" and pg <= lista_visitantes.number|add:"3" %}
+                                    <li class="page-item"><a class="page-link" href="?page={{ pg }}&busca={{ query_busca|default:'' }}">{{ pg }}</a></li>
+                                {% elif pg == 1 or pg == lista_visitantes.paginator.num_pages %}
+                                    <li class="page-item"><a class="page-link" href="?page={{ pg }}&busca={{ query_busca|default:'' }}">{{ pg }}</a></li>
+                                {% elif pg == lista_visitantes.number|add:"-4" or pg == lista_visitantes.number|add:"4" %}
+                                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                                {% endif %}
+                            {% endfor %}
+
                             {% if lista_visitantes.has_next %}
-                                <li class="page-item"><a class="page-link" href="?page={{ lista_visitantes.next_page_number }}&busca={{ query_busca|default:'' }}">Próxima</a></li>
-                            {% else %}<li class="page-item disabled"><span class="page-link">Próxima</span></li>{% endif %}
+                                <li class="page-item"><a class="page-link" href="?page={{ lista_visitantes.next_page_number }}&busca={{ query_busca|default:'' }}">Próxima »</a></li>
+                            {% else %}<li class="page-item disabled"><span class="page-link">Próxima »</span></li>{% endif %}
                         </ul>
                     </nav>
                 </div>

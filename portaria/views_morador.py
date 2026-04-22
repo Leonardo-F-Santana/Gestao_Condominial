@@ -158,6 +158,21 @@ def portal_home(request):
         'avisos': avisos,
         'cobrancas_pendentes': cobrancas_pendentes,
     }
+
+    # Popup de visitante vindo da notificação push
+    visitante_id = request.GET.get('visitante_id')
+    if visitante_id:
+        from .models import Visitante
+        try:
+            visitante = Visitante.objects.get(
+                id=visitante_id,
+                morador_responsavel=morador
+            )
+            context['visitante_detalhes'] = visitante
+            context['abrir_modal_visitante'] = True
+        except Visitante.DoesNotExist:
+            pass
+
     return render(request, 'morador/portal_home.html', context)
 
 @morador_required

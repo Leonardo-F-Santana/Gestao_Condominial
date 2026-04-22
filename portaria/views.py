@@ -443,7 +443,7 @@ def registrar_visitante(request):
         # Se o morador tem condomínio, usar esse; senão usar o do porteiro
         condominio_registro = (morador.condominio if morador and morador.condominio else cond)
         
-        Visitante.objects.create(
+        visitante = Visitante.objects.create(
             condominio=condominio_registro,
             nome_completo=request.POST.get('nome_completo'),
             cpf=request.POST.get('cpf'),
@@ -461,7 +461,7 @@ def registrar_visitante(request):
                 morador.usuario,
                 '🔔 Visitante na Portaria',
                 f'O visitante {nome_visitante} acabou de ser registrado.',
-                '/morador/visitantes/'
+                f'/morador/?visitante_id={visitante.id}'
             )
             
         messages.success(request, "Visitante registrado!")
@@ -473,7 +473,17 @@ def registrar_saida(request, id_visitante):
     visitante.horario_saida = timezone.now()
     visitante.save()
     messages.info(request, "Saída registrada.")
-    return redirect('home')
+    
+    # Preserva a posição de navegação do porteiro
+    page = request.GET.get('page', '')
+    busca = request.GET.get('busca', '')
+    params = []
+    if page:
+        params.append(f'page={page}')
+    if busca:
+        params.append(f'busca={busca}')
+    url = '/' + ('?' + '&'.join(params) if params else '')
+    return redirect(url)
 
 # ==========================================
 # 4. ENCOMENDAS
