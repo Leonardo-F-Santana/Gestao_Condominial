@@ -380,6 +380,12 @@ def minhas_cobrancas(request):
 
                     return redirect('morador_cobrancas')
 
+                if comprovante.size > 5 * 1024 * 1024:
+
+                    messages.error(request, 'O comprovante deve ter no máximo 5MB.')
+
+                    return redirect('morador_cobrancas')
+
                 cobranca.comprovante = comprovante
 
 
@@ -631,6 +637,12 @@ def nova_solicitacao(request):
             if content_type.startswith('video/') or str(arquivo.name).lower().endswith(('.mp4', '.avi', '.mov', '.mkv', '.webm')):
 
                 messages.error(request, "O envio de vídeos não é permitido.")
+
+                return redirect('morador_nova_solicitacao')
+
+            if arquivo.size > 5 * 1024 * 1024:
+
+                messages.error(request, 'O arquivo deve ter no máximo 5MB.')
 
                 return redirect('morador_nova_solicitacao')
 
@@ -1275,6 +1287,12 @@ def ocorrencias(request):
             if content_type.startswith('video/') or str(foto.name).lower().endswith(('.mp4', '.avi', '.mov', '.mkv', '.webm')):
 
                 messages.error(request, "O envio de vídeos não é permitido.")
+
+                return redirect('morador_ocorrencias')
+
+            if foto.size > 5 * 1024 * 1024:
+
+                messages.error(request, 'A foto deve ter no máximo 5MB.')
 
                 return redirect('morador_ocorrencias')
 
