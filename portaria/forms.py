@@ -462,6 +462,8 @@ class SindicoPerfilForm(forms.ModelForm):
 
     email = forms.EmailField(label="E-mail", required=False)
 
+    receber_push = forms.BooleanField(label="Receber Notificações Push", required=False)
+
 
 
     class Meta:
@@ -494,6 +496,8 @@ class SindicoPerfilForm(forms.ModelForm):
 
             self.fields['email'].widget.attrs.update({'class': 'form-control'})
 
+            self.fields['receber_push'].initial = self.user.receber_push
+
 
 
     def clean_email(self):
@@ -513,6 +517,8 @@ class SindicoPerfilForm(forms.ModelForm):
             self.user.username = self.cleaned_data['username']
 
             self.user.email = self.cleaned_data['email']
+
+            self.user.receber_push = self.cleaned_data['receber_push']
 
             if commit:
 

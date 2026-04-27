@@ -162,6 +162,24 @@ def notificar_sindicos_do_condominio(condominio, tipo, titulo, mensagem, link):
 
 
 
+    from .utils import disparar_push_individual
+
+    for sindico in sindicos:
+
+        disparar_push_individual(
+
+            sindico,
+
+            titulo=titulo or 'Nova Notificação',
+
+            mensagem=mensagem,
+
+            link=link
+
+        )
+
+
+
 def morador_context(request, extra_context=None, active_page=None):
 
     pass

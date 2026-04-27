@@ -75,16 +75,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     
     if (switchPush.checked && 'serviceWorker' in navigator && 'PushManager' in window) {
-        navigator.serviceWorker.ready.then(function(registration) {
-            registration.pushManager.getSubscription().then(function(subscription) {
-                if (!subscription) {
-                    
-                    if (typeof assinarNotificacoes === 'function') {
-                        assinarNotificacoes();
-                    }
-                }
-            });
-        });
+        if (typeof assinarNotificacoes === 'function') {
+            assinarNotificacoes();
+        }
     }
 
     

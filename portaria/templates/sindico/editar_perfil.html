@@ -39,6 +39,17 @@
                 {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors }}</div>{% endif %}
             </div>
 
+            <hr class="my-4 border-secondary opacity-25">
+            <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-bell-fill text-warning me-2"></i>Notificações</h5>
+
+            <div class="form-check form-switch mb-2">
+              <input class="form-check-input" type="checkbox" id="push-switch" name="receber_push" style="cursor: pointer;" {% if request.user.receber_push %}checked{% endif %}>
+              <label class="form-check-label fw-semibold ms-2" for="push-switch" style="cursor: pointer;">
+                  Receber Notificações Push
+              </label>
+            </div>
+            <p class="text-muted small mb-4 ms-1">Alertas no seu dispositivo quando houver novidades no condomínio (feedbacks, solicitações, reservas, etc).</p>
+
             <button type="submit" class="btn btn-primary w-100 mb-3 py-2 fw-semibold rounded-8">
                 <i class="bi bi-save me-2"></i> Salvar Alterações
             </button>
@@ -49,4 +60,41 @@
         </form>
     </div>
 </div>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const switchPush = document.getElementById('push-switch');
+
+    if (switchPush.checked && 'serviceWorker' in navigator && 'PushManager' in window) {
+        if (typeof assinarNotificacoes === 'function') {
+            assinarNotificacoes();
+        }
+    }
+
+    switchPush.addEventListener('change', function() {
+        let isEnabled = this.checked;
+
+        if (isEnabled) {
+            if (typeof assinarNotificacoes === 'function') {
+                assinarNotificacoes();
+            }
+        }
+
+        fetch('/atualizar_preferencia_push/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({'valor': isEnabled})
+        }).then(response => {
+            if (response.ok) {
+                console.log("Preferencia de Push salva como " + isEnabled);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
 {% endblock %}
