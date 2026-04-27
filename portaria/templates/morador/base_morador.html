@@ -107,6 +107,11 @@
                             {% endif %}
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'morador_feedback' %}active{% endif %}" href="{% url 'morador_feedback' %}">
+                            <i class="bi bi-chat-left-dots"></i> Sugestões/Feedback
+                        </a>
+                    </li>
                 </ul>
                 <div class="d-flex align-items-center gap-2 flex-wrap py-2 py-lg-0">
                     <span class="text-muted d-none d-md-inline fw-semibold me-1">

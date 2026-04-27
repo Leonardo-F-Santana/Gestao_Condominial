@@ -106,7 +106,9 @@ from portaria.views_morador import (
 
     completar_cadastro,
 
-    atualizar_preferencia_push
+    atualizar_preferencia_push,
+
+    feedback_morador
 
 )
 
@@ -178,7 +180,9 @@ from portaria.views_sindico import (
 
     gerenciar_portaria,
 
-    central_tarefas_sindico
+    central_tarefas_sindico,
+
+    feedbacks_sindico
 
 )
 
@@ -334,6 +338,8 @@ urlpatterns = [
 
     path('morador/documentos/', documentos_morador, name='morador_documentos'),
 
+    path('morador/feedback/', feedback_morador, name='morador_feedback'),
+
     path('api/push/subscribe/', salvar_inscricao_push, name='salvar_inscricao_push'),
 
     path('api/push/unsubscribe/', remover_subscricao, name='remover_subscricao'),
@@ -407,6 +413,8 @@ urlpatterns = [
     path('sindico/documentos/', documentos_sindico, name='sindico_documentos'),
 
     path('sindico/portaria/', gerenciar_portaria, name='sindico_portaria'),
+
+    path('sindico/feedbacks/', feedbacks_sindico, name='sindico_feedbacks'),
 
 
 

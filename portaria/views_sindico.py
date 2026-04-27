@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 
+from django.urls import reverse
+
 from django.http import JsonResponse
 
 from django.contrib.auth.decorators import login_required
@@ -24,7 +26,7 @@ from django.conf import settings
 
 
 
-from .models import Condominio, Sindico, Porteiro, Morador, Visitante, Encomenda, Solicitacao, Aviso, Notificacao, AreaComum, Reserva, Cobranca, Mensagem, Ocorrencia, PushSubscription
+from .models import Condominio, Sindico, Porteiro, Morador, Visitante, Encomenda, Solicitacao, Aviso, Notificacao, AreaComum, Reserva, Cobranca, Mensagem, Ocorrencia, PushSubscription, FeedbackMorador
 
 from .utils import disparar_push_individual
 
@@ -2582,7 +2584,7 @@ def redirecionar_notificacao(request, notificacao_id):
 
 
 
-    url_destino = notificacao.link if notificacao.link else reverse('sindico_notificacoes')
+    url_destino = notificacao.link if (notificacao.link and notificacao.link != '#') else reverse('sindico_notificacoes')
 
     return redirect(url_destino)
 
@@ -3021,6 +3023,44 @@ def central_tarefas_sindico(request):
 
 
     return render(request, 'sindico/tarefas.html', context)
+
+
+
+@login_required
+
+def feedbacks_sindico(request):
+
+    if not is_sindico(request.user):
+
+        return redirect('home')
+
+
+
+    condominio = get_condominio_ativo(request)
+
+    if not condominio:
+
+        return redirect('sindico_home')
+
+
+
+    feedbacks = FeedbackMorador.objects.filter(condominio=condominio).order_by('-data_envio')
+
+    
+
+    feedbacks.filter(lido_pela_gestao=False).update(lido_pela_gestao=True)
+
+
+
+    context = sindico_context(request, {
+
+        'feedbacks': feedbacks,
+
+    }, active_page='feedbacks')
+
+
+
+    return render(request, 'sindico/feedbacks.html', context)
 
 
 

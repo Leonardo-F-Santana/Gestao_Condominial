@@ -1,0 +1,87 @@
+{% extends 'morador/base_morador.html' %}
+
+{% block title %}Sugestões e Feedback - Portal do Morador{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0 text-white"><i class="bi bi-chat-left-dots"></i> Sugestões e Feedback</h4>
+</div>
+
+<div class="glass-card mb-4 rounded-4 shadow-sm p-4 card-animate delay-1">
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label for="tipo" class="form-label fw-semibold text-stone-700">Tipo de Feedback</label>
+                <select name="tipo" id="tipo" class="form-select border-0 bg-light" required>
+                    <option value="" disabled selected>Selecione uma opção...</option>
+                    <option value="Sugestão">Sugestão</option>
+                    <option value="Elogio">Elogio</option>
+                    <option value="Crítica">Crítica</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label for="assunto" class="form-label fw-semibold text-stone-700">Assunto</label>
+                <input type="text" name="assunto" id="assunto" class="form-control border-0 bg-light" placeholder="Ex: Melhoria na academia" required>
+            </div>
+            <div class="col-12">
+                <label for="descricao" class="form-label fw-semibold text-stone-700">Descrição</label>
+                <textarea name="descricao" id="descricao" rows="4" class="form-control border-0 bg-light" placeholder="Detalhe sua sugestão, elogio ou crítica..." required></textarea>
+            </div>
+            <div class="col-md-8">
+                <label for="foto" class="form-label fw-semibold text-stone-700">Foto (Opcional - Máx 5MB)</label>
+                <input type="file" name="foto" id="foto" class="form-control border-0 bg-light" accept="image/*">
+                <div class="form-text">Envio de vídeos não é permitido.</div>
+            </div>
+            <div class="col-md-4 d-flex align-items-center mt-auto">
+                <div class="form-check form-switch mt-4">
+                    <input class="form-check-input" type="checkbox" role="switch" id="anonimo" name="anonimo">
+                    <label class="form-check-label fw-semibold text-stone-700" for="anonimo">Enviar Anonimamente</label>
+                </div>
+            </div>
+        </div>
+        <div class="mt-4 text-end">
+            <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" style="background: linear-gradient(135deg, #4f46e5, #7c3aed); border: none;">
+                <i class="bi bi-send me-1"></i> Enviar Feedback
+            </button>
+        </div>
+    </form>
+</div>
+
+{% if feedbacks %}
+<div class="mb-4">
+    <h6 class="mb-3 fw-bold text-stone-600">
+        <i class="bi bi-clock-history text-secondary pe-2"></i> Meus Feedbacks
+    </h6>
+    <div>
+        {% for feedback in feedbacks %}
+        <div class="glass-card mb-3 rounded-4 shadow-sm p-3 p-md-4 card-animate delay-2 list-item-animated">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <span class="badge bg-light text-dark rounded-pill mb-2"><i class="bi bi-tag me-1"></i> {{ feedback.tipo }}</span>
+                    <h6 class="mb-1 fw-bold text-stone-700">{{ feedback.assunto }}</h6>
+                    <p class="mb-1 text-muted small">{{ feedback.descricao }}</p>
+                    <p class="mb-0 text-muted" style="font-size: 0.8rem;"><i class="bi bi-calendar3"></i> Enviado em {{ feedback.data_envio|date:"d/m/Y H:i" }} {% if feedback.anonimo %}(Anônimo){% endif %}</p>
+                </div>
+                <div class="text-end">
+                    {% if feedback.lido_pela_gestao %}
+                        <span class="badge bg-success rounded-pill"><i class="bi bi-check2-all"></i> Lido pela Gestão</span>
+                    {% else %}
+                        <span class="badge bg-secondary rounded-pill"><i class="bi bi-check2"></i> Enviado</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% else %}
+<div class="text-center py-5">
+    <div class="d-inline-flex align-items-center justify-content-center bg-light rounded-circle mb-3" style="width: 80px; height: 80px;">
+        <i class="bi bi-chat-square-text text-muted" style="font-size: 2.5rem;"></i>
+    </div>
+    <h5 class="fw-bold text-white">Nenhum feedback enviado</h5>
+    <p class="text-white-50">Use o formulário acima para enviar sugestões, críticas ou elogios para a gestão do seu condomínio.</p>
+</div>
+{% endif %}
+{% endblock %}

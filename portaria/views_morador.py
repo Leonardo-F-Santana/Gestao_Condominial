@@ -14,7 +14,7 @@ from django.conf import settings
 
 from .models import (
 
-    Condominio, Morador, Encomenda, Solicitacao, Aviso, Notificacao, Sindico, AreaComum, Reserva, Mensagem, Ocorrencia, PushSubscription, Cobranca
+    Condominio, Morador, Encomenda, Solicitacao, Aviso, Notificacao, Sindico, AreaComum, Reserva, Mensagem, Ocorrencia, PushSubscription, Cobranca, FeedbackMorador
 
 )
 
@@ -1629,4 +1629,114 @@ def atualizar_preferencia_push(request):
             return JsonResponse({'error': 'JSON Invalido'}, status=400)
 
     return JsonResponse({'error': 'Acesso negado'}, status=403)
+
+
+
+@morador_required
+
+def feedback_morador(request):
+
+    morador = request.morador
+
+
+
+    if request.method == 'POST':
+
+        tipo = request.POST.get('tipo')
+
+        assunto = request.POST.get('assunto')
+
+        descricao = request.POST.get('descricao')
+
+        anonimo = request.POST.get('anonimo') == 'on'
+
+        foto = request.FILES.get('foto')
+
+
+
+        if foto:
+
+            content_type = getattr(foto, 'content_type', '')
+
+            if content_type.startswith('video/') or str(foto.name).lower().endswith(('.mp4', '.avi', '.mov', '.mkv', '.webm')):
+
+                messages.error(request, "O envio de vídeos não é permitido.")
+
+                return redirect('morador_feedback')
+
+            if foto.size > 5 * 1024 * 1024:
+
+                messages.error(request, 'O arquivo deve ter no máximo 5MB.')
+
+                return redirect('morador_feedback')
+
+
+
+        if tipo and assunto and descricao:
+
+            FeedbackMorador.objects.create(
+
+                condominio=morador.condominio,
+
+                morador=morador,
+
+                tipo=tipo,
+
+                assunto=assunto,
+
+                descricao=descricao,
+
+                foto=foto,
+
+                anonimo=anonimo
+
+            )
+
+
+
+            notificar_sindicos_do_condominio(
+
+                condominio=morador.condominio,
+
+                tipo='geral',
+
+                titulo=f'Novo Feedback: {tipo}',
+
+                mensagem=f'Um novo feedback foi recebido: {assunto}',
+
+                link='/sindico/feedbacks/'
+
+            )
+
+
+
+            messages.success(request, 'Feedback enviado com sucesso! Agradecemos sua contribuição.')
+
+            return redirect('morador_feedback')
+
+        else:
+
+            messages.error(request, 'Preencha todos os campos obrigatórios.')
+
+
+
+    feedbacks_list = FeedbackMorador.objects.filter(
+
+        condominio=morador.condominio,
+
+        morador=morador
+
+    ).order_by('-data_envio')
+
+
+
+    context = morador_context(request, {
+
+        'feedbacks': feedbacks_list,
+
+    }, active_page='feedback')
+
+
+
+    return render(request, 'morador/feedback.html', context)
 

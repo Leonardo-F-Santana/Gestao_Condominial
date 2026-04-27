@@ -932,3 +932,51 @@ class TarefaSindico(models.Model):
 
         return f"{self.condominio.nome} - {self.descricao[:30]}"
 
+
+
+class FeedbackMorador(models.Model):
+
+    TIPOS_CHOICES = [
+
+        ('Sugestão', 'Sugestão'),
+
+        ('Elogio', 'Elogio'),
+
+        ('Crítica', 'Crítica'),
+
+    ]
+
+    condominio = models.ForeignKey(Condominio, on_delete=models.CASCADE, related_name='feedbacks')
+
+    morador = models.ForeignKey(Morador, on_delete=models.SET_NULL, null=True, blank=True, related_name='feedbacks')
+
+    tipo = models.CharField(max_length=20, choices=TIPOS_CHOICES)
+
+    assunto = models.CharField(max_length=150)
+
+    descricao = models.TextField()
+
+    foto = models.FileField(upload_to='feedbacks/%Y/%m/', blank=True, null=True)
+
+    data_envio = models.DateTimeField(auto_now_add=True)
+
+    anonimo = models.BooleanField(default=False)
+
+    lido_pela_gestao = models.BooleanField(default=False)
+
+
+
+    def __str__(self):
+
+        return f"{self.tipo} - {self.assunto}"
+
+
+
+    class Meta:
+
+        verbose_name = "Feedback / Sugestão"
+
+        verbose_name_plural = "Feedbacks e Sugestões"
+
+        ordering = ['-data_envio']
+
