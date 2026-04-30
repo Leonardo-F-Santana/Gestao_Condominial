@@ -10,7 +10,9 @@ from django.contrib import messages
 
 from django.utils import timezone
 
-from django.utils.timezone import localdate                                       
+from django.utils.timezone import localdate
+
+import datetime
 
 from django.db.models import Q, Count
 
@@ -24,7 +26,7 @@ from django.views.decorators.cache import never_cache
 
 from django_ratelimit.decorators import ratelimit
 
-from .models import Visitante, Morador, Encomenda, Solicitacao, Notificacao, Sindico, Porteiro, Condominio, Mensagem, PushSubscription
+from .models import Visitante, Morador, Encomenda, Solicitacao, Notificacao, Sindico, Porteiro, Condominio, Mensagem, PushSubscription, Reserva
 
 from .utils import enviar_push_notification, disparar_push_individual
 
@@ -692,6 +694,26 @@ def home(request):
 
 
 
+    base_reservas = Reserva.objects.filter(area__condominio=cond) if cond else Reserva.objects.all()
+
+    reservas_hoje_count = base_reservas.filter(data=hoje, status='APROVADA').count()
+
+    inicio_semana = hoje - datetime.timedelta(days=hoje.weekday())
+
+    fim_semana = inicio_semana + datetime.timedelta(days=6)
+
+    lista_reservas_semana = base_reservas.filter(
+
+        data__gte=inicio_semana,
+
+        data__lte=fim_semana,
+
+        status='APROVADA'
+
+    ).select_related('area', 'morador').order_by('data', 'horario_inicio')
+
+
+
     lista_encomendas = base_encomendas.filter(entregue=False).select_related('morador').order_by('-data_chegada')
 
     lista_solicitacoes = base_solicitacoes.select_related('morador').order_by('-data_criacao')[:50]
@@ -723,6 +745,10 @@ def home(request):
         'aba_ativa': request.GET.get('aba', 'visitantes'),
 
         'condominio_atual': cond,
+
+        'reservas_hoje': reservas_hoje_count,
+
+        'lista_reservas_semana': lista_reservas_semana,
 
     }
 

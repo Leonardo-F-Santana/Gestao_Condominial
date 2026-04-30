@@ -52,6 +52,17 @@
                 </div>
             </div>
         </div>
+        <div class="col-4 col-md-3">
+            <div class="stat-card bg-danger">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-value">{{ reservas_hoje }}</div>
+                        <div class="stat-label">Reservas Hoje</div>
+                    </div>
+                    <div class="stat-icon">📅</div>
+                </div>
+            </div>
+        </div>
     </div>
 
     {% if messages %}
@@ -72,6 +83,9 @@
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link px-4" id="solicitacoes-tab" data-bs-toggle="tab" data-bs-target="#solicitacoes" type="button">📢 Solicitações</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link px-4" id="reservas-tab" data-bs-toggle="tab" data-bs-target="#reservas" type="button">📅 Reservas</button>
         </li>
     </ul>
 
@@ -379,6 +393,45 @@
                 </table>
             </div>
         </div>
+
+        <div class="tab-pane fade" id="reservas" role="tabpanel">
+            <div class="d-flex justify-content-end mb-3 gap-2">
+                <a href="{% url 'historico_solicitacoes' %}?tipo=RESERVA" class="btn btn-info text-white fw-bold">📂 Ver Histórico</a>
+                <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#modalRelatorioReservas">📄 Relatório de Reservas</button>
+            </div>
+
+            <div class="card shadow-lg">
+                <div class="card-header bg-success text-white fw-bold">📅 Reservas da Semana</div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-success">
+                            <tr>
+                                <th>DATA</th>
+                                <th>ÁREA</th>
+                                <th>MORADOR</th>
+                                <th>HORÁRIO</th>
+                                <th>AÇÕES</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for reserva in lista_reservas_semana %}
+                                <tr>
+                                    <td>{{ reserva.data|date:"d/m/Y" }}</td>
+                                    <td><strong>{{ reserva.area.nome }}</strong></td>
+                                    <td>{{ reserva.morador.nome }}<br><small class="text-muted">{{ reserva.morador.bloco }}-{{ reserva.morador.apartamento }}</small></td>
+                                    <td>{{ reserva.horario_inicio|time:"H:i" }} - {{ reserva.horario_fim|time:"H:i" }}</td>
+                                    <td>
+                                        <button class="btn btn-success btn-sm">✅ Liberar Acesso</button>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr><td colspan="5" class="text-center p-4 text-muted">Nenhuma reserva aprovada para esta semana.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -413,6 +466,25 @@
                     </select>
                 </div>
                 <div class="modal-footer"><button type="submit" class="btn btn-info text-white">🖨️ Gerar PDF</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalRelatorioReservas" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">Relatório de Reservas</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{% url 'exportar_relatorio_solicitacoes' %}" target="_blank">
+                <input type="hidden" name="tipo_filtro" value="RESERVA">
+                <div class="modal-body">
+                    <label>Data Inicial</label><input type="date" name="data_inicio" class="form-control mb-3">
+                    <label>Data Final</label><input type="date" name="data_fim" class="form-control">
+                </div>
+                <div class="modal-footer"><button type="submit" class="btn btn-success">🖨️ Gerar PDF</button></div>
             </form>
         </div>
     </div>
