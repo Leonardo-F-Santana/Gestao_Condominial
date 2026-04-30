@@ -758,6 +758,46 @@ def home(request):
 
 @login_required
 
+def liberar_acesso_reserva(request, reserva_id):
+
+    if not is_porteiro(request.user):
+
+        messages.error(request, "Sem permissão.")
+
+        return redirect('login')
+
+    reserva = get_object_or_404(Reserva, id=reserva_id)
+
+    if request.method == 'POST':
+
+        nome = request.POST.get('nome_liberado', '').strip()
+
+        if not nome:
+
+            messages.error(request, "O nome completo é obrigatório.")
+
+            return redirect('/?aba=reservas')
+
+        reserva.acesso_liberado = True
+
+        reserva.nome_liberado = nome
+
+        reserva.bloco_apto_liberado = request.POST.get('bloco_apto_liberado', '').strip()
+
+        reserva.documento_liberado = request.POST.get('documento_liberado', '').strip()
+
+        reserva.data_liberacao = timezone.now()
+
+        reserva.save()
+
+        messages.success(request, f"Acesso liberado com sucesso para {nome} — {reserva.area.nome} ({reserva.data.strftime('%d/%m/%Y')}).")
+
+    return redirect('/?aba=reservas')
+
+
+
+@login_required
+
 def mensagens_portaria(request):
 
     pass

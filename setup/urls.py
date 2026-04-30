@@ -64,7 +64,9 @@ from portaria.views import (
 
     salvar_inscricao_push,
 
-    remover_subscricao
+    remover_subscricao,
+
+    liberar_acesso_reserva
 
 )
 
@@ -281,6 +283,8 @@ urlpatterns = [
     path('historico_solicitacoes/', historico_solicitacoes, name='historico_solicitacoes'),
 
     path('exportar_relatorio_solicitacoes/', exportar_relatorio_solicitacoes, name='exportar_relatorio_solicitacoes'),
+
+    path('liberar_acesso_reserva/<int:reserva_id>/', liberar_acesso_reserva, name='liberar_acesso_reserva'),
 
 
 

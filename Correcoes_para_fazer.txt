@@ -2,3 +2,15 @@ botão pra receber ou não notificações não funciona corretamente;
  as notificações individuais tbm não funcionam, quero que gere notificação push para cobranças lançadas pelo sindico pro morador A, encomendas respostas de: livro negro, reserva de areas comuns;
 no titulo da mensagem push, não quero que apareca o nome da KS Tech, quero assim exemplo de nova encomenda,: Sua encomenda chegou!  
 Olá (nome do morador), tem uma entrega esperando por você na portaria. Passe quando puder para retirar.;
+responsividade do app sindico e botão cobrança colocar dentro do menu
+
+pagina do sindico:
+criar filtros para pagina de solicitações e ordenar da mais nova pendente pra mais antiga e depois as resolvidas
+em livro de ocorrência, suportar upload de video e audio pequeno
+
+
+
+
+pagina de portaria:
+aba reservas tornar o filtro funcional pois não mostra os eventos
+pooling não esta legal

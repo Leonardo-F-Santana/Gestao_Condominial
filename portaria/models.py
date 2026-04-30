@@ -684,6 +684,16 @@ class Reserva(models.Model):
 
     data_criacao = models.DateTimeField(auto_now_add=True, verbose_name="Data do Pedido")
 
+    acesso_liberado = models.BooleanField(default=False, verbose_name="Acesso Liberado")
+
+    nome_liberado = models.CharField(max_length=150, blank=True, verbose_name="Nome de quem acessou")
+
+    bloco_apto_liberado = models.CharField(max_length=30, blank=True, verbose_name="Bloco/Apto liberado")
+
+    documento_liberado = models.CharField(max_length=30, blank=True, verbose_name="RG/CPF de quem acessou")
+
+    data_liberacao = models.DateTimeField(null=True, blank=True, verbose_name="Data/Hora da Liberação")
+
 
 
     def __str__(self):
