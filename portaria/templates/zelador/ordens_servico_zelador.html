@@ -1,0 +1,99 @@
+{% extends 'zelador/base_zelador.html' %}
+{% block title %}Ordens de Serviço - Zelador{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold"><i class="bi bi-wrench-adjustable text-warning"></i> Ordens de Serviço (O.S.)</h2>
+    <button class="btn btn-warning fw-bold text-dark" data-bs-toggle="modal" data-bs-target="#modalOS">
+        <i class="bi bi-plus-lg"></i> Abrir Nova O.S.
+    </button>
+</div>
+
+<div class="card zelador-card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Data</th>
+                        <th>O.S.</th>
+                        <th>Descrição</th>
+                        <th>Anexo</th>
+                        <th>Status</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for os in ordens %}
+                    <tr>
+                        <td>{{ os.data_abertura|date:"d/m/Y H:i" }}</td>
+                        <td class="fw-bold">{{ os.titulo }}</td>
+                        <td>{{ os.descricao }}</td>
+                        <td>
+                            {% if os.foto %}
+                                <a href="{{ os.foto.url }}" target="_blank" class="btn btn-sm btn-info text-white"><i class="bi bi-image"></i> Ver Foto</a>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if os.status == 'ABERTA' %}
+                                <span class="badge bg-danger">Aberta</span>
+                            {% elif os.status == 'EM_ANDAMENTO' %}
+                                <span class="badge bg-warning text-dark">Em Andamento</span>
+                            {% else %}
+                                <span class="badge bg-success">Concluída</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <form action="{% url 'zelador_mudar_status_os' os.id %}" method="post" class="d-flex gap-2">
+                                {% csrf_token %}
+                                <select name="status" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
+                                    <option value="ABERTA" {% if os.status == 'ABERTA' %}selected{% endif %}>Aberta</option>
+                                    <option value="EM_ANDAMENTO" {% if os.status == 'EM_ANDAMENTO' %}selected{% endif %}>Em Andamento</option>
+                                    <option value="CONCLUIDA" {% if os.status == 'CONCLUIDA' %}selected{% endif %}>Concluída</option>
+                                </select>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="text-center py-4">Nenhuma ordem de serviço.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal OS -->
+<div class="modal fade" id="modalOS" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'zelador_os' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title fw-bold">Abrir Nova O.S.</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Título da Manutenção</label>
+                        <input type="text" class="form-control" name="titulo" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Descrição do Problema</label>
+                        <textarea class="form-control" name="descricao" rows="4" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Foto/Anexo (Máx 5MB)</label>
+                        <input type="file" class="form-control" name="foto" accept="image/*">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-warning fw-bold text-dark">Abrir O.S.</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

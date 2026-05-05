@@ -1,0 +1,74 @@
+{% extends 'zelador/base_zelador.html' %}
+{% block title %}Prestadores - Zelador{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold"><i class="bi bi-person-badge text-primary"></i> Controle de Prestadores</h2>
+    <button class="btn btn-primary text-white fw-bold" data-bs-toggle="modal" data-bs-target="#modalPrestador">
+        <i class="bi bi-plus-lg"></i> Registrar Entrada
+    </button>
+</div>
+
+<div class="card zelador-card border-primary">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Data/Hora Entrada</th>
+                        <th>Nome</th>
+                        <th>Empresa</th>
+                        <th>Documento</th>
+                        <th>Liberado Por</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in prestadores %}
+                    <tr>
+                        <td>{{ p.data_entrada|date:"d/m/Y H:i" }}</td>
+                        <td class="fw-bold">{{ p.nome }}</td>
+                        <td>{{ p.empresa|default:"-" }}</td>
+                        <td>{{ p.documento|default:"-" }}</td>
+                        <td>{{ p.liberado_por.get_full_name|default:p.liberado_por.username }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="text-center py-4">Nenhum prestador registrado.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Prestador -->
+<div class="modal fade" id="modalPrestador" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'zelador_prestadores' %}">
+                {% csrf_token %}
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold">Registrar Entrada de Técnico/Prestador</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Nome do Profissional</label>
+                        <input type="text" class="form-control" name="nome" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Empresa (Opcional)</label>
+                        <input type="text" class="form-control" name="empresa">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Documento (RG/CPF) (Opcional)</label>
+                        <input type="text" class="form-control" name="documento">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary fw-bold text-white">Registrar Entrada</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Portal do Zelador{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
+        .navbar-zelador { background-color: #1e293b; color: white; }
+        .navbar-zelador .navbar-brand { color: white; font-weight: 700; }
+        .navbar-zelador a { color: #cbd5e1; text-decoration: none; }
+        .navbar-zelador a:hover { color: white; }
+        .main-container { padding-top: 2rem; padding-bottom: 2rem; }
+        .zelador-card { border: none; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-zelador sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'zelador_home' %}">
+                <i class="bi bi-tools text-warning me-2"></i> Portal do Zelador
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto gap-3 align-items-center">
+                    <li class="nav-item">
+                        <a href="{% url 'zelador_checklists' %}" class="nav-link"><i class="bi bi-card-checklist text-success"></i> Checklists</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'zelador_os' %}" class="nav-link"><i class="bi bi-wrench-adjustable text-warning"></i> Ordens de Serviço</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'zelador_agenda' %}" class="nav-link"><i class="bi bi-calendar-event text-info"></i> Agenda</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'zelador_ocorrencias' %}" class="nav-link"><i class="bi bi-exclamation-triangle text-danger"></i> Ocorrências</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'zelador_avisos' %}" class="nav-link"><i class="bi bi-megaphone text-info"></i> Avisos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'zelador_prestadores' %}" class="nav-link"><i class="bi bi-person-badge text-primary"></i> Prestadores</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'zelador_estoque' %}" class="nav-link"><i class="bi bi-box-seam text-success"></i> Estoque</a>
+                    </li>
+                    <li class="nav-item ms-3">
+                        <form action="{% url 'logout' %}" method="post" class="m-0">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-light btn-sm">Sair <i class="bi bi-box-arrow-right"></i></button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container main-container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

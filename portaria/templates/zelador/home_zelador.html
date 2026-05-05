@@ -1,0 +1,71 @@
+{% extends 'zelador/base_zelador.html' %}
+{% block title %}Dashboard - Zelador{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="fw-bold text-dark">Visão Geral da Manutenção</h2>
+        <p class="text-muted">Resumo operacional de {{ condominio.nome }}</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Stat Cards -->
+    <div class="col-md-4">
+        <div class="card zelador-card bg-warning text-dark h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title text-dark fw-bold mb-0">O.S. Pendentes</h6>
+                        <h2 class="display-4 fw-bold mb-0 mt-2">{{ os_pendentes }}</h2>
+                    </div>
+                    <div class="fs-1 text-dark opacity-50">
+                        <i class="bi bi-wrench-adjustable"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0 pt-0">
+                <a href="{% url 'zelador_os' %}" class="btn btn-sm btn-dark">Ver O.S. <i class="bi bi-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card zelador-card bg-success text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title text-white fw-bold mb-0">Tarefas do Dia</h6>
+                        <h2 class="display-4 fw-bold mb-0 mt-2">{{ checklists_hoje }}</h2>
+                    </div>
+                    <div class="fs-1 text-white opacity-50">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0 pt-0">
+                <a href="{% url 'zelador_checklists' %}" class="btn btn-sm btn-light text-success fw-bold">Ver Tarefas <i class="bi bi-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card zelador-card bg-danger text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title text-white fw-bold mb-0">Alertas de Estoque</h6>
+                        <h2 class="display-4 fw-bold mb-0 mt-2">{{ alertas_estoque }}</h2>
+                    </div>
+                    <div class="fs-1 text-white opacity-50">
+                        <i class="bi bi-exclamation-octagon"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0 pt-0">
+                <a href="{% url 'zelador_estoque' %}" class="btn btn-sm btn-light text-danger fw-bold">Ver Estoque <i class="bi bi-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

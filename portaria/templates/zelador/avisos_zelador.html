@@ -1,0 +1,60 @@
+{% extends 'zelador/base_zelador.html' %}
+{% block title %}Avisos - Zelador{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold"><i class="bi bi-megaphone text-info"></i> Comunicados e Avisos</h2>
+    <button class="btn btn-info text-white fw-bold" data-bs-toggle="modal" data-bs-target="#modalAviso">
+        <i class="bi bi-plus-lg"></i> Novo Aviso
+    </button>
+</div>
+
+<div class="row g-4">
+    {% for aviso in avisos %}
+    <div class="col-md-6">
+        <div class="card zelador-card h-100 border-info">
+            <div class="card-body">
+                <h5 class="card-title fw-bold text-info">{{ aviso.titulo }}</h5>
+                <h6 class="card-subtitle mb-2 text-muted">{{ aviso.data_publicacao|date:"d/m/Y H:i" }}</h6>
+                <p class="card-text">{{ aviso.conteudo }}</p>
+            </div>
+            <div class="card-footer bg-transparent border-0 text-muted small">
+                Publicado por: {{ aviso.criado_por.get_full_name|default:aviso.criado_por.username }}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-4 text-muted">
+        Nenhum aviso publicado.
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Modal Aviso -->
+<div class="modal fade" id="modalAviso" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'zelador_avisos' %}">
+                {% csrf_token %}
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title fw-bold">Novo Aviso</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Título</label>
+                        <input type="text" class="form-control" name="titulo" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Conteúdo</label>
+                        <textarea class="form-control" name="conteudo" rows="4" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-info text-white fw-bold">Publicar Aviso</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

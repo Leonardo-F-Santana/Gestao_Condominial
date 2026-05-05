@@ -1,0 +1,96 @@
+{% extends 'zelador/base_zelador.html' %}
+{% block title %}Livro de Ocorrências - Zelador{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold"><i class="bi bi-exclamation-triangle text-danger"></i> Livro de Ocorrências Digital</h2>
+    <button class="btn btn-danger text-white fw-bold" data-bs-toggle="modal" data-bs-target="#modalOcorrencia">
+        <i class="bi bi-plus-lg"></i> Registrar Incidente
+    </button>
+</div>
+
+<div class="card zelador-card border-danger">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Data</th>
+                        <th>Incidente</th>
+                        <th>Descrição</th>
+                        <th>Anexo</th>
+                        <th>Gravidade</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for o in ocorrencias %}
+                    <tr>
+                        <td>{{ o.data_registro|date:"d/m/Y H:i" }}</td>
+                        <td class="fw-bold">{{ o.titulo }}</td>
+                        <td>{{ o.descricao }}</td>
+                        <td>
+                            {% if o.foto %}
+                                <a href="{{ o.foto.url }}" target="_blank" class="btn btn-sm btn-info text-white"><i class="bi bi-image"></i> Ver Foto</a>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if o.gravidade == 'ALTA' %}
+                                <span class="badge bg-danger">Alta (Grave)</span>
+                            {% elif o.gravidade == 'MEDIA' %}
+                                <span class="badge bg-warning text-dark">Média</span>
+                            {% else %}
+                                <span class="badge bg-success">Baixa</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="text-center py-4">Nenhuma ocorrência registrada.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ocorrencia -->
+<div class="modal fade" id="modalOcorrencia" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'zelador_ocorrencias' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title fw-bold">Registrar Incidente</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Título</label>
+                        <input type="text" class="form-control" name="titulo" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Descrição</label>
+                        <textarea class="form-control" name="descricao" rows="4" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Gravidade</label>
+                        <select name="gravidade" class="form-select" required>
+                            <option value="BAIXA">Baixa</option>
+                            <option value="MEDIA">Média</option>
+                            <option value="ALTA">Alta (Grave)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Foto/Anexo (Máx 5MB)</label>
+                        <input type="file" class="form-control" name="foto" accept="image/*">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger fw-bold text-white">Registrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

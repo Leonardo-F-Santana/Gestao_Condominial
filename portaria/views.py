@@ -170,8 +170,10 @@ def login_view(request):
 
             return redirect('sindico_home')
 
-        if is_porteiro(request.user):
+        if getattr(request.user, 'tipo_usuario', '') == 'zelador':
+            return redirect('zelador_home')
 
+        if is_porteiro(request.user):
             return redirect('home')
 
 
@@ -228,8 +230,10 @@ def login_view(request):
 
                 return redirect('sindico_home')
 
-            if is_porteiro(user):
+            if getattr(user, 'tipo_usuario', '') == 'zelador':
+                return redirect('zelador_home')
 
+            if is_porteiro(user):
                 return redirect('home')
 
 

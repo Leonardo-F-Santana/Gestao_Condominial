@@ -424,6 +424,8 @@ urlpatterns = [
 
     path('sindico/condominio/<int:condominio_id>/', dashboard_condominio, name='sindico_dashboard'),
 
+    path('zelador/', include('portaria.urls_zelador')),
+
 ]
 
 

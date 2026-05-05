@@ -1,0 +1,78 @@
+{% extends 'zelador/base_zelador.html' %}
+{% block title %}Agenda - Zelador{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold"><i class="bi bi-calendar-event text-info"></i> Agenda de Manutenção Preventiva</h2>
+    <button class="btn btn-info text-white fw-bold" data-bs-toggle="modal" data-bs-target="#modalAgenda">
+        <i class="bi bi-plus-lg"></i> Agendar Manutenção
+    </button>
+</div>
+
+<div class="card zelador-card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Data</th>
+                        <th>Manutenção</th>
+                        <th>Descrição</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in agendas %}
+                    <tr>
+                        <td class="fw-bold text-info">{{ a.data_manutencao|date:"d/m/Y" }}</td>
+                        <td class="fw-bold">{{ a.titulo }}</td>
+                        <td>{{ a.descricao }}</td>
+                        <td>
+                            {% if a.realizada %}
+                                <span class="badge bg-success">Realizada</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">Programada</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="text-center py-4">Nenhuma manutenção agendada.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Agenda -->
+<div class="modal fade" id="modalAgenda" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'zelador_agenda' %}">
+                {% csrf_token %}
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title fw-bold">Novo Agendamento</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Título</label>
+                        <input type="text" class="form-control" name="titulo" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Data da Manutenção</label>
+                        <input type="date" class="form-control" name="data" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Descrição</label>
+                        <textarea class="form-control" name="descricao" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-info text-white fw-bold">Agendar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

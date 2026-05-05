@@ -69,17 +69,12 @@ class Condominio(models.Model):
 class CustomUser(AbstractUser):
 
     TIPO_CHOICES = (
-
         ('sindico', 'Síndico'),
-
         ('porteiro', 'Porteiro'),
-
         ('morador', 'Morador'),
-
+        ('zelador', 'Zelador'),
         ('admin', 'Administrador SaaS'),
-
     )
-
     tipo_usuario = models.CharField(max_length=20, choices=TIPO_CHOICES, default='morador', verbose_name="Tipo de Usuário")
 
     condominios = models.ManyToManyField(Condominio, blank=True, related_name='usuarios')
@@ -982,3 +977,4 @@ class FeedbackMorador(models.Model):
 
         ordering = ['-data_envio']
 
+from .models_zelador import *
