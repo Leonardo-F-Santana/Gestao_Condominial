@@ -24,10 +24,6 @@ import json
 
 from django.http import JsonResponse
 
-
-
-
-
 def get_morador_from_user(user):
 
     pass
@@ -39,10 +35,6 @@ def get_morador_from_user(user):
     except (Morador.DoesNotExist, AttributeError):
 
         return None
-
-
-
-
 
 def morador_required(view_func):
 
@@ -66,17 +58,11 @@ def morador_required(view_func):
 
             return render(request, 'morador/aguardando_aprovacao.html', {'morador': morador})
 
-
-
         request.morador = morador
 
         return view_func(request, *args, **kwargs)
 
     return login_required(wrapper)
-
-
-
-
 
 def get_morador_ativo(request):
 
@@ -94,8 +80,6 @@ def get_morador_ativo(request):
 
     return None
 
-
-
 def get_condominio_ativo(request):
 
     pass
@@ -108,8 +92,6 @@ def get_condominio_ativo(request):
 
         if c: return c
 
-
-
     morador = get_morador_ativo(request)
 
     if morador:
@@ -117,8 +99,6 @@ def get_condominio_ativo(request):
         return morador.condominio
 
     return None
-
-
 
 def notificar_sindicos_do_condominio(condominio, tipo, titulo, mensagem, link):
 
@@ -132,11 +112,7 @@ def notificar_sindicos_do_condominio(condominio, tipo, titulo, mensagem, link):
 
     sindicos = User_model.objects.filter(condominios=condominio, tipo_usuario='sindico')
 
-
-
     mensagem_final = f"[{titulo}] {mensagem}" if titulo else mensagem
-
-
 
     notificacoes = [
 
@@ -160,8 +136,6 @@ def notificar_sindicos_do_condominio(condominio, tipo, titulo, mensagem, link):
 
         Notificacao.objects.bulk_create(notificacoes)
 
-
-
     from .utils import disparar_push_individual
 
     for sindico in sindicos:
@@ -178,8 +152,6 @@ def notificar_sindicos_do_condominio(condominio, tipo, titulo, mensagem, link):
 
         )
 
-
-
 def morador_context(request, extra_context=None, active_page=None):
 
     pass
@@ -187,8 +159,6 @@ def morador_context(request, extra_context=None, active_page=None):
     morador = get_morador_ativo(request)
 
     condominio = get_condominio_ativo(request)
-
-
 
     context = {
 
@@ -199,8 +169,6 @@ def morador_context(request, extra_context=None, active_page=None):
         'active_page': active_page,
 
     }
-
-
 
     if request.user.is_authenticated:
 
@@ -218,17 +186,11 @@ def morador_context(request, extra_context=None, active_page=None):
 
         context['VAPID_PUBLIC_KEY'] = getattr(settings, 'VAPID_PUBLIC_KEY', '')
 
-
-
     if extra_context:
 
         context.update(extra_context)
 
     return context
-
-
-
-
 
 @morador_required
 
@@ -242,10 +204,6 @@ def portal_home(request):
 
     morador = request.morador
 
-
-
-
-
     encomendas_pendentes = Encomenda.objects.filter(
 
         morador=morador,
@@ -254,10 +212,6 @@ def portal_home(request):
 
     ).count()
 
-
-
-
-
     solicitacoes_pendentes = Solicitacao.objects.filter(
 
         morador=morador,
@@ -265,10 +219,6 @@ def portal_home(request):
         status='PENDENTE'
 
     ).count()
-
-
-
-
 
     avisos_nao_lidos = Notificacao.objects.filter(
 
@@ -280,25 +230,13 @@ def portal_home(request):
 
     ).count()
 
-
-
-
-
     solicitacoes_recentes = Solicitacao.objects.filter(
 
         morador=morador
 
     ).order_by('-data_criacao')[:5]
 
-
-
-
-
     avisos = Aviso.objects.filter(ativo=True)[:3]
-
-
-
-
 
     cobrancas_pendentes = Cobranca.objects.filter(
 
@@ -309,8 +247,6 @@ def portal_home(request):
         status__in=['PENDENTE', 'ATRASADO']
 
     ).count()
-
-
 
     context = {
 
@@ -329,10 +265,6 @@ def portal_home(request):
         'cobrancas_pendentes': cobrancas_pendentes,
 
     }
-
-
-
-
 
     visitante_id = request.GET.get('visitante_id')
 
@@ -358,11 +290,7 @@ def portal_home(request):
 
             pass
 
-
-
     return render(request, 'morador/portal_home.html', context)
-
-
 
 @morador_required
 
@@ -371,8 +299,6 @@ def minhas_cobrancas(request):
     pass
 
     morador = request.morador
-
-
 
     if request.method == 'POST':
 
@@ -383,8 +309,6 @@ def minhas_cobrancas(request):
             cobranca_id = request.POST.get('cobranca_id')
 
             cobranca = get_object_or_404(Cobranca, id=cobranca_id, morador=morador)
-
-
 
             comprovante = request.FILES.get('comprovante')
 
@@ -406,15 +330,9 @@ def minhas_cobrancas(request):
 
                 cobranca.comprovante = comprovante
 
-
-
             cobranca.status = 'EM_ANALISE'
 
             cobranca.save()
-
-
-
-
 
             notificar_sindicos_do_condominio(
 
@@ -434,15 +352,11 @@ def minhas_cobrancas(request):
 
             return redirect('morador_cobrancas')
 
-
-
     status_filter = request.GET.get('status')
 
     data_inicio = request.GET.get('data_inicio')
 
     data_fim = request.GET.get('data_fim')
-
-
 
     queryset = Cobranca.objects.filter(
 
@@ -451,8 +365,6 @@ def minhas_cobrancas(request):
         condominio=morador.condominio
 
     )
-
-
 
     if status_filter:
 
@@ -466,11 +378,7 @@ def minhas_cobrancas(request):
 
         queryset = queryset.filter(data_vencimento__lte=data_fim)
 
-
-
     cobrancas_list = queryset.order_by('-data_criacao')
-
-
 
     paginator = Paginator(cobrancas_list, 10)
 
@@ -478,21 +386,13 @@ def minhas_cobrancas(request):
 
     cobrancas = paginator.get_page(page_number)
 
-
-
     context = morador_context(request, {
 
         'cobrancas': cobrancas,
 
     }, active_page='cobrancas')
 
-
-
     return render(request, 'morador/cobrancas.html', context)
-
-
-
-
 
 @morador_required
 
@@ -502,13 +402,7 @@ def minhas_encomendas(request):
 
     morador = request.morador
 
-
-
-
-
     status = request.GET.get('status', 'pendentes')
-
-
 
     if status == 'entregues':
 
@@ -530,15 +424,11 @@ def minhas_encomendas(request):
 
         ).order_by('-data_chegada')
 
-
-
     paginator = Paginator(encomendas_list, 10)
 
     page_number = request.GET.get('page')
 
     encomendas = paginator.get_page(page_number)
-
-
 
     context = {
 
@@ -552,10 +442,6 @@ def minhas_encomendas(request):
 
     return render(request, 'morador/encomendas.html', context)
 
-
-
-
-
 @morador_required
 
 def minhas_solicitacoes(request):
@@ -564,17 +450,11 @@ def minhas_solicitacoes(request):
 
     morador = request.morador
 
-
-
-
-
     Notificacao.objects.filter(
 
         usuario=request.user, tipo='resposta_solicitacao', lida=False
 
     ).update(lida=True)
-
-
 
     solicitacoes_list = Solicitacao.objects.filter(
 
@@ -582,15 +462,9 @@ def minhas_solicitacoes(request):
 
     ).order_by('-data_criacao')
 
-
-
-
-
     tipo = request.GET.get('tipo')
 
     status = request.GET.get('status')
-
-
 
     if tipo:
 
@@ -600,15 +474,11 @@ def minhas_solicitacoes(request):
 
         solicitacoes_list = solicitacoes_list.filter(status=status)
 
-
-
     paginator = Paginator(solicitacoes_list, 10)
 
     page_number = request.GET.get('page')
 
     solicitacoes = paginator.get_page(page_number)
-
-
 
     context = {
 
@@ -624,10 +494,6 @@ def minhas_solicitacoes(request):
 
     return render(request, 'morador/solicitacoes.html', context)
 
-
-
-
-
 @morador_required
 
 def nova_solicitacao(request):
@@ -636,8 +502,6 @@ def nova_solicitacao(request):
 
     morador = request.morador
 
-
-
     if request.method == 'POST':
 
         tipo = request.POST.get('tipo')
@@ -645,8 +509,6 @@ def nova_solicitacao(request):
         descricao = request.POST.get('descricao')
 
         arquivo = request.FILES.get('arquivo')
-
-
 
         if arquivo:
 
@@ -663,8 +525,6 @@ def nova_solicitacao(request):
                 messages.error(request, 'O arquivo deve ter no máximo 5MB.')
 
                 return redirect('morador_nova_solicitacao')
-
-
 
         if tipo and descricao:
 
@@ -688,10 +548,6 @@ def nova_solicitacao(request):
 
             solicitacao = Solicitacao.objects.create(**sol_kwargs)
 
-
-
-
-
             notificar_sindicos_do_condominio(
 
                 condominio=morador.condominio,
@@ -706,8 +562,6 @@ def nova_solicitacao(request):
 
             )
 
-
-
             messages.success(request, f"Solicitação #{solicitacao.id} criada com sucesso!")
 
             return redirect('morador_solicitacoes')
@@ -715,8 +569,6 @@ def nova_solicitacao(request):
         else:
 
             messages.error(request, "Preencha todos os campos obrigatórios.")
-
-
 
     context = {
 
@@ -728,10 +580,6 @@ def nova_solicitacao(request):
 
     return render(request, 'morador/nova_solicitacao.html', context)
 
-
-
-
-
 @morador_required
 
 def ver_solicitacao(request, id):
@@ -741,8 +589,6 @@ def ver_solicitacao(request, id):
     morador = request.morador
 
     solicitacao = get_object_or_404(Solicitacao, id=id, morador=morador)
-
-
 
     context = {
 
@@ -754,10 +600,6 @@ def ver_solicitacao(request, id):
 
     return render(request, 'morador/ver_solicitacao.html', context)
 
-
-
-
-
 @morador_required
 
 def avisos(request):
@@ -766,25 +608,17 @@ def avisos(request):
 
     morador = request.morador
 
-
-
-
-
     avisos_list = Aviso.objects.filter(
 
         ativo=True, condominio=morador.condominio
 
     ).order_by('-data_publicacao')
 
-
-
     paginator = Paginator(avisos_list, 10)
 
     page_number = request.GET.get('page')
 
     avisos = paginator.get_page(page_number)
-
-
 
     context = {
 
@@ -794,15 +628,7 @@ def avisos(request):
 
     }
 
-
-
     response = render(request, 'morador/avisos.html', context)
-
-
-
-
-
-
 
     Notificacao.objects.filter(
 
@@ -810,21 +636,7 @@ def avisos(request):
 
     ).update(lida=True)
 
-
-
     return response
-
-
-
-
-
-
-
-
-
-
-
-
 
 @morador_required
 
@@ -834,15 +646,11 @@ def areas_disponiveis(request):
 
     morador = request.morador
 
-
-
     areas = AreaComum.objects.filter(
 
         condominio=morador.condominio, ativo=True
 
     )
-
-
 
     context = {
 
@@ -854,10 +662,6 @@ def areas_disponiveis(request):
 
     return render(request, 'morador/areas_disponiveis.html', context)
 
-
-
-
-
 @morador_required
 
 def fazer_reserva(request, area_id):
@@ -868,19 +672,13 @@ def fazer_reserva(request, area_id):
 
     area = get_object_or_404(AreaComum, id=area_id, condominio=morador.condominio, ativo=True)
 
-
-
     if request.method == 'POST':
 
         data = request.POST.get('data')
 
         observacoes = request.POST.get('observacoes', '')
 
-
-
         if data:
-
-
 
             conflito = Reserva.objects.filter(
 
@@ -891,8 +689,6 @@ def fazer_reserva(request, area_id):
                 status__in=['PENDENTE', 'APROVADA'],
 
             ).exists()
-
-
 
             if conflito:
 
@@ -916,10 +712,6 @@ def fazer_reserva(request, area_id):
 
                 )
 
-
-
-
-
                 notificar_sindicos_do_condominio(
 
                     condominio=morador.condominio,
@@ -934,8 +726,6 @@ def fazer_reserva(request, area_id):
 
                 )
 
-
-
                 messages.success(request, f'Reserva de {area.nome} para {data} solicitada com sucesso!')
 
                 return redirect('morador_reservas')
@@ -943,10 +733,6 @@ def fazer_reserva(request, area_id):
         else:
 
             messages.error(request, 'Selecione uma data.')
-
-
-
-
 
     datas_bloqueadas = list(
 
@@ -962,13 +748,7 @@ def fazer_reserva(request, area_id):
 
     )
 
-
-
     datas_bloqueadas_str = [d.strftime('%Y-%m-%d') for d in datas_bloqueadas]
-
-
-
-
 
     reservas_existentes = Reserva.objects.filter(
 
@@ -979,8 +759,6 @@ def fazer_reserva(request, area_id):
         status__in=['PENDENTE', 'APROVADA'],
 
     ).select_related('morador').order_by('data')[:20]
-
-
 
     context = {
 
@@ -996,10 +774,6 @@ def fazer_reserva(request, area_id):
 
     return render(request, 'morador/fazer_reserva.html', context)
 
-
-
-
-
 @morador_required
 
 def minhas_reservas(request):
@@ -1008,17 +782,11 @@ def minhas_reservas(request):
 
     morador = request.morador
 
-
-
-
-
     Notificacao.objects.filter(
 
         usuario=request.user, tipo='reserva', lida=False
 
     ).update(lida=True)
-
-
 
     reservas_list = Reserva.objects.filter(
 
@@ -1026,19 +794,11 @@ def minhas_reservas(request):
 
     ).select_related('area').order_by('-data')
 
-
-
-
-
     status_filtro = request.GET.get('status')
 
     if status_filtro:
 
         reservas_list = reservas_list.filter(status=status_filtro)
-
-
-
-
 
     area_filtro = request.GET.get('area')
 
@@ -1046,25 +806,17 @@ def minhas_reservas(request):
 
         reservas_list = reservas_list.filter(area_id=area_filtro)
 
-
-
-
-
     areas = AreaComum.objects.filter(
 
         condominio=morador.condominio, ativo=True
 
     ).order_by('nome') if morador.condominio else AreaComum.objects.none()
 
-
-
     paginator = Paginator(reservas_list, 10)
 
     page_number = request.GET.get('page')
 
     reservas = paginator.get_page(page_number)
-
-
 
     context = {
 
@@ -1082,10 +834,6 @@ def minhas_reservas(request):
 
     return render(request, 'morador/reservas.html', context)
 
-
-
-
-
 @morador_required
 
 def cancelar_reserva(request, reserva_id):
@@ -1095,8 +843,6 @@ def cancelar_reserva(request, reserva_id):
     morador = request.morador
 
     reserva = get_object_or_404(Reserva, id=reserva_id, morador=morador)
-
-
 
     if reserva.status == 'PENDENTE':
 
@@ -1110,19 +856,7 @@ def cancelar_reserva(request, reserva_id):
 
         messages.error(request, 'Só é possível cancelar reservas pendentes.')
 
-
-
     return redirect('morador_reservas')
-
-
-
-
-
-
-
-
-
-
 
 @morador_required
 
@@ -1136,15 +870,11 @@ def mensagens(request):
 
     condominio = morador.condominio
 
-
-
     if request.method == 'POST':
 
         destinatario_id = request.POST.get('destinatario_id')
 
         conteudo = request.POST.get('conteudo', '').strip()
-
-
 
         if destinatario_id and conteudo:
 
@@ -1153,8 +883,6 @@ def mensagens(request):
             User = get_user_model()
 
             destinatario = get_object_or_404(User, id=destinatario_id)
-
-
 
             Mensagem.objects.create(
 
@@ -1167,8 +895,6 @@ def mensagens(request):
                 conteudo=conteudo
 
             )
-
-
 
             notificar_sindicos_do_condominio(
 
@@ -1184,8 +910,6 @@ def mensagens(request):
 
             )
 
-
-
             messages.success(request, 'Mensagem enviada com sucesso!')
 
             return redirect('morador_mensagens')
@@ -1194,21 +918,13 @@ def mensagens(request):
 
             messages.error(request, 'Destinatário e conteúdo são obrigatórios.')
 
-
-
-
-
     Mensagem.objects.filter(destinatario=usuario, lida=False).update(lida=True)
-
-
 
     mensagens_list = Mensagem.objects.filter(
 
         Q(remetente=usuario) | Q(destinatario=usuario)
 
     ).select_related('remetente', 'destinatario').order_by('-data_envio')
-
-
 
     from django.contrib.auth import get_user_model
 
@@ -1222,10 +938,6 @@ def mensagens(request):
 
     ).exclude(id=usuario.id)
 
-
-
-
-
     conversas = {}
 
     for msg in mensagens_list:
@@ -1238,15 +950,9 @@ def mensagens(request):
 
         conversas[outro_usuario].append(msg)
 
-
-
-
-
     for k in conversas:
 
         conversas[k] = list(reversed(conversas[k]))
-
-
 
     context = morador_context(request, {
 
@@ -1256,19 +962,7 @@ def mensagens(request):
 
     }, active_page='mensagens')
 
-
-
     return render(request, 'morador/mensagens.html', context)
-
-
-
-
-
-
-
-
-
-
 
 @login_required
 
@@ -1282,11 +976,7 @@ def ocorrencias(request):
 
         return redirect('home')
 
-
-
     condominio = get_condominio_ativo(request)
-
-
 
     if request.method == 'POST':
 
@@ -1295,8 +985,6 @@ def ocorrencias(request):
         descricao = request.POST.get('descricao', '').strip()
 
         foto = request.FILES.get('foto')
-
-
 
         if foto:
 
@@ -1314,8 +1002,6 @@ def ocorrencias(request):
 
                 return redirect('morador_ocorrencias')
 
-
-
         if descricao:
 
             ocorrencia = Ocorrencia.objects.create(
@@ -1332,10 +1018,6 @@ def ocorrencias(request):
 
             )
 
-
-
-
-
             notificar_sindicos_do_condominio(
 
                 condominio=condominio,
@@ -1350,8 +1032,6 @@ def ocorrencias(request):
 
             )
 
-
-
             messages.success(request, 'Ocorrência registrada com sucesso.')
 
             return redirect('morador_ocorrencias')
@@ -1360,11 +1040,7 @@ def ocorrencias(request):
 
             messages.error(request, 'A descrição da ocorrência é obrigatória.')
 
-
-
     ocorrencias_list = Ocorrencia.objects.filter(condominio=condominio, autor=morador).order_by('-data_registro')
-
-
 
     context = morador_context(request, {
 
@@ -1372,21 +1048,9 @@ def ocorrencias(request):
 
     }, active_page='ocorrencias')
 
-
-
     return render(request, 'morador/ocorrencias.html', context)
 
-
-
-
-
-
-
-
-
 from .forms import MoradorPerfilForm
-
-
 
 @morador_required
 
@@ -1412,8 +1076,6 @@ def editar_perfil_morador(request):
 
         form = MoradorPerfilForm(instance=morador, user=request.user)
 
-
-
     context = morador_context(request, {
 
         'form': form,
@@ -1421,18 +1083,6 @@ def editar_perfil_morador(request):
     }, active_page='perfil')
 
     return render(request, 'morador/editar_perfil.html', context)
-
-
-
-
-
-
-
-
-
-
-
-
 
 @morador_required
 
@@ -1444,23 +1094,17 @@ def documentos_morador(request):
 
     from .models import DocumentoCondominio
 
-
-
     documentos = DocumentoCondominio.objects.filter(
 
         condominio=morador.condominio
 
     ).order_by('-data_upload')
 
-
-
     categoria = request.GET.get('categoria', '')
 
     if categoria:
 
         documentos = documentos.filter(categoria=categoria)
-
-
 
     context = {
 
@@ -1476,16 +1120,6 @@ def documentos_morador(request):
 
     return render(request, 'morador/central_documentos.html', context)
 
-
-
-
-
-
-
-
-
-
-
 @login_required
 
 def completar_cadastro(request):
@@ -1496,21 +1130,13 @@ def completar_cadastro(request):
 
         return redirect('home')
 
-
-
-
-
     if hasattr(request.user, 'morador') and request.user.morador:
 
         return redirect('morador_home')
 
-
-
     condominios_ativos = Condominio.objects.filter(ativo=True).order_by('nome')
 
     convite_condominio_id = request.session.get('condominio_convite_id')
-
-
 
     if request.method == 'POST':
 
@@ -1522,21 +1148,9 @@ def completar_cadastro(request):
 
         telefone = request.POST.get('telefone', '').strip()
 
-
-
         if condominio_id and apartamento:
 
             condominio = get_object_or_404(Condominio, id=condominio_id, ativo=True)
-
-
-
-
-
-
-
-
-
-
 
             morador = Morador.objects.create(
 
@@ -1560,13 +1174,7 @@ def completar_cadastro(request):
 
             )
 
-
-
-
-
             request.user.condominios.add(condominio)
-
-
 
             notificar_sindicos_do_condominio(
 
@@ -1582,8 +1190,6 @@ def completar_cadastro(request):
 
             )
 
-
-
             messages.success(request, 'Seu perfil foi completado! Você poderá acessar o portal assim que o síndico aprovar.')
 
             return redirect('morador_home')
@@ -1591,8 +1197,6 @@ def completar_cadastro(request):
         else:
 
             messages.error(request, 'Condomínio e Apartamento são campos obrigatórios.')
-
-
 
     return render(request, 'morador/completar_cadastro.html', {
 
@@ -1604,17 +1208,7 @@ def completar_cadastro(request):
 
     })
 
-
-
-
-
-
-
-
-
 from django.views.decorators.csrf import csrf_exempt
-
-
 
 @csrf_exempt
 
@@ -1630,11 +1224,7 @@ def atualizar_preferencia_push(request):
 
             data = json.loads(request.body)
 
-
-
             valor = data.get('valor', False)
-
-
 
             request.user.receber_push = valor
 
@@ -1648,15 +1238,11 @@ def atualizar_preferencia_push(request):
 
     return JsonResponse({'error': 'Acesso negado'}, status=403)
 
-
-
 @morador_required
 
 def feedback_morador(request):
 
     morador = request.morador
-
-
 
     if request.method == 'POST':
 
@@ -1669,8 +1255,6 @@ def feedback_morador(request):
         anonimo = request.POST.get('anonimo') == 'on'
 
         foto = request.FILES.get('foto')
-
-
 
         if foto:
 
@@ -1687,8 +1271,6 @@ def feedback_morador(request):
                 messages.error(request, 'O arquivo deve ter no máximo 5MB.')
 
                 return redirect('morador_feedback')
-
-
 
         if tipo and assunto and descricao:
 
@@ -1710,8 +1292,6 @@ def feedback_morador(request):
 
             )
 
-
-
             notificar_sindicos_do_condominio(
 
                 condominio=morador.condominio,
@@ -1726,8 +1306,6 @@ def feedback_morador(request):
 
             )
 
-
-
             messages.success(request, 'Feedback enviado com sucesso! Agradecemos sua contribuição.')
 
             return redirect('morador_feedback')
@@ -1735,8 +1313,6 @@ def feedback_morador(request):
         else:
 
             messages.error(request, 'Preencha todos os campos obrigatórios.')
-
-
 
     feedbacks_list = FeedbackMorador.objects.filter(
 
@@ -1746,15 +1322,11 @@ def feedback_morador(request):
 
     ).order_by('-data_envio')
 
-
-
     context = morador_context(request, {
 
         'feedbacks': feedbacks_list,
 
     }, active_page='feedback')
-
-
 
     return render(request, 'morador/feedback.html', context)
 

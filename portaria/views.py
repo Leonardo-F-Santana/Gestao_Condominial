@@ -30,10 +30,6 @@ from .models import Visitante, Morador, Encomenda, Solicitacao, Notificacao, Sin
 
 from .utils import enviar_push_notification, disparar_push_individual
 
-
-
-
-
 try:
 
     from django.template.loader import get_template
@@ -44,53 +40,27 @@ except ImportError:
 
     pisa = None
 
-
-
-
-
-
-
-
-
 def _gerar_pdf(request, template_name, context, filename):
 
     response = HttpResponse(content_type='application/pdf')
 
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
 
-
-
     if not pisa:
 
         return HttpResponse("Erro: Biblioteca xhtml2pdf não instalada. Rode: pip install xhtml2pdf")
-
-
 
     template = get_template(template_name)
 
     html = template.render(context)
 
-
-
     pisa_status = pisa.CreatePDF(html, dest=response)
-
-
 
     if pisa_status.err:
 
         return HttpResponse(f'Erro ao gerar PDF: {pisa_status.err}')
 
     return response
-
-
-
-
-
-
-
-
-
-
 
 def is_porteiro(user):
 
@@ -102,19 +72,11 @@ def is_porteiro(user):
 
     return getattr(user, 'tipo_usuario', '') == 'porteiro' or user.is_staff or user.groups.filter(name='Portaria').exists()
 
-
-
-
-
 def get_condominio_porteiro(user):
 
     pass
 
     return getattr(user, 'condominio', None)
-
-
-
-
 
 @never_cache
 
@@ -123,8 +85,6 @@ def popup_close(request):
     pass
 
     return render(request, 'popup_close.html')
-
-
 
 @never_cache
 
@@ -137,10 +97,6 @@ def login_view(request):
         if request.user.is_superuser or request.user.is_staff:
 
             return redirect('/admin/')
-
-
-
-
 
         if getattr(request.user, 'tipo_usuario', '') == 'morador':
 
@@ -158,8 +114,6 @@ def login_view(request):
 
                 condominio = getattr(request.user.sindico, 'condominio', None)
 
-
-
             if not condominio:
 
                 logout(request)
@@ -175,8 +129,6 @@ def login_view(request):
 
         if is_porteiro(request.user):
             return redirect('home')
-
-
 
         logout(request)
 
@@ -198,10 +150,6 @@ def login_view(request):
 
                 return redirect('/admin/')
 
-
-
-
-
             if getattr(user, 'tipo_usuario', '') == 'morador':
 
                 if not hasattr(user, 'morador') or not user.morador:
@@ -217,8 +165,6 @@ def login_view(request):
                 if not condominio and hasattr(user, 'sindico'):
 
                     condominio = getattr(user.sindico, 'condominio', None)
-
-
 
                 if not condominio:
 
@@ -236,8 +182,6 @@ def login_view(request):
             if is_porteiro(user):
                 return redirect('home')
 
-
-
             logout(request)
 
             messages.error(request, "Seu usuário não possui perfil configurado. Contacte o administrador.")
@@ -254,8 +198,6 @@ def login_view(request):
 
     return render(request, 'login.html', {'form': form})
 
-
-
 @never_cache
 
 def logout_view(request):
@@ -264,21 +206,13 @@ def logout_view(request):
 
     return redirect('login')
 
-
-
-
-
 import smtplib
 
 import logging
 
 from django.contrib.auth.views import PasswordResetView
 
-
-
 logger = logging.getLogger(__name__)
-
-
 
 class CustomPasswordResetView(PasswordResetView):
 
@@ -304,10 +238,6 @@ class CustomPasswordResetView(PasswordResetView):
 
             return self.render_to_response(self.get_context_data(form=form))
 
-
-
-
-
 @login_required
 
 def alterar_senha(request):
@@ -319,8 +249,6 @@ def alterar_senha(request):
         nova_senha = request.POST.get('nova_senha', '')
 
         confirmar_senha = request.POST.get('confirmar_senha', '')
-
-
 
         if len(nova_senha) < 6:
 
@@ -340,8 +268,6 @@ def alterar_senha(request):
 
             messages.success(request, "Senha alterada com sucesso!")
 
-
-
             if getattr(request.user, 'tipo_usuario', '') == 'morador':
 
                 return redirect('morador_home')
@@ -351,8 +277,6 @@ def alterar_senha(request):
                 return redirect('sindico_home')
 
             return redirect('home')
-
-
 
     tipo = getattr(request.user, 'tipo_usuario', '')
 
@@ -372,13 +296,7 @@ def alterar_senha(request):
 
         return render(request, 'sindico/alterar_senha.html', context)
 
-
-
     return render(request, 'alterar_senha.html')
-
-
-
-
 
 @ensure_csrf_cookie
 
@@ -392,21 +310,11 @@ def cadastro_morador(request, codigo_convite):
 
     UserModel = get_user_model()
 
-
-
     condominio = get_object_or_404(Condominio, codigo_convite=codigo_convite, ativo=True)
-
-
-
-
 
     request.session['condominio_convite_id'] = condominio.id
 
-
-
     form_data = {}
-
-
 
     if request.method == 'POST':
 
@@ -426,8 +334,6 @@ def cadastro_morador(request, codigo_convite):
 
         password2 = request.POST.get('password2', '')
 
-
-
         form_data = {
 
             'nome': nome, 'bloco': bloco, 'apartamento': apartamento,
@@ -435,10 +341,6 @@ def cadastro_morador(request, codigo_convite):
             'telefone': telefone, 'email': email, 'username': username
 
         }
-
-
-
-
 
         if not nome or not apartamento or not username or not password:
 
@@ -498,10 +400,6 @@ def cadastro_morador(request, codigo_convite):
 
             )
 
-
-
-
-
             from portaria.views_morador import notificar_sindicos_do_condominio
 
             notificar_sindicos_do_condominio(
@@ -518,13 +416,9 @@ def cadastro_morador(request, codigo_convite):
 
             )
 
-
-
             messages.success(request, f"Conta criada com sucesso! Você poderá acessar o portal assim que o síndico aprovar.")
 
             return redirect('login')
-
-
 
     return render(request, 'cadastro_morador.html', {
 
@@ -534,21 +428,7 @@ def cadastro_morador(request, codigo_convite):
 
     })
 
-
-
-
-
-
-
-
-
-
-
-
-
 from django.http import JsonResponse
-
-
 
 @login_required
 
@@ -560,13 +440,9 @@ def api_stats(request):
 
         return JsonResponse({'error': 'Não autorizado'}, status=403)
 
-
-
     cond = get_condominio_porteiro(request.user)
 
     filtro_cond = {'condominio': cond} if cond else {}
-
-
 
     return JsonResponse({
 
@@ -578,16 +454,6 @@ def api_stats(request):
 
     })
 
-
-
-
-
-
-
-
-
-
-
 @login_required
 
 def home(request):
@@ -596,17 +462,9 @@ def home(request):
 
         return redirect('admin:index')
 
-
-
     if request.user.is_staff:
 
-
-
-
-
         pass
-
-
 
     elif getattr(request.user, 'tipo_usuario', '') == 'morador':
 
@@ -616,15 +474,9 @@ def home(request):
 
         return redirect('morador_home')
 
-
-
-
-
     if getattr(request.user, 'tipo_usuario', '') == 'sindico':
 
         return redirect('sindico_home')
-
-
 
     if not is_porteiro(request.user):
 
@@ -636,21 +488,15 @@ def home(request):
 
         return redirect('login')
 
-
-
     if request.method == 'POST' and 'nome_completo' in request.POST:
 
         registrar_visitante(request)
 
         return redirect('home')
 
-
-
     cond = get_condominio_porteiro(request.user)
 
     query = request.GET.get('busca')
-
-
 
     visitantes_all = Visitante.objects.select_related('morador_responsavel').all().order_by('-horario_chegada')
 
@@ -658,23 +504,15 @@ def home(request):
 
         visitantes_all = visitantes_all.filter(condominio=cond)
 
-
-
     if query:
 
         visitantes_all = visitantes_all.filter(Q(nome_completo__icontains=query) | Q(cpf__icontains=query))
-
-
 
     paginator = Paginator(visitantes_all, 5) 
 
     page_number = request.GET.get('page')
 
     page_obj = paginator.get_page(page_number)
-
-
-
-
 
     hoje = localdate()
 
@@ -684,19 +522,13 @@ def home(request):
 
     base_solicitacoes = Solicitacao.objects.filter(condominio=cond) if cond else Solicitacao.objects.all()
 
-
-
     visitantes_hoje_total = base_visitantes.filter(horario_chegada__date=hoje).count()
 
     visitantes_no_local_count = base_visitantes.filter(horario_saida__isnull=True).count()
 
-
-
     encomendas_pendentes_count = base_encomendas.filter(entregue=False).count()
 
     solicitacoes_pendentes_count = base_solicitacoes.filter(status='PENDENTE').count()
-
-
 
     base_reservas = Reserva.objects.filter(area__condominio=cond) if cond else Reserva.objects.all()
 
@@ -730,15 +562,11 @@ def home(request):
 
     lista_reservas_semana = lista_reservas_semana.select_related('area', 'morador').order_by('data', 'horario_inicio')
 
-
-
     lista_encomendas = base_encomendas.filter(entregue=False).select_related('morador').order_by('-data_chegada')
 
     lista_solicitacoes = base_solicitacoes.select_related('morador').order_by('-data_criacao')[:50]
 
     todos_moradores = Morador.objects.filter(condominio=cond).order_by('bloco', 'apartamento') if cond else Morador.objects.all().order_by('bloco', 'apartamento')
-
-
 
     context = {
 
@@ -771,8 +599,6 @@ def home(request):
     }
 
     return render(request, 'index.html', context)
-
-
 
 @login_required
 
@@ -812,8 +638,6 @@ def liberar_acesso_reserva(request, reserva_id):
 
     return redirect('/?aba=reservas')
 
-
-
 @login_required
 
 def mensagens_portaria(request):
@@ -826,11 +650,7 @@ def mensagens_portaria(request):
 
         return redirect('login')
 
-
-
     cond = get_condominio_porteiro(request.user)
-
-
 
     if request.method == 'POST':
 
@@ -840,15 +660,11 @@ def mensagens_portaria(request):
 
         resposta_a_id = request.POST.get('resposta_a')
 
-
-
         reply_to = None
 
         if resposta_a_id:
 
             reply_to = Mensagem.objects.filter(id=resposta_a_id).first()
-
-
 
         if dest_id and conteudo:
 
@@ -876,13 +692,7 @@ def mensagens_portaria(request):
 
             return redirect('mensagens_portaria')
 
-
-
-
-
     Mensagem.objects.filter(destinatario=request.user, lida=False).update(lida=True)
-
-
 
     mensagens = Mensagem.objects.filter(
 
@@ -890,13 +700,9 @@ def mensagens_portaria(request):
 
     ).select_related('remetente', 'destinatario', 'resposta_a').order_by('data_envio')
 
-
-
     moradores = Morador.objects.filter(condominio=cond).select_related('usuario')
 
     sindicos = Sindico.objects.filter(condominio=cond).select_related('usuario')
-
-
 
     destinatarios = []
 
@@ -907,10 +713,6 @@ def mensagens_portaria(request):
     for s in sindicos:
 
         if s.usuario: destinatarios.append(s.usuario)
-
-
-
-
 
     conversas = {}
 
@@ -924,11 +726,7 @@ def mensagens_portaria(request):
 
         conversas[other_user].append(msg)
 
-
-
     mensagens_nao_lidas = 0                                                        
-
-
 
     context = {
 
@@ -944,8 +742,6 @@ def mensagens_portaria(request):
 
     return render(request, 'mensagens_portaria.html', context)
 
-
-
 @login_required
 
 def registrar_visitante(request):
@@ -958,11 +754,7 @@ def registrar_visitante(request):
 
         cond = get_condominio_porteiro(request.user)
 
-
-
         condominio_registro = (morador.condominio if morador and morador.condominio else cond)
-
-
 
         visitante = Visitante.objects.create(
 
@@ -986,8 +778,6 @@ def registrar_visitante(request):
 
         )
 
-
-
         if morador and morador.usuario:
 
             nome_visitante = request.POST.get('nome_completo')
@@ -1004,13 +794,9 @@ def registrar_visitante(request):
 
             )
 
-
-
         messages.success(request, "Visitante registrado!")
 
     return redirect('home')
-
-
 
 @login_required
 
@@ -1023,10 +809,6 @@ def registrar_saida(request, id_visitante):
     visitante.save()
 
     messages.info(request, "Saída registrada.")
-
-
-
-
 
     page = request.GET.get('page', '')
 
@@ -1045,16 +827,6 @@ def registrar_saida(request, id_visitante):
     url = '/' + ('?' + '&'.join(params) if params else '')
 
     return redirect(url)
-
-
-
-
-
-
-
-
-
-
 
 @login_required
 
@@ -1084,8 +856,6 @@ def registrar_encomenda(request):
 
             )
 
-
-
             if morador.usuario:
 
                 volume = request.POST.get('volume', 'pacote')
@@ -1102,8 +872,6 @@ def registrar_encomenda(request):
 
                 )
 
-
-
             messages.success(request, "Encomenda registrada!")
 
         else:
@@ -1111,8 +879,6 @@ def registrar_encomenda(request):
             messages.error(request, "Selecione um morador.")
 
     return redirect('/?aba=encomendas')
-
-
 
 @login_required
 
@@ -1138,8 +904,6 @@ def confirmar_entrega(request, id_encomenda):
 
     return redirect('/?aba=encomendas')
 
-
-
 @login_required
 
 def marcar_notificado(request, id_encomenda):
@@ -1152,8 +916,6 @@ def marcar_notificado(request, id_encomenda):
 
     return redirect('/?aba=encomendas')
 
-
-
 @login_required
 
 def historico_encomendas(request):
@@ -1165,8 +927,6 @@ def historico_encomendas(request):
     if cond:
 
         encomendas_list = encomendas_list.filter(condominio=cond)
-
-
 
     busca = request.GET.get('busca')
 
@@ -1183,8 +943,6 @@ def historico_encomendas(request):
             Q(volume__icontains=busca)
 
         )
-
-
 
     data_inicio = request.GET.get('data_inicio')
 
@@ -1206,15 +964,11 @@ def historico_encomendas(request):
 
             pass
 
-
-
     paginator = Paginator(encomendas_list, 20)
 
     page_number = request.GET.get('page')
 
     page_obj = paginator.get_page(page_number)
-
-
 
     context = {
 
@@ -1229,16 +983,6 @@ def historico_encomendas(request):
     }
 
     return render(request, 'historico_encomendas.html', context)
-
-
-
-
-
-
-
-
-
-
 
 @login_required
 
@@ -1266,10 +1010,6 @@ def registrar_solicitacao(request):
 
         )
 
-
-
-
-
         if cond:
 
             sindicos = Sindico.objects.filter(condominio=cond)
@@ -1292,10 +1032,6 @@ def registrar_solicitacao(request):
 
             Notificacao.objects.bulk_create(notificacoes)
 
-
-
-
-
         if morador and morador.usuario:
 
             descricao = request.POST.get('descricao', '')
@@ -1312,13 +1048,9 @@ def registrar_solicitacao(request):
 
             )
 
-
-
         messages.success(request, "Solicitação registrada!")
 
     return redirect('/?aba=solicitacoes')
-
-
 
 @login_required
 
@@ -1381,22 +1113,22 @@ def historico_solicitacoes(request):
     combined_list = []
     for sol in solicitacoes_qs:
         combined_list.append(sol)
-        
+
     for res in reservas_qs:
         setattr(res, 'get_tipo_display', lambda: "📅 Reserva")
         res.descricao = f"Reserva: {res.area.nome} - {res.data.strftime('%d/%m/%Y')} {res.horario_inicio.strftime('%H:%M')} às {res.horario_fim.strftime('%H:%M')}"
         if res.observacoes:
             res.descricao += f" | Obs: {res.observacoes}"
-            
+
         if res.status == 'APROVADA':
             res.status = 'CONCLUIDO'
         elif res.status in ['CANCELADA', 'RECUSADA']:
             res.status = 'CANCELADO'
-            
+
         res.criado_por = None
         res.data_conclusao = res.data_liberacao
         combined_list.append(res)
-        
+
     combined_list.sort(key=lambda x: x.data_criacao, reverse=True)
 
     paginator = Paginator(combined_list, 20)
@@ -1413,16 +1145,6 @@ def historico_solicitacoes(request):
     }
     return render(request, 'historico_solicitacoes.html', context)
 
-
-
-
-
-
-
-
-
-
-
 @login_required
 
 def exportar_relatorio(request):
@@ -1431,11 +1153,7 @@ def exportar_relatorio(request):
 
     data_fim = request.GET.get('data_fim')
 
-
-
     visitantes = Visitante.objects.all().order_by('-horario_chegada')
-
-
 
     if data_inicio and data_fim:
 
@@ -1453,8 +1171,6 @@ def exportar_relatorio(request):
 
             pass
 
-
-
     context = {
 
         'titulo': 'Relatório de Acesso (Visitantes)',
@@ -1469,8 +1185,6 @@ def exportar_relatorio(request):
 
     return _gerar_pdf(request, 'relatorio_pdf.html', context, 'relatorio_acesso.pdf')
 
-
-
 @login_required
 
 def exportar_relatorio_encomendas(request):
@@ -1479,11 +1193,7 @@ def exportar_relatorio_encomendas(request):
 
     data_fim = request.GET.get('data_fim')
 
-
-
     encomendas = Encomenda.objects.all().order_by('-data_chegada')
-
-
 
     if data_inicio and data_fim:
 
@@ -1501,8 +1211,6 @@ def exportar_relatorio_encomendas(request):
 
             pass
 
-
-
     context = {
 
         'titulo': 'Relatório Geral de Encomendas',
@@ -1516,8 +1224,6 @@ def exportar_relatorio_encomendas(request):
     }
 
     return _gerar_pdf(request, 'relatorio_pdf.html', context, 'relatorio_encomendas.pdf')
-
-
 
 @login_required
 
@@ -1557,22 +1263,22 @@ def exportar_relatorio_solicitacoes(request):
     combined_list = []
     for sol in solicitacoes_qs:
         combined_list.append(sol)
-        
+
     for res in reservas_qs:
         setattr(res, 'get_tipo_display', lambda: "📅 Reserva")
         res.descricao = f"Reserva: {res.area.nome} - {res.data.strftime('%d/%m/%Y')} {res.horario_inicio.strftime('%H:%M')} às {res.horario_fim.strftime('%H:%M')}"
         if res.observacoes:
             res.descricao += f" | Obs: {res.observacoes}"
-            
+
         if res.status == 'APROVADA':
             res.status = 'CONCLUIDO'
         elif res.status in ['CANCELADA', 'RECUSADA']:
             res.status = 'CANCELADO'
-            
+
         res.criado_por = None
         res.data_conclusao = res.data_liberacao
         combined_list.append(res)
-        
+
     combined_list.sort(key=lambda x: x.data_criacao, reverse=True)
 
     context = {
@@ -1583,21 +1289,7 @@ def exportar_relatorio_solicitacoes(request):
     }
     return _gerar_pdf(request, 'relatorio_pdf.html', context, 'relatorio_ocorrencias.pdf')
 
-
-
-
-
-
-
-
-
-
-
-
-
 import json
-
-
 
 @login_required
 
@@ -1617,10 +1309,6 @@ def api_moradores_offline(request):
 
     return JsonResponse({'moradores': list(moradores), 'porteiro': request.user.username})
 
-
-
-
-
 @csrf_exempt
 
 @login_required
@@ -1633,8 +1321,6 @@ def api_sync_offline(request):
 
         return JsonResponse({'error': 'Método não permitido'}, status=405)
 
-
-
     try:
 
         data = json.loads(request.body)
@@ -1643,17 +1329,9 @@ def api_sync_offline(request):
 
         return JsonResponse({'error': 'JSON inválido'}, status=400)
 
-
-
     resultados = {'visitantes_criados': 0, 'encomendas_criadas': 0, 'solicitacoes_criadas': 0, 'erros': []}
 
-
-
     cond = get_condominio_porteiro(request.user)
-
-
-
-
 
     for i, v in enumerate(data.get('visitantes', [])):
 
@@ -1664,8 +1342,6 @@ def api_sync_offline(request):
             if v.get('morador_id'):
 
                 morador = Morador.objects.get(id=v['morador_id'])
-
-
 
             condominio_reg = (morador.condominio if morador and morador.condominio else cond)
 
@@ -1697,10 +1373,6 @@ def api_sync_offline(request):
 
             resultados['erros'].append(f'Visitante #{i+1}: {str(e)}')
 
-
-
-
-
     for i, e in enumerate(data.get('encomendas', [])):
 
         try:
@@ -1729,10 +1401,6 @@ def api_sync_offline(request):
 
             resultados['erros'].append(f'Encomenda #{i+1}: {str(ex)}')
 
-
-
-
-
     for i, s in enumerate(data.get('solicitacoes', [])):
 
         try:
@@ -1742,8 +1410,6 @@ def api_sync_offline(request):
             if s.get('morador_id'):
 
                 morador = Morador.objects.get(id=s['morador_id'])
-
-
 
             solicitacao = Solicitacao.objects.create(
 
@@ -1758,10 +1424,6 @@ def api_sync_offline(request):
                 criado_por=request.user
 
             )
-
-
-
-
 
             solicitacao_cond = solicitacao.condominio
 
@@ -1787,23 +1449,17 @@ def api_sync_offline(request):
 
                 Notificacao.objects.bulk_create(notificacoes)
 
-
-
             resultados['solicitacoes_criadas'] += 1
 
         except Exception as ex:
 
             resultados['erros'].append(f'Solicitação #{i+1}: {str(ex)}')
 
-
-
     resultados['ok'] = len(resultados['erros']) == 0
 
     resultados['porteiro'] = request.user.username
 
     return JsonResponse(resultados)
-
-
 
 @login_required
 
@@ -1823,12 +1479,6 @@ def trocar_condominio(request, condominio_id):
 
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
-
-
-
-
-
-
 from django.views.decorators.csrf import csrf_exempt
 
 from portaria.models import PushSubscription
@@ -1836,8 +1486,6 @@ from portaria.models import PushSubscription
 import json
 
 from django.http import JsonResponse
-
-
 
 @csrf_exempt
 
@@ -1859,8 +1507,6 @@ def salvar_inscricao_push(request):
 
             auth = keys.get('auth')
 
-
-
             if endpoint and p256dh and auth:
 
                 PushSubscription.objects.update_or_create(
@@ -1873,15 +1519,9 @@ def salvar_inscricao_push(request):
 
                 )
 
-
-
-
-
                 request.user.receber_push = True
 
                 request.user.save(update_fields=['receber_push'])
-
-
 
                 return JsonResponse({'status': 'ok'})
 
@@ -1890,10 +1530,6 @@ def salvar_inscricao_push(request):
             pass
 
     return JsonResponse({'status': 'error'}, status=400)
-
-
-
-
 
 @csrf_exempt
 
@@ -1911,35 +1547,23 @@ def remover_subscricao(request):
 
             endpoint = data.get('endpoint')
 
-
-
-
-
             request.user.receber_push = False
 
             request.user.save(update_fields=['receber_push'])
 
             print(f"[RADAR] Preferência de Push desativada para {request.user.username}")
 
-
-
             if endpoint:
-
-
 
                 PushSubscription.objects.filter(usuario=request.user, endpoint=endpoint).delete()
 
                 print(f"[RADAR] Subscrição endpoint removida para o logado {request.user.username}")
-
-
 
             return JsonResponse({'status': 'sucesso', 'mensagem': 'Subscrição e preferências removidas.'})
 
         except json.JSONDecodeError:
 
             print("[RADAR ERRO] Falha ao decodificar JSON na remoção de subscrição.")
-
-
 
             request.user.receber_push = False
 
@@ -1948,6 +1572,4 @@ def remover_subscricao(request):
             return JsonResponse({'status': 'sucesso', 'mensagem': 'Desativado.'})
 
     return JsonResponse({'status': 'erro', 'mensagem': 'Requisição inválida.'}, status=400)
-
-
 

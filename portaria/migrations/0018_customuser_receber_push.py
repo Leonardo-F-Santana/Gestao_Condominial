@@ -1,24 +1,14 @@
 
 
-
-
 from django.db import migrations, models
 
-
-
-
-
 class Migration(migrations.Migration):
-
-
 
     dependencies = [
 
         ('portaria', '0017_morador_status_aprovacao'),
 
     ]
-
-
 
     operations = [
 

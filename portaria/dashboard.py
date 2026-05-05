@@ -2,21 +2,13 @@ from .models import Condominio, Morador
 
 from django.contrib.auth import get_user_model
 
-
-
-
-
 def dashboard_callback(request, context):
 
     pass
 
     User = get_user_model()
 
-
-
     context.update({
-
-
 
         "total_condominios": Condominio.objects.count(),
 
@@ -25,10 +17,6 @@ def dashboard_callback(request, context):
         "total_usuarios": User.objects.count(),
 
         "total_moradores": Morador.objects.count(),
-
-
-
-
 
         "total_sindicos": User.objects.filter(tipo_usuario='sindico').count(),
 
@@ -39,8 +27,6 @@ def dashboard_callback(request, context):
         "total_admins": User.objects.filter(is_superuser=True).count(),
 
     })
-
-
 
     return context
 

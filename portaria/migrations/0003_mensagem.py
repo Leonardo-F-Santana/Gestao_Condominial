@@ -1,28 +1,18 @@
 
 
-
-
 import django.db.models.deletion
 
 from django.conf import settings
 
 from django.db import migrations, models
 
-
-
-
-
 class Migration(migrations.Migration):
-
-
 
     dependencies = [
 
         ('portaria', '0002_cobranca'),
 
     ]
-
-
 
     operations = [
 

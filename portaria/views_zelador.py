@@ -19,7 +19,7 @@ def get_condominio(user):
 def zelador_home(request):
     if not is_zelador(request.user):
         return redirect('home')
-        
+
     cond = get_condominio(request.user)
     if not cond:
         messages.error(request, 'Usuário zelador não associado a nenhum condomínio.')
@@ -44,7 +44,7 @@ def zelador_home(request):
 def checklists_zelador(request):
     if not is_zelador(request.user): return redirect('home')
     cond = get_condominio(request.user)
-    
+
     if request.method == 'POST':
         titulo = request.POST.get('titulo')
         descricao = request.POST.get('descricao')
@@ -53,7 +53,7 @@ def checklists_zelador(request):
         )
         messages.success(request, 'Checklist adicionado.')
         return redirect('zelador_checklists')
-        
+
     checklists = ChecklistZelador.objects.filter(condominio=cond).order_by('concluido', '-data_criacao')
     return render(request, 'zelador/checklists_zelador.html', {'checklists': checklists})
 
@@ -72,13 +72,13 @@ def concluir_checklist(request, pk):
 def ordens_servico_zelador(request):
     if not is_zelador(request.user): return redirect('home')
     cond = get_condominio(request.user)
-    
+
     if request.method == 'POST':
         try:
             titulo = request.POST.get('titulo')
             descricao = request.POST.get('descricao')
             foto = request.FILES.get('foto')
-            
+
             os = OrdemServicoZelador(
                 condominio=cond, titulo=titulo, descricao=descricao, zelador=request.user
             )
@@ -114,7 +114,7 @@ def mudar_status_os(request, pk):
 def agenda_zelador(request):
     if not is_zelador(request.user): return redirect('home')
     cond = get_condominio(request.user)
-    
+
     if request.method == 'POST':
         titulo = request.POST.get('titulo')
         data_man = request.POST.get('data')
@@ -132,14 +132,14 @@ def agenda_zelador(request):
 def livro_ocorrencias_zelador(request):
     if not is_zelador(request.user): return redirect('home')
     cond = get_condominio(request.user)
-    
+
     if request.method == 'POST':
         try:
             titulo = request.POST.get('titulo')
             descricao = request.POST.get('descricao')
             gravidade = request.POST.get('gravidade')
             foto = request.FILES.get('foto')
-            
+
             ocorrencia = LivroOcorrenciaZelador(
                 condominio=cond, titulo=titulo, descricao=descricao, 
                 gravidade=gravidade, zelador=request.user
@@ -162,7 +162,7 @@ def livro_ocorrencias_zelador(request):
 def avisos_zelador(request):
     if not is_zelador(request.user): return redirect('home')
     cond = get_condominio(request.user)
-    
+
     if request.method == 'POST':
         titulo = request.POST.get('titulo')
         conteudo = request.POST.get('conteudo')
@@ -180,7 +180,7 @@ def avisos_zelador(request):
 def prestadores_zelador(request):
     if not is_zelador(request.user): return redirect('home')
     cond = get_condominio(request.user)
-    
+
     if request.method == 'POST':
         nome = request.POST.get('nome')
         empresa = request.POST.get('empresa')
@@ -200,7 +200,7 @@ def estoque_zelador(request):
     if not is_zelador(request.user): return redirect('home')
     cond = get_condominio(request.user)
     from django.db.models import F
-    
+
     if request.method == 'POST':
         nome = request.POST.get('nome')
         qtd = request.POST.get('quantidade_atual')

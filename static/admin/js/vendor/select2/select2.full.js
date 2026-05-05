@@ -730,10 +730,10 @@ S2.define('select2/utils',[
     });
   };
 
-  // Append an array of jQuery nodes to a given element.
+  
   Utils.appendMany = function ($element, $nodes) {
-    // jQuery 1.7.x does not support $.fn.append() with an array
-    // Fall back to a jQuery object collection using $.fn.add()
+    
+    
     if ($.fn.jquery.substr(0, 3) === '1.7') {
       var $jqNodes = $();
 
@@ -747,19 +747,19 @@ S2.define('select2/utils',[
     $element.append($nodes);
   };
 
-  // Cache objects in Utils.__cache instead of $.data (see #4346)
+  
   Utils.__cache = {};
 
   var id = 0;
   Utils.GetUniqueElementId = function (element) {
-    // Get a unique element Id. If element has no id,
-    // creates a new unique number, stores it in the id
-    // attribute and returns the new id.
-    // If an id already exists, it simply returns it.
+    
+    
+    
+    
 
     var select2Id = element.getAttribute('data-select2-id');
     if (select2Id == null) {
-      // If element has id, use it.
+      
       if (element.id) {
         select2Id = element.id;
         element.setAttribute('data-select2-id', select2Id);
@@ -772,8 +772,8 @@ S2.define('select2/utils',[
   };
 
   Utils.StoreData = function (element, name, value) {
-    // Stores an item in the cache for a specified element.
-    // name is the cache key.
+    
+    
     var id = Utils.GetUniqueElementId(element);
     if (!Utils.__cache[id]) {
       Utils.__cache[id] = {};
@@ -783,26 +783,26 @@ S2.define('select2/utils',[
   };
 
   Utils.GetData = function (element, name) {
-    // Retrieves a value from the cache by its key (name)
-    // name is optional. If no name specified, return
-    // all cache items for the specified element.
-    // and for a specified element.
+    
+    
+    
+    
     var id = Utils.GetUniqueElementId(element);
     if (name) {
       if (Utils.__cache[id]) {
         if (Utils.__cache[id][name] != null) {
           return Utils.__cache[id][name];
         }
-        return $(element).data(name); // Fallback to HTML5 data attribs.
+        return $(element).data(name); 
       }
-      return $(element).data(name); // Fallback to HTML5 data attribs.
+      return $(element).data(name); 
     } else {
       return Utils.__cache[id];
     }
   };
 
   Utils.RemoveData = function (element) {
-    // Removes all cached items for a specified element.
+    
     var id = Utils.GetUniqueElementId(element);
     if (Utils.__cache[id] != null) {
       delete Utils.__cache[id];
@@ -919,13 +919,13 @@ S2.define('select2/results',[
 
     var $selected = $options.filter('[aria-selected=true]');
 
-    // Check if there are any selected options
+    
     if ($selected.length > 0) {
-      // If there are selected options, highlight the first
+      
       $selected.first().trigger('mouseenter');
     } else {
-      // If there are no selected options, highlight the first option
-      // in the dropdown
+      
+      
       $options.first().trigger('mouseenter');
     }
 
@@ -948,7 +948,7 @@ S2.define('select2/results',[
 
         var item = Utils.GetData(this, 'data');
 
-        // id needs to be converted to a string when comparing
+        
         var id = '' + item.id;
 
         if ((item.element != null && item.element.selected) ||
@@ -1116,7 +1116,7 @@ S2.define('select2/results',[
     });
 
     container.on('open', function () {
-      // When the dropdown is open, aria-expended="true"
+      
       self.$results.attr('aria-expanded', 'true');
       self.$results.attr('aria-hidden', 'false');
 
@@ -1125,7 +1125,7 @@ S2.define('select2/results',[
     });
 
     container.on('close', function () {
-      // When the dropdown is closed, aria-expended="false"
+      
       self.$results.attr('aria-expanded', 'false');
       self.$results.attr('aria-hidden', 'true');
       self.$results.removeAttr('aria-activedescendant');
@@ -1166,15 +1166,15 @@ S2.define('select2/results',[
 
       var currentIndex = $options.index($highlighted);
 
-      // If we are already at the top, don't move further
-      // If no options, currentIndex will be -1
+      
+      
       if (currentIndex <= 0) {
         return;
       }
 
       var nextIndex = currentIndex - 1;
 
-      // If none are highlighted, highlight the first
+      
       if ($highlighted.length === 0) {
         nextIndex = 0;
       }
@@ -1203,7 +1203,7 @@ S2.define('select2/results',[
 
       var nextIndex = currentIndex + 1;
 
-      // If we are at the last option, stay there
+      
       if (nextIndex >= $options.length) {
         return;
       }
@@ -1446,7 +1446,7 @@ S2.define('select2/selection/base',[
     });
 
     container.on('open', function () {
-      // When the dropdown is open, aria-expanded="true"
+      
       self.$selection.attr('aria-expanded', 'true');
       self.$selection.attr('aria-owns', resultsId);
 
@@ -1454,7 +1454,7 @@ S2.define('select2/selection/base',[
     });
 
     container.on('close', function () {
-      // When the dropdown is closed, aria-expanded="false"
+      
       self.$selection.attr('aria-expanded', 'false');
       self.$selection.removeAttr('aria-activedescendant');
       self.$selection.removeAttr('aria-owns');
@@ -1478,10 +1478,10 @@ S2.define('select2/selection/base',[
   BaseSelection.prototype._handleBlur = function (evt) {
     var self = this;
 
-    // This needs to be delayed as the active element is the body when the tab
-    // key is pressed, possibly along with others.
+    
+    
     window.setTimeout(function () {
-      // Don't trigger `blur` if the focus is still in the selection
+      
       if (
         (document.activeElement == self.$selection[0]) ||
         ($.contains(self.$selection[0], document.activeElement))
@@ -1531,23 +1531,12 @@ S2.define('select2/selection/base',[
     throw new Error('The `update` method must be defined in child classes.');
   };
 
-  /**
-   * Helper method to abstract the "enabled" (not "disabled") state of this
-   * object.
-   *
-   * @return {true} if the instance is not disabled.
-   * @return {false} if the instance is disabled.
-   */
+  
   BaseSelection.prototype.isEnabled = function () {
     return !this.isDisabled();
   };
 
-  /**
-   * Helper method to abstract the "disabled" state of this object.
-   *
-   * @return {true} if the disabled option is true.
-   * @return {false} if the disabled option is false.
-   */
+  
   BaseSelection.prototype.isDisabled = function () {
     return this.options.get('disabled');
   };
@@ -1596,7 +1585,7 @@ S2.define('select2/selection/single',[
     this.$selection.attr('aria-labelledby', id);
 
     this.$selection.on('mousedown', function (evt) {
-      // Only respond to left clicks
+      
       if (evt.which !== 1) {
         return;
       }
@@ -1607,11 +1596,11 @@ S2.define('select2/selection/single',[
     });
 
     this.$selection.on('focus', function (evt) {
-      // User focuses on the container
+      
     });
 
     this.$selection.on('blur', function (evt) {
-      // User exits the container
+      
     });
 
     container.on('focus', function (evt) {
@@ -1624,7 +1613,7 @@ S2.define('select2/selection/single',[
   SingleSelection.prototype.clear = function () {
     var $rendered = this.$selection.find('.select2-selection__rendered');
     $rendered.empty();
-    $rendered.removeAttr('title'); // clear tooltip on empty
+    $rendered.removeAttr('title'); 
   };
 
   SingleSelection.prototype.display = function (data, container) {
@@ -1701,7 +1690,7 @@ S2.define('select2/selection/multiple',[
       'click',
       '.select2-selection__choice__remove',
       function (evt) {
-        // Ignore the event if it is disabled
+        
         if (self.isDisabled()) {
           return;
         }
@@ -1862,14 +1851,14 @@ S2.define('select2/selection/allowClear',[
   };
 
   AllowClear.prototype._handleClear = function (_, evt) {
-    // Ignore the event if it is disabled
+    
     if (this.isDisabled()) {
       return;
     }
 
     var $clear = this.$selection.find('.select2-selection__clear');
 
-    // Ignore the event if nothing has been selected
+    
     if ($clear.length === 0) {
       return;
     }
@@ -1895,11 +1884,11 @@ S2.define('select2/selection/allowClear',[
         data: data[d]
       };
 
-      // Trigger the `unselect` event, so people can prevent it from being
-      // cleared.
+      
+      
       this.trigger('unselect', unselectData);
 
-      // If the event was prevented, don't clear it out.
+      
       if (unselectData.prevented) {
         this.$element.val(previousVal);
         return;
@@ -2050,30 +2039,30 @@ S2.define('select2/selection/search',[
       }
     });
 
-    // Try to detect the IE version should the `documentMode` property that
-    // is stored on the document. This is only implemented in IE and is
-    // slightly cleaner than doing a user agent check.
-    // This property is not available in Edge, but Edge also doesn't have
-    // this bug.
+    
+    
+    
+    
+    
     var msie = document.documentMode;
     var disableInputEvents = msie && msie <= 11;
 
-    // Workaround for browsers which do not support the `input` event
-    // This will prevent double-triggering of events for browsers which support
-    // both the `keyup` and `input` events.
+    
+    
+    
     this.$selection.on(
       'input.searchcheck',
       '.select2-search--inline',
       function (evt) {
-        // IE will trigger the `input` event when a placeholder is used on a
-        // search box. To get around this issue, we are forced to ignore all
-        // `input` events in IE and keep using `keyup`.
+        
+        
+        
         if (disableInputEvents) {
           self.$selection.off('input.search input.searchcheck');
           return;
         }
 
-        // Unbind the duplicated `keyup` event
+        
         self.$selection.off('keyup.search');
       }
     );
@@ -2082,9 +2071,9 @@ S2.define('select2/selection/search',[
       'keyup.search input.search',
       '.select2-search--inline',
       function (evt) {
-        // IE will trigger the `input` event when a placeholder is used on a
-        // search box. To get around this issue, we are forced to ignore all
-        // `input` events in IE and keep using `keyup`.
+        
+        
+        
         if (disableInputEvents && evt.type === 'input') {
           self.$selection.off('input.search input.searchcheck');
           return;
@@ -2092,12 +2081,12 @@ S2.define('select2/selection/search',[
 
         var key = evt.which;
 
-        // We can freely ignore events from modifier keys
+        
         if (key == KEYS.SHIFT || key == KEYS.CTRL || key == KEYS.ALT) {
           return;
         }
 
-        // Tabbing will be handled during the `keydown` phase
+        
         if (key == KEYS.TAB) {
           return;
         }
@@ -2107,13 +2096,7 @@ S2.define('select2/selection/search',[
     );
   };
 
-  /**
-   * This method will transfer the tabindex attribute from the rendered
-   * selection to the search box. This allows for the search box to be used as
-   * the primary focus instead of the selection container.
-   *
-   * @private
-   */
+  
   Search.prototype._transferTabIndex = function (decorated) {
     this.$search.attr('tabindex', this.$selection.attr('tabindex'));
     this.$selection.attr('tabindex', '-1');
@@ -2203,22 +2186,22 @@ S2.define('select2/selection/eventRelay',[
     decorated.call(this, container, $container);
 
     container.on('*', function (name, params) {
-      // Ignore events that should not be relayed
+      
       if ($.inArray(name, relayEvents) === -1) {
         return;
       }
 
-      // The parameters should always be an object
+      
       params = params || {};
 
-      // Generate the jQuery event for the Select2 event
+      
       var evt = $.Event('select2:' + name, {
         params: params
       });
 
       self.$element.trigger(evt);
 
-      // Only handle preventable events if it was one
+      
       if ($.inArray(name, preventableEvents) === -1) {
         return;
       }
@@ -2250,7 +2233,7 @@ S2.define('select2/translation',[
     this.dict = $.extend({}, translation.all(), this.dict);
   };
 
-  // Static functions
+  
 
   Translation._cache = {};
 
@@ -3136,11 +3119,11 @@ S2.define('select2/data/base',[
   };
 
   BaseAdapter.prototype.bind = function (container, $container) {
-    // Can be implemented in subclasses
+    
   };
 
   BaseAdapter.prototype.destroy = function () {
-    // Can be implemented in subclasses
+    
   };
 
   BaseAdapter.prototype.generateResultId = function (container, data) {
@@ -3193,7 +3176,7 @@ S2.define('select2/data/select',[
 
     data.selected = true;
 
-    // If data.element is a DOM node, use it instead
+    
     if ($(data.element).is('option')) {
       data.element.selected = true;
 
@@ -3277,9 +3260,9 @@ S2.define('select2/data/select',[
   };
 
   SelectAdapter.prototype.destroy = function () {
-    // Remove anything added to child elements
+    
     this.$element.find('*').each(function () {
-      // Remove any custom data set by Select2
+      
       Utils.RemoveData(this);
     });
   };
@@ -3352,7 +3335,7 @@ S2.define('select2/data/select',[
     var normalizedData = this._normalizeItem(data);
     normalizedData.element = option;
 
-    // Override the option's data with the combined data
+    
     Utils.StoreData(option, 'data', normalizedData);
 
     return $option;
@@ -3488,7 +3471,7 @@ S2.define('select2/data/array',[
 
     var $options = [];
 
-    // Filter out all items except for the one passed in the argument
+    
     function onlyItem (item) {
       return function () {
         return $(this).val() == item.id;
@@ -3498,7 +3481,7 @@ S2.define('select2/data/array',[
     for (var d = 0; d < data.length; d++) {
       var item = this._normalizeItem(data[d]);
 
-      // Skip items which were pre-loaded, only merge the data
+      
       if ($.inArray(item.id, existingIds) >= 0) {
         var $existingOption = $existing.filter(onlyItem(item));
 
@@ -3575,7 +3558,7 @@ S2.define('select2/data/ajax',[
     var self = this;
 
     if (this._request != null) {
-      // JSONP requests cannot always be aborted
+      
       if ($.isFunction(this._request.abort)) {
         this._request.abort();
       }
@@ -3600,7 +3583,7 @@ S2.define('select2/data/ajax',[
         var results = self.processResults(data, params);
 
         if (self.options.get('debug') && window.console && console.error) {
-          // Check to make sure that the response included a `results` key.
+          
           if (!results || !results.results || !$.isArray(results.results)) {
             console.error(
               'Select2: The AJAX results did not return an array in the ' +
@@ -3611,8 +3594,8 @@ S2.define('select2/data/ajax',[
 
         callback(results);
       }, function () {
-        // Attempt to detect if a request was aborted
-        // Only works if the transport exposes a status property
+        
+        
         if ('status' in $request &&
             ($request.status === 0 || $request.status === '0')) {
           return;
@@ -3791,16 +3774,16 @@ S2.define('select2/data/tokenizer',[
     var self = this;
 
     function createAndSelect (data) {
-      // Normalize the data object so we can use it for checks
+      
       var item = self._normalizeItem(data);
 
-      // Check if the data object already exists as a tag
-      // Select it if it doesn't
+      
+      
       var $existingOptions = self.$element.find('option').filter(function () {
         return $(this).val() === item.id;
       });
 
-      // If an existing option wasn't found for it, create the option
+      
       if (!$existingOptions.length) {
         var $option = self.option(item);
         $option.attr('data-select2-tag', true);
@@ -3809,7 +3792,7 @@ S2.define('select2/data/tokenizer',[
         self.addOptions([$option]);
       }
 
-      // Select the item, now that we know there is an option for it
+      
       select(item);
     }
 
@@ -3824,7 +3807,7 @@ S2.define('select2/data/tokenizer',[
     var tokenData = this.tokenizer(params, this.options, createAndSelect);
 
     if (tokenData.term !== params.term) {
-      // Replace the search term if we have the search box
+      
       if (this.$search.length) {
         this.$search.val(tokenData.term);
         this.$search.trigger('focus');
@@ -3871,7 +3854,7 @@ S2.define('select2/data/tokenizer',[
 
       callback(data);
 
-      // Reset the term to not include the tokenized portion
+      
       term = term.substr(i + 1) || '';
       i = 0;
     }
@@ -4030,15 +4013,15 @@ S2.define('select2/dropdown',[
   };
 
   Dropdown.prototype.bind = function () {
-    // Should be implemented in subclasses
+    
   };
 
   Dropdown.prototype.position = function ($dropdown, $container) {
-    // Should be implemented in subclasses
+    
   };
 
   Dropdown.prototype.destroy = function () {
-    // Remove the dropdown from the DOM
+    
     this.$dropdown.remove();
   };
 
@@ -4083,11 +4066,11 @@ S2.define('select2/dropdown/search',[
       self._keyUpPrevented = evt.isDefaultPrevented();
     });
 
-    // Workaround for browsers which do not support the `input` event
-    // This will prevent double-triggering of events for browsers which support
-    // both the `keyup` and `input` events.
+    
+    
+    
     this.$search.on('input', function (evt) {
-      // Unbind the duplicated `keyup` event
+      
       $(this).off('keyup');
     });
 
@@ -4316,7 +4299,7 @@ S2.define('select2/dropdown/attachBody',[
       self._showDropdown();
       self._attachPositioningHandler(container);
 
-      // Must bind after the results handlers to ensure correct sizing
+      
       self._bindContainerResultHandlers(container);
     });
 
@@ -4337,7 +4320,7 @@ S2.define('select2/dropdown/attachBody',[
   };
 
   AttachBody.prototype.position = function (decorated, $dropdown, $container) {
-    // Clone all of the container classes
+    
     $dropdown.attr('class', $container.attr('class'));
 
     $dropdown.removeClass('select2');
@@ -4369,7 +4352,7 @@ S2.define('select2/dropdown/attachBody',[
   AttachBody.prototype._bindContainerResultHandlers =
       function (decorated, container) {
 
-    // These should only be bound once
+    
     if (this._containerResultsHandlersBound) {
       return;
     }
@@ -4480,11 +4463,11 @@ S2.define('select2/dropdown/attachBody',[
       top: container.bottom
     };
 
-    // Determine what the parent element is to use for calculating the offset
+    
     var $offsetParent = this.$dropdownParent;
 
-    // For statically positioned elements, we need to get the element
-    // that is determining the offset
+    
+    
     if ($offsetParent.css('position') === 'static') {
       $offsetParent = $offsetParent.offsetParent();
     }
@@ -4614,8 +4597,8 @@ S2.define('select2/dropdown/selectOnClose',[
     if (params && params.originalSelect2Event != null) {
       var event = params.originalSelect2Event;
 
-      // Don't select an item if the close event was triggered from a select or
-      // unselect event
+      
+      
       if (event._type === 'select' || event._type === 'unselect') {
         return;
       }
@@ -4623,14 +4606,14 @@ S2.define('select2/dropdown/selectOnClose',[
 
     var $highlightedResults = this.getHighlightedResults();
 
-    // Only select highlighted results
+    
     if ($highlightedResults.length < 1) {
       return;
     }
 
     var data = Utils.GetData($highlightedResults[0], 'data');
 
-    // Don't re-select already selected resulte
+    
     if (
       (data.element != null && data.element.selected) ||
       (data.element == null && data.selected)
@@ -4668,7 +4651,7 @@ S2.define('select2/dropdown/closeOnSelect',[
   CloseOnSelect.prototype._selectTriggered = function (_, evt) {
     var originalEvent = evt.originalEvent;
 
-    // Don't close if the control key is being held
+    
     if (originalEvent && (originalEvent.ctrlKey || originalEvent.metaKey)) {
       return;
     }
@@ -4683,7 +4666,7 @@ S2.define('select2/dropdown/closeOnSelect',[
 });
 
 S2.define('select2/i18n/en',[],function () {
-  // English
+  
   return {
     errorLoading: function () {
       return 'The results could not be loaded.';
@@ -4923,7 +4906,7 @@ S2.define('select2/defaults',[
         options.selectionAdapter = SingleSelection;
       }
 
-      // Add the placeholder mixin if a placeholder was specified
+      
       if (options.placeholder != null) {
         options.selectionAdapter = Utils.Decorate(
           options.selectionAdapter,
@@ -4964,11 +4947,11 @@ S2.define('select2/defaults',[
       );
     }
 
-    // If the defaults were not previously applied from an element, it is
-    // possible for the language option to have not been resolved
+    
+    
     options.language = this._resolveLanguage(options.language);
 
-    // Always fall back to English since it will always be complete
+    
     options.language.push('en');
 
     var uniqueLanguages = [];
@@ -4993,7 +4976,7 @@ S2.define('select2/defaults',[
 
   Defaults.prototype.reset = function () {
     function stripDiacritics (text) {
-      // Used 'uni range + named function' from http://jsperf.com/diacritics/18
+      
       function match(a) {
         return DIACRITICS[a] || a;
       }
@@ -5002,47 +4985,47 @@ S2.define('select2/defaults',[
     }
 
     function matcher (params, data) {
-      // Always return the object if there is nothing to compare
+      
       if ($.trim(params.term) === '') {
         return data;
       }
 
-      // Do a recursive check for options with children
+      
       if (data.children && data.children.length > 0) {
-        // Clone the data object if there are children
-        // This is required as we modify the object to remove any non-matches
+        
+        
         var match = $.extend(true, {}, data);
 
-        // Check each child of the option
+        
         for (var c = data.children.length - 1; c >= 0; c--) {
           var child = data.children[c];
 
           var matches = matcher(params, child);
 
-          // If there wasn't a match, remove the object in the array
+          
           if (matches == null) {
             match.children.splice(c, 1);
           }
         }
 
-        // If any children matched, return the new object
+        
         if (match.children.length > 0) {
           return match;
         }
 
-        // If there were no matching children, check just the plain object
+        
         return matcher(params, match);
       }
 
       var original = stripDiacritics(data.text).toUpperCase();
       var term = stripDiacritics(params.term).toUpperCase();
 
-      // Check if the text contains the term
+      
       if (original.indexOf(term) > -1) {
         return data;
       }
 
-      // If it doesn't contain the term, don't return anything
+      
       return null;
     }
 
@@ -5120,7 +5103,7 @@ S2.define('select2/defaults',[
       resolvedLanguages.push(languages[l]);
 
       if (typeof languages[l] === 'string' && languages[l].indexOf('-') > 0) {
-        // Extract the region information if it is included
+        
         var languageParts = languages[l].split('-');
         var baseLanguage = languageParts[0];
 
@@ -5141,17 +5124,17 @@ S2.define('select2/defaults',[
 
       if (typeof language === 'string') {
         try {
-          // Try to load it with the original name
+          
           languageData = Translation.loadPath(language);
         } catch (e) {
           try {
-            // If we couldn't load it, check if it wasn't the full path
+            
             language = this.defaults.amdLanguageBase + language;
             languageData = Translation.loadPath(language);
           } catch (ex) {
-            // The translation could not be loaded at all. Sometimes this is
-            // because of a configuration problem, other times this can be
-            // because of how Select2 helps load all possible translation files
+            
+            
+            
             if (debug && window.console && console.warn) {
               console.warn(
                 'Select2: The language file for "' + language + '" could ' +
@@ -5273,34 +5256,34 @@ S2.define('select2/options',[
       return letter.toUpperCase();
     }
 
-    // Pre-load all of the attributes which are prefixed with `data-`
+    
     for (var attr = 0; attr < $e[0].attributes.length; attr++) {
       var attributeName = $e[0].attributes[attr].name;
       var prefix = 'data-';
 
       if (attributeName.substr(0, prefix.length) == prefix) {
-        // Get the contents of the attribute after `data-`
+        
         var dataName = attributeName.substring(prefix.length);
 
-        // Get the data contents from the consistent source
-        // This is more than likely the jQuery data helper
+        
+        
         var dataValue = Utils.GetData($e[0], dataName);
 
-        // camelCase the attribute name to match the spec
+        
         var camelDataName = dataName.replace(/-([a-z])/g, upperCaseLetter);
 
-        // Store the data attribute contents into the dataset since
+        
         dataset[camelDataName] = dataValue;
       }
     }
 
-    // Prefer the element's `dataset` attribute if it exists
-    // jQuery 1.x does not correctly handle data attributes with multiple dashes
+    
+    
     if ($.fn.jquery && $.fn.jquery.substr(0, 2) == '1.' && $e[0].dataset) {
       dataset = $.extend(true, {}, $e[0].dataset, dataset);
     }
 
-    // Prefer our internal data cache if it exists
+    
     var data = $.extend(true, {}, Utils.GetData($e[0]), dataset);
 
     data = Utils._convertData(data);
@@ -5352,13 +5335,13 @@ S2.define('select2/core',[
 
     Select2.__super__.constructor.call(this);
 
-    // Set up the tabindex
+    
 
     var tabindex = $element.attr('tabindex') || 0;
     Utils.StoreData($element[0], 'old-tabindex', tabindex);
     $element.attr('tabindex', '-1');
 
-    // Set up containers and adapters
+    
 
     var DataAdapter = this.options.get('dataAdapter');
     this.dataAdapter = new DataAdapter($element, this.options);
@@ -5385,40 +5368,40 @@ S2.define('select2/core',[
 
     this.results.position(this.$results, this.$dropdown);
 
-    // Bind events
+    
 
     var self = this;
 
-    // Bind the container to all of the adapters
+    
     this._bindAdapters();
 
-    // Register any DOM event handlers
+    
     this._registerDomEvents();
 
-    // Register any internal event handlers
+    
     this._registerDataEvents();
     this._registerSelectionEvents();
     this._registerDropdownEvents();
     this._registerResultsEvents();
     this._registerEvents();
 
-    // Set the initial state
+    
     this.dataAdapter.current(function (initialData) {
       self.trigger('selection:update', {
         data: initialData
       });
     });
 
-    // Hide the original select
+    
     $element.addClass('select2-hidden-accessible');
     $element.attr('aria-hidden', 'true');
 
-    // Synchronize any monitored attributes
+    
     this._syncAttributes();
 
     Utils.StoreData($element[0], 'select2', this);
 
-    // Ensure backwards compatibility with $element.data('select2').
+    
     $element.data('select2', this);
   };
 
@@ -5713,8 +5696,8 @@ S2.define('select2/core',[
     var changed = false;
     var self = this;
 
-    // Ignore any mutation events raised for elements that aren't options or
-    // optgroups. This handles the case when the select element is destroyed
+    
+    
     if (
       evt && evt.target && (
         evt.target.nodeName !== 'OPTION' && evt.target.nodeName !== 'OPTGROUP'
@@ -5724,8 +5707,8 @@ S2.define('select2/core',[
     }
 
     if (!mutations) {
-      // If mutation events aren't supported, then we can only assume that the
-      // change affected the selections
+      
+      
       changed = true;
     } else if (mutations.addedNodes && mutations.addedNodes.length > 0) {
       for (var n = 0; n < mutations.addedNodes.length; n++) {
@@ -5740,8 +5723,8 @@ S2.define('select2/core',[
     } else if ($.isArray(mutations)) {
       $.each(mutations, function(evt, mutation) {
         if (self._isChangeMutation(evt, mutation)) {
-          // We've found a change mutation.
-          // Let's escape from the loop and continue
+          
+          
           changed = true;
           return false;
         }
@@ -5754,7 +5737,7 @@ S2.define('select2/core',[
     var changed = this._isChangeMutation(evt, mutations);
     var self = this;
 
-    // Only re-pull the data if we think there is a change
+    
     if (changed) {
       this.dataAdapter.current(function (currentData) {
         self.trigger('selection:update', {
@@ -5764,10 +5747,7 @@ S2.define('select2/core',[
     }
   };
 
-  /**
-   * Override the trigger method to automatically trigger pre-events when
-   * there are events that can be prevented.
-   */
+  
   Select2.prototype.trigger = function (name, args) {
     var actualTrigger = Select2.__super__.trigger;
     var preTriggerMap = {
@@ -5834,23 +5814,12 @@ S2.define('select2/core',[
     this.trigger('close', { originalEvent : evt });
   };
 
-  /**
-   * Helper method to abstract the "enabled" (not "disabled") state of this
-   * object.
-   *
-   * @return {true} if the instance is not disabled.
-   * @return {false} if the instance is disabled.
-   */
+  
   Select2.prototype.isEnabled = function () {
     return !this.isDisabled();
   };
 
-  /**
-   * Helper method to abstract the "disabled" state of this object.
-   *
-   * @return {true} if the disabled option is true.
-   * @return {false} if the disabled option is false.
-   */
+  
   Select2.prototype.isDisabled = function () {
     return this.options.get('disabled');
   };
@@ -5864,7 +5833,7 @@ S2.define('select2/core',[
   };
 
   Select2.prototype.focus = function (data) {
-    // No need to re-trigger focus events if we are already focused
+    
     if (this.hasFocus()) {
       return;
     }
@@ -6005,10 +5974,10 @@ S2.define('select2/compat/utils',[
     classes = $.trim($dest.attr('class'));
 
     if (classes) {
-      classes = '' + classes; // for IE which returns object
+      classes = '' + classes; 
 
       $(classes.split(/\s+/)).each(function () {
-        // Save all Select2 classes
+        
         if (this.indexOf('select2-') === 0) {
           replacements.push(this);
         }
@@ -6018,10 +5987,10 @@ S2.define('select2/compat/utils',[
     classes = $.trim($src.attr('class'));
 
     if (classes) {
-      classes = '' + classes; // for IE which returns object
+      classes = '' + classes; 
 
       $(classes.split(/\s+/)).each(function () {
-        // Only adapt non-Select2 classes
+        
         if (this.indexOf('select2-') !== 0) {
           adapted = adapter(this);
 
@@ -6044,7 +6013,7 @@ S2.define('select2/compat/containerCss',[
   'jquery',
   './utils'
 ], function ($, CompatUtils) {
-  // No-op CSS adapter that discards all classes by default
+  
   function _containerAdapter (clazz) {
     return null;
   }
@@ -6072,7 +6041,7 @@ S2.define('select2/compat/containerCss',[
         var adapted = _cssAdapter(clazz);
 
         if (adapted != null) {
-          // Append the old one along with the adapted one
+          
           return adapted + ' ' + clazz;
         }
 
@@ -6101,7 +6070,7 @@ S2.define('select2/compat/dropdownCss',[
   'jquery',
   './utils'
 ], function ($, CompatUtils) {
-  // No-op CSS adapter that discards all classes by default
+  
   function _dropdownAdapter (clazz) {
     return null;
   }
@@ -6129,7 +6098,7 @@ S2.define('select2/compat/dropdownCss',[
         var adapted = _cssAdapter(clazz);
 
         if (adapted != null) {
-          // Append the old one along with the adapted one
+          
           return adapted + ' ' + clazz;
         }
 
@@ -6341,11 +6310,11 @@ S2.define('select2/compat/matcher',[
         for (var c = data.children.length - 1; c >= 0; c--) {
           var child = data.children[c];
 
-          // Check if the child object matches
-          // The old matcher returned a boolean true or false
+          
+          
           var doesMatch = matcher(params.term, child.text, child);
 
-          // If the child didn't match, pop it off
+          
           if (!doesMatch) {
             match.children.splice(c, 1);
           }

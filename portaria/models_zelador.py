@@ -5,7 +5,7 @@ from .models import Condominio
 
 def validate_file_size(value):
     filesize = value.size
-    
+
     if filesize > 5242880:
         raise ValidationError("O tamanho máximo do arquivo é 5MB")
     else:

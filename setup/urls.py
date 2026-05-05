@@ -8,10 +8,6 @@ from django.conf.urls.static import static
 
 from django.contrib.auth import views as auth_views
 
-
-
-
-
 from portaria.views import (
 
     home, 
@@ -35,8 +31,6 @@ from portaria.views import (
     registrar_saida, 
 
     trocar_condominio,
-
-
 
     exportar_relatorio, 
 
@@ -69,10 +63,6 @@ from portaria.views import (
     liberar_acesso_reserva
 
 )
-
-
-
-
 
 from portaria.views_morador import (
 
@@ -113,10 +103,6 @@ from portaria.views_morador import (
     feedback_morador
 
 )
-
-
-
-
 
 from portaria.views_sindico import (
 
@@ -188,17 +174,11 @@ from portaria.views_sindico import (
 
 )
 
-
-
 urlpatterns = [
 
     path('admin/', admin.site.urls),
 
     path('accounts/', include('allauth.urls')),
-
-
-
-
 
     path('', home, name='home'),
 
@@ -213,10 +193,6 @@ urlpatterns = [
     path('cadastro/<uuid:codigo_convite>/', cadastro_morador, name='cadastro_morador'),
 
     path('trocar-condominio/<int:condominio_id>/', trocar_condominio, name='trocar_condominio'),
-
-
-
-
 
     path('recuperar-senha/', CustomPasswordResetView.as_view(
 
@@ -252,17 +228,9 @@ urlpatterns = [
 
     ), name='password_reset_complete'),
 
-
-
-
-
     path('registrar_visitante/', registrar_visitante, name='registrar_visitante'),
 
     path('registrar_saida/<int:id_visitante>/', registrar_saida, name='registrar_saida'),
-
-
-
-
 
     path('registrar_encomenda/', registrar_encomenda, name='registrar_encomenda'),
 
@@ -274,10 +242,6 @@ urlpatterns = [
 
     path('exportar_relatorio_encomendas/', exportar_relatorio_encomendas, name='exportar_relatorio_encomendas'),
 
-
-
-
-
     path('registrar_solicitacao/', registrar_solicitacao, name='registrar_solicitacao'),
 
     path('historico_solicitacoes/', historico_solicitacoes, name='historico_solicitacoes'),
@@ -286,17 +250,7 @@ urlpatterns = [
 
     path('liberar_acesso_reserva/<int:reserva_id>/', liberar_acesso_reserva, name='liberar_acesso_reserva'),
 
-
-
-
-
     path('mensagens/', mensagens_portaria, name='mensagens_portaria'),
-
-
-
-
-
-
 
     path('api/stats/', api_stats, name='api_stats'),
 
@@ -305,10 +259,6 @@ urlpatterns = [
     path('api/sync-offline/', api_sync_offline, name='api_sync_offline'),
 
     path('exportar_relatorio/', exportar_relatorio, name='exportar_relatorio'),
-
-
-
-
 
     path('morador/', portal_home, name='morador_home'),
 
@@ -350,10 +300,6 @@ urlpatterns = [
 
     path('atualizar_preferencia_push/', atualizar_preferencia_push, name='atualizar_preferencia_push'),
 
-
-
-
-
     path('sindico/', portal_sindico_home, name='sindico_home'),
 
     path('sindico/selecionar/<int:condominio_id>/', selecionar_condominio, name='sindico_selecionar'),
@@ -383,8 +329,6 @@ urlpatterns = [
     path('sindico/avisos/<int:aviso_id>/editar/', editar_aviso_sindico, name='sindico_editar_aviso'),
 
     path('sindico/avisos/<int:aviso_id>/excluir/', excluir_aviso_sindico, name='sindico_excluir_aviso'),
-
-
 
     path('sindico/areas-comuns/', areas_comuns_sindico, name='sindico_areas_comuns'),
 
@@ -420,37 +364,15 @@ urlpatterns = [
 
     path('sindico/feedbacks/', feedbacks_sindico, name='sindico_feedbacks'),
 
-
-
     path('sindico/condominio/<int:condominio_id>/', dashboard_condominio, name='sindico_dashboard'),
 
     path('zelador/', include('portaria.urls_zelador')),
 
 ]
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 from django.urls import re_path
 
 from django.views.static import serve as static_serve
-
-
 
 urlpatterns += [
 

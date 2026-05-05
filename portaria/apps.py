@@ -1,24 +1,14 @@
 from django.apps import AppConfig
 
-
-
-
-
 class PortariaConfig(AppConfig):
 
     name = 'portaria'
-
-
 
     def ready(self):
 
         from django.contrib.auth.models import User
 
         from django.core.validators import RegexValidator
-
-
-
-
 
         username_field = User._meta.get_field('username')
 

@@ -2,8 +2,6 @@ from django.conf import settings
 
 from .models import Notificacao
 
-
-
 def condominio_info(request):
 
     pass
@@ -20,10 +18,6 @@ def condominio_info(request):
 
                 return {'condominio_atual': condominio}
 
-
-
-
-
         condominio = getattr(request.user, 'get_condominio_ativo', None)
 
         if condominio:
@@ -31,8 +25,6 @@ def condominio_info(request):
             return {'condominio_atual': condominio}
 
     return {'condominio_atual': None}
-
-
 
 def notificacoes(request):
 
@@ -43,8 +35,6 @@ def notificacoes(request):
         try:
 
             from .models import Notificacao, Mensagem, Cobranca
-
-
 
             cobrancas_pendentes_count = 0
 
@@ -63,8 +53,6 @@ def notificacoes(request):
             except Exception:
 
                 pass
-
-
 
             return {
 

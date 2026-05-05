@@ -1,26 +1,16 @@
 
 
-
-
 import django.db.models.deletion
 
 from django.db import migrations, models
 
-
-
-
-
 class Migration(migrations.Migration):
-
-
 
     dependencies = [
 
         ('portaria', '0004_areacomum_taxa_reserva_alter_areacomum_ativo_and_more'),
 
     ]
-
-
 
     operations = [
 

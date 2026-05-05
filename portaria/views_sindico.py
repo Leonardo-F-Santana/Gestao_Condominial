@@ -16,27 +16,17 @@ from django.db import transaction
 
 from django.db.models import Sum, Q
 
-
-
 import json
 
 from pywebpush import webpush, WebPushException
 
 from django.conf import settings
 
-
-
 from .models import Condominio, Sindico, Porteiro, Morador, Visitante, Encomenda, Solicitacao, Aviso, Notificacao, AreaComum, Reserva, Cobranca, Mensagem, Ocorrencia, PushSubscription, FeedbackMorador
 
 from .utils import disparar_push_individual
 
-
-
 User = get_user_model()
-
-
-
-
 
 def is_sindico(user):
 
@@ -54,10 +44,6 @@ def is_sindico(user):
 
     return False
 
-
-
-
-
 def get_condominio_ativo(request):
 
     pass
@@ -70,8 +56,6 @@ def get_condominio_ativo(request):
 
         if c: return c
 
-
-
     condominio = getattr(request.user, 'get_condominio_ativo', None)
 
     if not condominio and hasattr(request.user, 'sindico'):
@@ -79,10 +63,6 @@ def get_condominio_ativo(request):
         condominio = request.user.sindico.condominio
 
     return condominio
-
-
-
-
 
 def sindico_context(request, extra=None, active_page=''):
 
@@ -98,53 +78,17 @@ def sindico_context(request, extra=None, active_page=''):
 
     }
 
-
-
-
-
     if condominio and hasattr(request, 'user') and request.user.is_authenticated:
-
-
 
         unread_msgs = Mensagem.objects.filter(destinatario=request.user, lida=False).count()
 
         context_data['unread_mensagens_count'] = unread_msgs
 
-
-
-
-
-
-
-
-
-
-
     if extra:
 
         context_data.update(extra)
 
-
-
     return context_data
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 @login_required
 
@@ -162,8 +106,6 @@ def portal_sindico_home(request):
 
         return redirect('home')
 
-
-
     condominio = get_condominio_ativo(request)
 
     if not condominio:
@@ -172,13 +114,7 @@ def portal_sindico_home(request):
 
         return redirect('home')
 
-
-
     return redirect('sindico_painel')
-
-
-
-
 
 @login_required
 
@@ -186,27 +122,11 @@ def selecionar_condominio(request, condominio_id):
 
     return redirect('sindico_painel')
 
-
-
-
-
 @login_required
 
 def criar_condominio(request):
 
     return redirect('sindico_painel')
-
-
-
-
-
-
-
-
-
-
-
-
 
 @login_required
 
@@ -222,19 +142,13 @@ def painel_sindico(request):
 
         return redirect('home')
 
-
-
     condominio = get_condominio_ativo(request)
 
     if not condominio:
 
         return redirect('home')
 
-
-
     sindico = getattr(request.user, 'sindico', None)
-
-
 
     stats = {
 
@@ -260,8 +174,6 @@ def painel_sindico(request):
 
     }
 
-
-
     ctx = sindico_context(request, {
 
         'stats': stats,
@@ -274,21 +186,7 @@ def painel_sindico(request):
 
     }, active_page='painel')
 
-
-
     return render(request, 'sindico/painel.html', ctx)
-
-
-
-
-
-
-
-
-
-
-
-
 
 @login_required
 
@@ -300,25 +198,17 @@ def moradores_sindico(request):
 
         return redirect('home')
 
-
-
     condominio = get_condominio_ativo(request)
 
     if not condominio:
 
         return redirect('sindico_home')
 
-
-
     if request.method == 'POST':
 
         action = request.POST.get('action', 'cadastrar')
 
-
-
         if action == 'importar':
-
-
 
             arquivo = request.FILES.get('arquivo')
 
@@ -328,10 +218,6 @@ def moradores_sindico(request):
 
                 return redirect('sindico_moradores')
 
-
-
-
-
             content_type = getattr(arquivo, 'content_type', '')
 
             if content_type.startswith('video/') or str(arquivo.name).lower().endswith(('.mp4', '.avi', '.mov', '.mkv', '.webm')):
@@ -340,13 +226,9 @@ def moradores_sindico(request):
 
                 return redirect('sindico_moradores')
 
-
-
             nome_arquivo = arquivo.name.lower()
 
             rows = []
-
-
 
             try:
 
@@ -398,8 +280,6 @@ def moradores_sindico(request):
 
                         if i == 0:
 
-
-
                             if len(row) == 1 and ',' in row[0]:
 
                                 content = arquivo.read().decode('utf-8-sig') if hasattr(arquivo, 'read') else content
@@ -426,13 +306,9 @@ def moradores_sindico(request):
 
                 return redirect('sindico_moradores')
 
-
-
             total = 0
 
             erros_lista = []
-
-
 
             for index, row in enumerate(rows, start=1):
 
@@ -452,29 +328,19 @@ def moradores_sindico(request):
 
                         cpf = row[5] if len(row) > 5 else ''
 
-
-
                         nome = nome.strip()
 
                         apartamento = apartamento.strip()
 
-
-
                         if not nome or not apartamento:
 
                             raise ValueError(f"Linha {index}: Nome e apartamento são obrigatórios.")
-
-
-
-
 
                         base_username = f"{nome.split()[0].lower()}.{apartamento}"
 
                         if bloco:
 
                             base_username += f".{bloco.lower()}"
-
-
 
                         username = base_username
 
@@ -486,15 +352,9 @@ def moradores_sindico(request):
 
                             counter += 1
 
-
-
-
-
                         if cpf and len(cpf) > 14:
 
                             raise ValueError(f"Linha {index}: CPF longo demais.")
-
-
 
                         user_obj = User.objects.create_user(
 
@@ -511,8 +371,6 @@ def moradores_sindico(request):
                         )
 
                         user_obj.condominios.add(condominio)
-
-
 
                         Morador.objects.create(
 
@@ -540,13 +398,9 @@ def moradores_sindico(request):
 
                     erros_lista.append(str(e) if "Linha " in str(e) else f"Linha {index} ({nome or 'Desconhecido'}): {str(e)}")
 
-
-
             if total > 0:
 
                 messages.success(request, f"{total} morador(es) importado(s) com sucesso!")
-
-
 
             if erros_lista:
 
@@ -555,8 +409,6 @@ def moradores_sindico(request):
                     messages.warning(request, erro_msg)
 
             return redirect('sindico_moradores')
-
-
 
         elif action == 'aprovar':
 
@@ -574,8 +426,6 @@ def moradores_sindico(request):
 
             return redirect('sindico_moradores')
 
-
-
         elif action == 'recusar':
 
             morador_id = request.POST.get('morador_id')
@@ -592,11 +442,7 @@ def moradores_sindico(request):
 
             return redirect('sindico_moradores')
 
-
-
         else:
-
-
 
             nome = request.POST.get('nome', '').strip()
 
@@ -611,8 +457,6 @@ def moradores_sindico(request):
             username = request.POST.get('username', '').strip()
 
             password = request.POST.get('password', '').strip()
-
-
 
             if nome and apartamento:
 
@@ -642,8 +486,6 @@ def moradores_sindico(request):
 
                     user_obj.condominios.add(condominio)
 
-
-
                 Morador.objects.create(
 
                     condominio=condominio,
@@ -670,15 +512,9 @@ def moradores_sindico(request):
 
                 return redirect('sindico_moradores')
 
-
-
-
-
     query_busca = request.GET.get('q', '').strip()
 
     moradores = Morador.objects.filter(condominio=condominio)
-
-
 
     if query_busca:
 
@@ -692,11 +528,7 @@ def moradores_sindico(request):
 
         )
 
-
-
     moradores = moradores.order_by('nome', 'bloco', 'apartamento')
-
-
 
     ctx = sindico_context(request, {
 
@@ -708,8 +540,6 @@ def moradores_sindico(request):
 
     return render(request, 'sindico/moradores.html', ctx)
 
-
-
 @login_required
 
 def sindico_morador_editar(request, id):
@@ -718,21 +548,13 @@ def sindico_morador_editar(request, id):
 
         return redirect('home')
 
-
-
     condominio = get_condominio_ativo(request)
 
     if not condominio:
 
         return redirect('sindico_home')
 
-
-
     morador = get_object_or_404(Morador, id=id, condominio=condominio)
-
-
-
-
 
     morador.nome = request.POST.get('nome', morador.nome).strip()
 
@@ -743,10 +565,6 @@ def sindico_morador_editar(request, id):
     morador.telefone = request.POST.get('telefone', morador.telefone).strip()
 
     morador.email = request.POST.get('email', morador.email).strip()
-
-
-
-
 
     if morador.usuario:
 
@@ -760,15 +578,11 @@ def sindico_morador_editar(request, id):
 
         morador.usuario.save()
 
-
-
     morador.save()
 
     messages.success(request, f"Morador '{morador.nome}' atualizado com sucesso!")
 
     return redirect('sindico_moradores')
-
-
 
 @login_required
 
@@ -778,45 +592,25 @@ def sindico_morador_excluir(request, id):
 
         return redirect('home')
 
-
-
     condominio = get_condominio_ativo(request)
 
     if not condominio:
 
         return redirect('sindico_home')
 
-
-
     morador = get_object_or_404(Morador, id=id, condominio=condominio)
 
     nome = morador.nome
 
-
-
-
-
     if morador.usuario:
 
         morador.usuario.delete()
-
-
 
     morador.delete()
 
     messages.success(request, f"Morador '{nome}' excluído com sucesso!")
 
     return redirect('sindico_moradores')
-
-
-
-
-
-
-
-
-
-
 
 @login_required
 
@@ -828,31 +622,21 @@ def resetar_senha_morador(request, morador_id):
 
         return redirect('home')
 
-
-
     condominio = get_condominio_ativo(request)
 
     if not condominio:
 
         return redirect('sindico_home')
 
-
-
     morador = get_object_or_404(Morador, id=morador_id, condominio=condominio)
 
-
-
     nova_senha = request.POST.get('nova_senha', '').strip()
-
-
 
     if not nova_senha or len(nova_senha) < 6:
 
         messages.error(request, "A senha deve ter pelo menos 6 caracteres.")
 
         return redirect('sindico_moradores')
-
-
 
     if morador.usuario:
 
@@ -864,23 +648,17 @@ def resetar_senha_morador(request, morador_id):
 
     else:
 
-
-
         username = request.POST.get('username', '').strip()
 
         if not username:
 
             username = f"morador_{morador.id}"
 
-
-
         if User.objects.filter(username=username).exists():
 
             messages.error(request, f"Usuário '{username}' já existe.")
 
             return redirect('sindico_moradores')
-
-
 
         user_obj = User.objects.create_user(
 
@@ -904,25 +682,7 @@ def resetar_senha_morador(request, morador_id):
 
         messages.success(request, f"Conta criada para '{morador.nome}' com login: {username}")
 
-
-
     return redirect('sindico_moradores')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 @login_required
 
@@ -934,17 +694,11 @@ def solicitacoes_sindico(request):
 
         return redirect('home')
 
-
-
     condominio = get_condominio_ativo(request)
 
     if not condominio:
 
         return redirect('sindico_home')
-
-
-
-
 
     Notificacao.objects.filter(
 
@@ -952,23 +706,15 @@ def solicitacoes_sindico(request):
 
     ).update(lida=True)
 
-
-
     solicitacoes = Solicitacao.objects.filter(
 
         condominio=condominio
 
     ).select_related('morador', 'criado_por').order_by('-data_criacao')
 
-
-
     ctx = sindico_context(request, {'solicitacoes': solicitacoes}, active_page='solicitacoes')
 
     return render(request, 'sindico/solicitacoes.html', ctx)
-
-
-
-
 
 @login_required
 
@@ -983,10 +729,6 @@ def responder_solicitacao_sindico(request, solicitacao_id):
         solicitacao.status = request.POST.get('status', solicitacao.status)
 
         solicitacao.save()
-
-
-
-
 
         if solicitacao.morador and solicitacao.morador.usuario:
 
@@ -1014,23 +756,9 @@ def responder_solicitacao_sindico(request, solicitacao_id):
 
             )
 
-
-
         messages.success(request, "Solicitação atualizada!")
 
     return redirect('sindico_solicitacoes')
-
-
-
-
-
-
-
-
-
-
-
-
 
 @login_required
 
@@ -1042,25 +770,17 @@ def avisos_sindico(request):
 
         return redirect('home')
 
-
-
     condominio = get_condominio_ativo(request)
 
     if not condominio:
 
         return redirect('sindico_home')
 
-
-
     avisos = Aviso.objects.filter(condominio=condominio).order_by('-data_publicacao')
 
     ctx = sindico_context(request, {'avisos': avisos}, active_page='avisos')
 
     return render(request, 'sindico/avisos.html', ctx)
-
-
-
-
 
 @login_required
 
@@ -1072,15 +792,11 @@ def criar_aviso_sindico(request):
 
         return redirect('home')
 
-
-
     condominio = get_condominio_ativo(request)
 
     if not condominio:
 
         return redirect('sindico_home')
-
-
 
     if request.method == 'POST':
 
@@ -1094,10 +810,6 @@ def criar_aviso_sindico(request):
 
         arquivo = request.FILES.get('arquivo')
 
-
-
-
-
         for f in [imagem, arquivo]:
 
             if f:
@@ -1109,8 +821,6 @@ def criar_aviso_sindico(request):
                     messages.error(request, "O envio de vídeos não é permitido. Envie apenas imagens ou documentos.")
 
                     return redirect('sindico_avisos')
-
-
 
         if titulo and conteudo:
 
@@ -1140,10 +850,6 @@ def criar_aviso_sindico(request):
 
                 aviso.save()
 
-
-
-
-
             moradores = Morador.objects.filter(condominio=condominio, usuario__isnull=False)
 
             notificacoes = [
@@ -1164,12 +870,6 @@ def criar_aviso_sindico(request):
 
             Notificacao.objects.bulk_create(notificacoes)
 
-
-
-
-
-
-
             for m in moradores:
 
                 if m.usuario and getattr(m.usuario, 'receber_push', False):
@@ -1186,17 +886,9 @@ def criar_aviso_sindico(request):
 
                     )
 
-
-
             messages.success(request, f"Aviso '{titulo}' publicado!")
 
-
-
     return redirect('sindico_avisos')
-
-
-
-
 
 @login_required
 
@@ -1205,8 +897,6 @@ def editar_aviso_sindico(request, aviso_id):
     pass
 
     aviso = get_object_or_404(Aviso, id=aviso_id)
-
-
 
     if request.method == 'POST':
 
@@ -1219,8 +909,6 @@ def editar_aviso_sindico(request, aviso_id):
         aviso.data_expiracao = data_exp if data_exp else None
 
         aviso.ativo = request.POST.get('ativo', '1') == '1'
-
-
 
         imagem = request.FILES.get('imagem')
 
@@ -1236,8 +924,6 @@ def editar_aviso_sindico(request, aviso_id):
 
             aviso.imagem = imagem
 
-
-
         arquivo = request.FILES.get('arquivo')
 
         if arquivo:
@@ -1252,19 +938,11 @@ def editar_aviso_sindico(request, aviso_id):
 
             aviso.arquivo = arquivo
 
-
-
         aviso.save()
 
         messages.success(request, "Aviso atualizado!")
 
-
-
     return redirect('sindico_avisos')
-
-
-
-
 
 @login_required
 
@@ -1282,18 +960,6 @@ def excluir_aviso_sindico(request, aviso_id):
 
     return redirect('sindico_avisos')
 
-
-
-
-
-
-
-
-
-
-
-
-
 @login_required
 
 def gerenciar_portaria(request):
@@ -1304,21 +970,15 @@ def gerenciar_portaria(request):
 
         return redirect('home')
 
-
-
     condominio = get_condominio_ativo(request)
 
     if not condominio:
 
         return redirect('sindico_home')
 
-
-
     if request.method == 'POST':
 
         action = request.POST.get('action', 'cadastrar')
-
-
 
         if action == 'cadastrar':
 
@@ -1327,8 +987,6 @@ def gerenciar_portaria(request):
             username = request.POST.get('username', '').strip()
 
             password = request.POST.get('password', '').strip()
-
-
 
             if nome and username and password:
 
@@ -1352,8 +1010,6 @@ def gerenciar_portaria(request):
 
                     user_obj.condominios.add(condominio)
 
-
-
                     Porteiro.objects.create(
 
                         condominio=condominio,
@@ -1370,27 +1026,19 @@ def gerenciar_portaria(request):
 
                 messages.error(request, "Todos os campos (Nome, Usuário e Senha) são obrigatórios para cadastro.")
 
-
-
         elif action == 'editar':
 
             porteiro_id = request.POST.get('porteiro_id')
 
             porteiro = get_object_or_404(Porteiro, id=porteiro_id, condominio=condominio)
 
-
-
             nome = request.POST.get('nome', porteiro.nome).strip()
 
             password = request.POST.get('password', '').strip()
 
-
-
             porteiro.nome = nome
 
             porteiro.save()
-
-
 
             if porteiro.usuario:
 
@@ -1402,11 +1050,7 @@ def gerenciar_portaria(request):
 
                 porteiro.usuario.save()
 
-
-
             messages.success(request, f"Dados do porteiro '{nome}' atualizados!")
-
-
 
         elif action == 'excluir':
 
@@ -1416,27 +1060,17 @@ def gerenciar_portaria(request):
 
             nome = porteiro.nome
 
-
-
             if porteiro.usuario:
 
                 porteiro.usuario.delete()
 
             porteiro.delete()
 
-
-
             messages.success(request, f"Porteiro '{nome}' excluído com sucesso!")
-
-
 
         return redirect('sindico_portaria')
 
-
-
     porteiros = Porteiro.objects.filter(condominio=condominio)
-
-
 
     ctx = sindico_context(request, {
 
@@ -1446,33 +1080,11 @@ def gerenciar_portaria(request):
 
     return render(request, 'sindico/portaria.html', ctx)
 
-
-
-
-
-
-
-
-
-
-
 def dashboard_condominio(request, condominio_id):
 
     pass
 
     return redirect('sindico_painel')
-
-
-
-
-
-
-
-
-
-
-
-
 
 @login_required
 
@@ -1484,23 +1096,17 @@ def areas_comuns_sindico(request):
 
         return redirect('home')
 
-
-
     condominio = get_condominio_ativo(request)
 
     if not condominio:
 
         return redirect('sindico_home')
 
-
-
     try:
 
         if request.method == 'POST':
 
             action = request.POST.get('action')
-
-
 
             if action == 'criar':
 
@@ -1516,8 +1122,6 @@ def areas_comuns_sindico(request):
 
                 imagem = request.FILES.get('imagem')
 
-
-
                 if imagem:
 
                     content_type = getattr(imagem, 'content_type', '')
@@ -1527,8 +1131,6 @@ def areas_comuns_sindico(request):
                         messages.error(request, "O envio de vídeos não é permitido.")
 
                         return redirect('sindico_areas_comuns')
-
-
 
                 if nome:
 
@@ -1560,8 +1162,6 @@ def areas_comuns_sindico(request):
 
                     messages.error(request, 'Informe o nome da área.')
 
-
-
             elif action == 'editar':
 
                 area_id = request.POST.get('area_id')
@@ -1580,8 +1180,6 @@ def areas_comuns_sindico(request):
 
                 area.ativo = request.POST.get('ativo') == 'on'
 
-
-
                 imagem_nova = request.FILES.get('imagem')
 
                 if imagem_nova:
@@ -1596,13 +1194,9 @@ def areas_comuns_sindico(request):
 
                     area.imagem = imagem_nova
 
-
-
                 area.save()
 
                 messages.success(request, f'Área "{area.nome}" atualizada!')
-
-
 
             return redirect('sindico_areas_comuns')
 
@@ -1611,8 +1205,6 @@ def areas_comuns_sindico(request):
         messages.error(request, f"Erro interno ao salvar: {str(e)}")
 
         return redirect('sindico_areas_comuns')
-
-
 
     areas = AreaComum.objects.filter(condominio=condominio)
 
@@ -1624,10 +1216,6 @@ def areas_comuns_sindico(request):
 
     return render(request, 'sindico/areas_comuns.html', context)
 
-
-
-
-
 @login_required
 
 def excluir_area_sindico(request, area_id):
@@ -1638,15 +1226,11 @@ def excluir_area_sindico(request, area_id):
 
         return redirect('home')
 
-
-
     condominio = get_condominio_ativo(request)
 
     if not condominio:
 
         return redirect('sindico_home')
-
-
 
     area = get_object_or_404(AreaComum, id=area_id, condominio=condominio)
 
@@ -1656,21 +1240,7 @@ def excluir_area_sindico(request, area_id):
 
     messages.success(request, f'A área "{nome_area}" foi excluída com sucesso.')
 
-
-
     return redirect('sindico_areas_comuns')
-
-
-
-
-
-
-
-
-
-
-
-
 
 @login_required
 
@@ -1682,27 +1252,17 @@ def reservas_sindico(request):
 
         return redirect('home')
 
-
-
     condominio = get_condominio_ativo(request)
 
     if not condominio:
 
         return redirect('sindico_home')
 
-
-
-
-
     Notificacao.objects.filter(
 
         usuario=request.user, tipo='reserva', lida=False
 
     ).update(lida=True)
-
-
-
-
 
     if request.method == 'POST' and request.POST.get('action') == 'criar_area':
 
@@ -1720,8 +1280,6 @@ def reservas_sindico(request):
 
             imagem = request.FILES.get('imagem')
 
-
-
             if imagem:
 
                 content_type = getattr(imagem, 'content_type', '')
@@ -1731,8 +1289,6 @@ def reservas_sindico(request):
                     messages.error(request, "O envio de vídeos não é permitido.")
 
                     return redirect('sindico_reservas')
-
-
 
             if nome:
 
@@ -1768,11 +1324,7 @@ def reservas_sindico(request):
 
             messages.error(request, f"Erro interno ao cadastrar área: {str(e)}")
 
-
-
         return redirect('sindico_reservas')
-
-
 
     reservas_list = Reserva.objects.filter(
 
@@ -1780,17 +1332,11 @@ def reservas_sindico(request):
 
     ).select_related('area', 'morador')
 
-
-
-
-
     status = request.GET.get('status')
 
     if status:
 
         reservas_list = reservas_list.filter(status=status)
-
-
 
     context = sindico_context(request, {
 
@@ -1801,10 +1347,6 @@ def reservas_sindico(request):
     }, active_page='reservas')
 
     return render(request, 'sindico/reservas.html', context)
-
-
-
-
 
 @login_required
 
@@ -1824,13 +1366,7 @@ def aprovar_reserva_sindico(request, reserva_id):
 
     reserva.save()
 
-
-
     reserva.save()
-
-
-
-
 
     if reserva.area.taxa_reserva > 0:
 
@@ -1853,10 +1389,6 @@ def aprovar_reserva_sindico(request, reserva_id):
     else:
 
         msg = 'Reserva aprovada!'
-
-
-
-
 
     if reserva.morador.usuario:
 
@@ -1884,15 +1416,9 @@ def aprovar_reserva_sindico(request, reserva_id):
 
         )
 
-
-
     messages.success(request, msg)
 
     return redirect('sindico_reservas')
-
-
-
-
 
 @login_required
 
@@ -1913,10 +1439,6 @@ def recusar_reserva_sindico(request, reserva_id):
     reserva.motivo_recusa = request.POST.get('motivo', '')
 
     reserva.save()
-
-
-
-
 
     if reserva.morador.usuario:
 
@@ -1944,21 +1466,9 @@ def recusar_reserva_sindico(request, reserva_id):
 
         )
 
-
-
     messages.success(request, 'Reserva recusada.')
 
     return redirect('sindico_reservas')
-
-
-
-
-
-
-
-
-
-
 
 @login_required
 
@@ -1970,21 +1480,15 @@ def financeiro_sindico(request):
 
         return redirect('home')
 
-
-
     condominio = get_condominio_ativo(request)
 
     if not condominio:
 
         return redirect('sindico_home')
 
-
-
     if request.method == 'POST':
 
         action = request.POST.get('action')
-
-
 
         if action == 'criar_cobranca':
 
@@ -2000,8 +1504,6 @@ def financeiro_sindico(request):
 
             chave_pix = request.POST.get('chave_pix', '').strip()
 
-
-
             if arquivo_boleto:
 
                 content_type = getattr(arquivo_boleto, 'content_type', '')
@@ -2011,8 +1513,6 @@ def financeiro_sindico(request):
                     messages.error(request, "O envio de vídeos não é permitido.")
 
                     return redirect('sindico_financeiro')
-
-
 
             if morador_id and descricao and valor and data_vencimento:
 
@@ -2042,10 +1542,6 @@ def financeiro_sindico(request):
 
                 cobranca.save()
 
-
-
-
-
                 if morador.usuario:
 
                     disparar_push_individual(
@@ -2060,15 +1556,11 @@ def financeiro_sindico(request):
 
                     )
 
-
-
                 messages.success(request, f'Cobrança "{descricao}" gerada para {morador.nome}.')
 
             else:
 
                 messages.error(request, 'Preencha todos os campos obrigatórios da cobrança.')
-
-
 
         elif action == 'marcar_pago' or action == 'aprovar_pagamento':
 
@@ -2081,10 +1573,6 @@ def financeiro_sindico(request):
             cobranca.data_pagamento = timezone.now().date()
 
             cobranca.save()
-
-
-
-
 
             if action == 'aprovar_pagamento' and cobranca.morador.usuario:
 
@@ -2100,25 +1588,15 @@ def financeiro_sindico(request):
 
                 )
 
-
-
             messages.success(request, f'Cobrança "{cobranca.descricao}" liquidada/marcada como paga.')
 
-
-
         return redirect('sindico_financeiro')
-
-
 
     cobrancas = Cobranca.objects.filter(condominio=condominio).select_related('morador').order_by('-data_vencimento')
 
     moradores = Morador.objects.filter(condominio=condominio).order_by('bloco', 'apartamento')
 
     blocos_unicos = Morador.objects.filter(condominio=condominio).exclude(bloco='').values_list('bloco', flat=True).distinct().order_by('bloco')
-
-
-
-
 
     hoje = timezone.now().date()
 
@@ -2132,8 +1610,6 @@ def financeiro_sindico(request):
 
     ).update(status='ATRASADO')
 
-
-
     context = sindico_context(request, {
 
         'cobrancas': cobrancas,
@@ -2144,19 +1620,7 @@ def financeiro_sindico(request):
 
     }, active_page='financeiro')
 
-
-
     return render(request, 'sindico/financeiro.html', context)
-
-
-
-
-
-
-
-
-
-
 
 @login_required
 
@@ -2168,19 +1632,13 @@ def mensagens_sindico(request):
 
         return redirect('home')
 
-
-
     condominio = get_condominio_ativo(request)
 
     if not condominio:
 
         return redirect('sindico_home')
 
-
-
     usuario = request.user
-
-
 
     if request.method == 'POST':
 
@@ -2190,8 +1648,6 @@ def mensagens_sindico(request):
 
         msg_condominio_id = request.POST.get('condominio_id')
 
-
-
         if msg_condominio_id:
 
             msg_condominio = request.user.condominios.filter(id=msg_condominio_id).first()
@@ -2200,13 +1656,9 @@ def mensagens_sindico(request):
 
             msg_condominio = condominio
 
-
-
         if destinatario_id and conteudo and msg_condominio:
 
             destinatario = get_object_or_404(User, id=destinatario_id)
-
-
 
             Mensagem.objects.create(
 
@@ -2228,13 +1680,7 @@ def mensagens_sindico(request):
 
             messages.error(request, 'Destinatário, conteúdo e condomínio são obrigatórios.')
 
-
-
-
-
     Mensagem.objects.filter(destinatario=usuario, lida=False).update(lida=True)
-
-
 
     mensagens_list = Mensagem.objects.filter(
 
@@ -2242,15 +1688,7 @@ def mensagens_sindico(request):
 
     ).select_related('remetente', 'destinatario').order_by('-data_envio')
 
-
-
-
-
     destinatarios_possiveis = User.objects.filter(condominios__in=usuario.condominios.all()).exclude(id=usuario.id).distinct()
-
-
-
-
 
     conversas = {}
 
@@ -2264,15 +1702,9 @@ def mensagens_sindico(request):
 
         conversas[outro_usuario].append(msg)
 
-
-
-
-
     for k in conversas:
 
         conversas[k] = list(reversed(conversas[k]))
-
-
 
     context = sindico_context(request, {
 
@@ -2282,21 +1714,7 @@ def mensagens_sindico(request):
 
     }, active_page='mensagens')
 
-
-
-
-
     return render(request, 'sindico/mensagens.html', context)
-
-
-
-
-
-
-
-
-
-
 
 @login_required
 
@@ -2308,25 +1726,17 @@ def ocorrencias_sindico(request):
 
         return redirect('home')
 
-
-
     condominio = get_condominio_ativo(request)
 
     if not condominio:
 
         return redirect('sindico_home')
 
-
-
     status = request.GET.get('status', 'TODOS')
 
     q = request.GET.get('q', '').strip()
 
-
-
     ocorrencias_list = Ocorrencia.objects.filter(condominio=condominio)
-
-
 
     if q:
 
@@ -2340,17 +1750,11 @@ def ocorrencias_sindico(request):
 
         )
 
-
-
     if status != 'TODOS':
 
         ocorrencias_list = ocorrencias_list.filter(status=status)
 
-
-
     ocorrencias_list = ocorrencias_list.order_by('-data_registro')
-
-
 
     context = sindico_context(request, {
 
@@ -2360,13 +1764,7 @@ def ocorrencias_sindico(request):
 
     }, active_page='ocorrencias')
 
-
-
     return render(request, 'sindico/ocorrencias.html', context)
-
-
-
-
 
 @login_required
 
@@ -2378,8 +1776,6 @@ def alterar_status_ocorrencia(request, ocorrencia_id):
 
         return redirect('home')
 
-
-
     if request.method == 'POST':
 
         novo_status = request.POST.get('status')
@@ -2387,8 +1783,6 @@ def alterar_status_ocorrencia(request, ocorrencia_id):
         resposta_sindico = request.POST.get('resposta_sindico', '').strip()
 
         ocorrencia = get_object_or_404(Ocorrencia, id=ocorrencia_id, condominio=get_condominio_ativo(request))
-
-
 
         if novo_status in dict(Ocorrencia.STATUS_CHOICES).keys():
 
@@ -2399,10 +1793,6 @@ def alterar_status_ocorrencia(request, ocorrencia_id):
             ocorrencia.status = novo_status
 
             ocorrencia.save()
-
-
-
-
 
             if resposta_sindico and ocorrencia.autor.usuario:
 
@@ -2432,27 +1822,11 @@ def alterar_status_ocorrencia(request, ocorrencia_id):
 
                 )
 
-
-
             messages.success(request, f'Status e resposta da ocorrência foram atualizados.')
-
-
 
     return redirect('sindico_ocorrencias')
 
-
-
-
-
-
-
-
-
-
-
 from .forms import SindicoPerfilForm
-
-
 
 @login_required
 
@@ -2464,8 +1838,6 @@ def editar_perfil_sindico(request):
 
         return redirect('home')
 
-
-
     try:
 
         sindico = request.user.sindico
@@ -2475,8 +1847,6 @@ def editar_perfil_sindico(request):
         messages.error(request, 'Perfil de síndico não encontrado.')
 
         return redirect('home')
-
-
 
     if request.method == 'POST':
 
@@ -2494,8 +1864,6 @@ def editar_perfil_sindico(request):
 
         form = SindicoPerfilForm(instance=sindico, user=request.user)
 
-
-
     context = sindico_context(request, {
 
         'form': form,
@@ -2503,10 +1871,6 @@ def editar_perfil_sindico(request):
     }, active_page='perfil')
 
     return render(request, 'sindico/editar_perfil.html', context)
-
-
-
-
 
 @login_required
 
@@ -2520,17 +1884,11 @@ def sindico_notificacoes(request):
 
         return redirect('home')
 
-
-
     condominio = get_condominio_ativo(request)
 
     if not condominio:
 
         return redirect('sindico_home')
-
-
-
-
 
     notificacoes = Notificacao.objects.filter(
 
@@ -2538,13 +1896,7 @@ def sindico_notificacoes(request):
 
     ).order_by('-id')
 
-
-
-
-
     Notificacao.objects.filter(usuario=request.user, lida=False).update(lida=True)
-
-
 
     context = sindico_context(request, {
 
@@ -2552,13 +1904,7 @@ def sindico_notificacoes(request):
 
     }, active_page='notificacoes')
 
-
-
     return render(request, 'sindico/notificacoes_lista.html', context)
-
-
-
-
 
 @login_required
 
@@ -2572,29 +1918,15 @@ def redirecionar_notificacao(request, notificacao_id):
 
     notificacao.save()
 
-
-
-
-
     if notificacao.condominio and notificacao.condominio.id != request.session.get('condominio_ativo_id'):
 
         request.session['condominio_ativo_id'] = notificacao.condominio.id
 
         messages.success(request, f"Você agora está visualizando o Condomínio {notificacao.condominio.nome}")
 
-
-
     url_destino = notificacao.link if (notificacao.link and notificacao.link != '#') else reverse('sindico_notificacoes')
 
     return redirect(url_destino)
-
-
-
-
-
-
-
-
 
 @login_required
 
@@ -2606,27 +1938,17 @@ def gerar_advertencia_pdf(request, ocorrencia_id):
 
         return redirect('home')
 
-
-
     condominio = get_condominio_ativo(request)
 
     if not condominio:
 
         return redirect('sindico_home')
 
-
-
     ocorrencia = get_object_or_404(Ocorrencia, id=ocorrencia_id, condominio=condominio)
-
-
-
-
 
     sindico_obj = getattr(request.user, 'sindico', None)
 
     sindico_nome = sindico_obj.nome if sindico_obj else request.user.get_full_name() or request.user.username
-
-
 
     context = {
 
@@ -2638,15 +1960,9 @@ def gerar_advertencia_pdf(request, ocorrencia_id):
 
     }
 
-
-
-
-
     from django.http import HttpResponse
 
     from django.template.loader import get_template
-
-
 
     try:
 
@@ -2656,13 +1972,9 @@ def gerar_advertencia_pdf(request, ocorrencia_id):
 
         return HttpResponse("Erro: Biblioteca xhtml2pdf não instalada. Rode: pip install xhtml2pdf")
 
-
-
     template = get_template('sindico/pdf_advertencia.html')
 
     html = template.render(context)
-
-
 
     response = HttpResponse(content_type='application/pdf')
 
@@ -2670,29 +1982,17 @@ def gerar_advertencia_pdf(request, ocorrencia_id):
 
     response['Content-Disposition'] = f'inline; filename="{filename}"'
 
-
-
     pisa_status = pisa.CreatePDF(html, dest=response)
-
-
 
     if pisa_status.err:
 
         return HttpResponse(f'Erro ao gerar PDF: {pisa_status.err}')
-
-
-
-
 
     if not ocorrencia.advertencia_emitida:
 
         ocorrencia.advertencia_emitida = True
 
         ocorrencia.save(update_fields=['advertencia_emitida'])
-
-
-
-
 
         if ocorrencia.autor and ocorrencia.autor.usuario:
 
@@ -2708,21 +2008,7 @@ def gerar_advertencia_pdf(request, ocorrencia_id):
 
             )
 
-
-
     return response
-
-
-
-
-
-
-
-
-
-
-
-
 
 @login_required
 
@@ -2734,21 +2020,13 @@ def documentos_sindico(request):
 
         return redirect('home')
 
-
-
     condominio = get_condominio_ativo(request)
 
     if not condominio:
 
         return redirect('sindico_home')
 
-
-
     from .models import DocumentoCondominio
-
-
-
-
 
     if request.method == 'POST':
 
@@ -2757,8 +2035,6 @@ def documentos_sindico(request):
         categoria = request.POST.get('categoria', 'OUTROS')
 
         arquivo = request.FILES.get('arquivo')
-
-
 
         if titulo and arquivo:
 
@@ -2780,13 +2056,7 @@ def documentos_sindico(request):
 
             messages.error(request, 'Preencha o título e selecione um arquivo.')
 
-
-
         return redirect('sindico_documentos')
-
-
-
-
 
     excluir_id = request.GET.get('excluir')
 
@@ -2804,23 +2074,17 @@ def documentos_sindico(request):
 
         return redirect('sindico_documentos')
 
-
-
     documentos = DocumentoCondominio.objects.filter(
 
         condominio=condominio
 
     ).order_by('-data_upload')
 
-
-
     categoria_filtro = request.GET.get('categoria', '')
 
     if categoria_filtro:
 
         documentos = documentos.filter(categoria=categoria_filtro)
-
-
 
     ctx = sindico_context(request, {
 
@@ -2832,19 +2096,7 @@ def documentos_sindico(request):
 
     }, active_page='documentos')
 
-
-
     return render(request, 'sindico/central_documentos.html', ctx)
-
-
-
-
-
-
-
-
-
-
 
 @login_required
 
@@ -2856,25 +2108,17 @@ def buscar_moradores_ajax(request):
 
         return JsonResponse({'error': 'Acesso negado'}, status=403)
 
-
-
     condominio = get_condominio_ativo(request)
 
     if not condominio:
 
         return JsonResponse({'error': 'Condomínio não encontrado'}, status=400)
 
-
-
     bloco = request.GET.get('bloco', '').strip()
 
     apartamento = request.GET.get('apartamento', '').strip()
 
-
-
     if bloco and not apartamento:
-
-
 
         aptos = list(Morador.objects.filter(condominio=condominio, bloco=bloco)
 
@@ -2884,11 +2128,7 @@ def buscar_moradores_ajax(request):
 
         return JsonResponse({'apartamentos': aptos})
 
-
-
     elif bloco and apartamento:
-
-
 
         moradores_qs = Morador.objects.filter(condominio=condominio, bloco=bloco, apartamento=apartamento).order_by('nome')
 
@@ -2896,21 +2136,7 @@ def buscar_moradores_ajax(request):
 
         return JsonResponse({'moradores': moradores_lista})
 
-
-
     return JsonResponse({'error': 'Parâmetros inválidos'}, status=400)
-
-
-
-
-
-
-
-
-
-
-
-
 
 @login_required
 
@@ -2922,25 +2148,17 @@ def central_tarefas_sindico(request):
 
         return redirect('home')
 
-
-
     condominio = get_condominio_ativo(request)
 
     if not condominio:
 
         return redirect('sindico_home')
 
-
-
     from .models import TarefaSindico
-
-
 
     if request.method == 'POST':
 
         action = request.POST.get('action')
-
-
 
         if action == 'adicionar_tarefa':
 
@@ -2955,8 +2173,6 @@ def central_tarefas_sindico(request):
             else:
 
                 messages.error(request, 'A descrição da tarefa não pode estar vazia.')
-
-
 
         elif action == 'alternar_status':
 
@@ -2980,8 +2196,6 @@ def central_tarefas_sindico(request):
 
                     messages.error(request, 'Tarefa não encontrada.')
 
-
-
         elif action == 'excluir_tarefa':
 
             tarefa_id = request.POST.get('tarefa_id')
@@ -3000,17 +2214,11 @@ def central_tarefas_sindico(request):
 
                     messages.error(request, 'Tarefa não encontrada.')
 
-
-
         return redirect('sindico_tarefas')
-
-
 
     tarefas_manuais = TarefaSindico.objects.filter(condominio=condominio)
 
     solicitacoes_pendentes = Solicitacao.objects.filter(condominio=condominio, status='PENDENTE').select_related('morador').order_by('-data_criacao')
-
-
 
     context = sindico_context(request, {
 
@@ -3020,11 +2228,7 @@ def central_tarefas_sindico(request):
 
     }, active_page='tarefas')
 
-
-
     return render(request, 'sindico/tarefas.html', context)
-
-
 
 @login_required
 
@@ -3034,23 +2238,15 @@ def feedbacks_sindico(request):
 
         return redirect('home')
 
-
-
     condominio = get_condominio_ativo(request)
 
     if not condominio:
 
         return redirect('sindico_home')
 
-
-
     feedbacks = FeedbackMorador.objects.filter(condominio=condominio).order_by('-data_envio')
 
-    
-
     feedbacks.filter(lido_pela_gestao=False).update(lido_pela_gestao=True)
-
-
 
     context = sindico_context(request, {
 
@@ -3058,9 +2254,5 @@ def feedbacks_sindico(request):
 
     }, active_page='feedbacks')
 
-
-
     return render(request, 'sindico/feedbacks.html', context)
-
-
 

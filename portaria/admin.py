@@ -24,29 +24,13 @@ from .models import (
 
 from .forms import CustomUserChangeForm, CustomUserCreationForm
 
-
-
 User = get_user_model()
 
-
-
-
-
-
-
-
-
-
-
 admin.site.unregister(Group)
-
-
 
 class TenantAdminMixin:
 
     pass
-
-
 
     def get_queryset(self, request):
 
@@ -62,8 +46,6 @@ class TenantAdminMixin:
 
         return qs.none()
 
-
-
     def save_model(self, request, obj, form, change):
 
         if not change and not request.user.is_superuser:
@@ -73,8 +55,6 @@ class TenantAdminMixin:
                 obj.condominio = request.user.condominio
 
         super().save_model(request, obj, form, change)
-
-
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
 
@@ -90,8 +70,6 @@ class TenantAdminMixin:
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
-
-
     def has_module_permission(self, request):
 
         if request.user.is_superuser:
@@ -100,15 +78,7 @@ class TenantAdminMixin:
 
         return super().has_module_permission(request)
 
-
-
-
-
 from unfold.admin import ModelAdmin, StackedInline, TabularInline
-
-
-
-
 
 class MoradorInline(StackedInline):
 
@@ -119,14 +89,6 @@ class MoradorInline(StackedInline):
     can_delete = False
 
     autocomplete_fields = ['condominio']
-
-
-
-
-
-
-
-
 
 class SindicoUserInline(TabularInline):
 
@@ -142,23 +104,13 @@ class SindicoUserInline(TabularInline):
 
     readonly_fields = ('customuser',)
 
-
-
-
-
     def get_queryset(self, request):
 
         return super().get_queryset(request).filter(customuser__tipo_usuario='sindico')
 
-
-
     def has_add_permission(self, request, obj=None):
 
         return False
-
-
-
-
 
 class PorteiroUserInline(TabularInline):
 
@@ -174,21 +126,13 @@ class PorteiroUserInline(TabularInline):
 
     readonly_fields = ('customuser',)
 
-
-
     def get_queryset(self, request):
 
         return super().get_queryset(request).filter(customuser__tipo_usuario='porteiro')
 
-
-
     def has_add_permission(self, request, obj=None):
 
         return False
-
-
-
-
 
 class MoradorUserInline(TabularInline):
 
@@ -204,19 +148,13 @@ class MoradorUserInline(TabularInline):
 
     readonly_fields = ('customuser',)
 
-
-
     def get_queryset(self, request):
 
         return super().get_queryset(request).filter(customuser__tipo_usuario='morador')
 
-
-
     def has_add_permission(self, request, obj=None):
 
         return False
-
-
 
 @admin.register(User)
 
@@ -274,15 +212,11 @@ class UserAdmin(BaseUserAdmin, ModelAdmin):
 
     )
 
-
-
     def get_condominios_list(self, obj):
 
         return ", ".join([c.nome for c in obj.condominios.all()])
 
     get_condominios_list.short_description = 'Condomínios'
-
-
 
     def get_queryset(self, request):
 
@@ -300,21 +234,11 @@ class UserAdmin(BaseUserAdmin, ModelAdmin):
 
         return qs.none()
 
-
-
 @admin.register(Group)
 
 class GroupAdmin(BaseGroupAdmin, ModelAdmin):
 
     pass
-
-
-
-
-
-
-
-
 
 class DocumentoInline(TabularInline):
 
@@ -332,10 +256,6 @@ class DocumentoInline(TabularInline):
 
     readonly_fields = ('data_upload',)
 
-
-
-
-
 @admin.register(Condominio)
 
 class CondominioAdmin(ModelAdmin):
@@ -349,8 +269,6 @@ class CondominioAdmin(ModelAdmin):
     list_editable = ()
 
     inlines = [SindicoUserInline, PorteiroUserInline, MoradorUserInline, DocumentoInline]
-
-
 
     def get_status_ativo(self, obj):
 
@@ -370,10 +288,6 @@ class CondominioAdmin(ModelAdmin):
 
     get_status_ativo.short_description = 'Status'
 
-
-
-
-
 @admin.register(Sindico)
 
 class SindicoAdmin(TenantAdminMixin, ModelAdmin):
@@ -382,17 +296,11 @@ class SindicoAdmin(TenantAdminMixin, ModelAdmin):
 
     search_fields = ('nome', 'usuario__username')
 
-
-
     def get_condominios(self, obj):
 
         return obj.condominio.nome if obj.condominio else ""
 
     get_condominios.short_description = 'Condomínio'
-
-
-
-
 
 @admin.register(Porteiro)
 
@@ -406,33 +314,15 @@ class PorteiroAdmin(TenantAdminMixin, ModelAdmin):
 
     autocomplete_fields = ('usuario', 'condominio')
 
-
-
-
-
-
-
-
-
-
-
-
-
 class MoradorResource(resources.ModelResource):
 
     class Meta:
 
         model = Morador
 
-
-
         fields = ('nome', 'cpf', 'bloco', 'apartamento', 'telefone', 'email')
 
-
-
         import_id_fields = ('cpf',)
-
-
 
 @admin.register(Morador)
 
@@ -452,8 +342,6 @@ class MoradorAdmin(TenantAdminMixin, ModelAdmin):
 
     ordering = ('condominio', 'bloco', 'apartamento')
 
-
-
     def get_usuario_status(self, obj):
 
         if obj.usuario:
@@ -468,23 +356,15 @@ class MoradorAdmin(TenantAdminMixin, ModelAdmin):
 
     get_usuario_status.short_description = 'Status'
 
-
-
     def save_model(self, request, obj, form, change):
 
         if not obj.pk and not obj.usuario:
-
-
 
             username = f"{obj.nome.split()[0].lower()}.{obj.apartamento}"
 
             if obj.bloco:
 
                 username += f".{obj.bloco.lower()}"
-
-
-
-
 
             base_username = username
 
@@ -495,8 +375,6 @@ class MoradorAdmin(TenantAdminMixin, ModelAdmin):
                 username = f"{base_username}{counter}"
 
                 counter += 1
-
-
 
             user = User.objects.create_user(
 
@@ -520,31 +398,11 @@ class MoradorAdmin(TenantAdminMixin, ModelAdmin):
 
             obj.usuario = user
 
-
-
-
-
             from django.contrib import messages
 
             messages.success(request, f"Conta criada automaticamente: Login = '{username}' | Senha = 'mudar123'")
 
-
-
         super().save_model(request, obj, form, change)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 @admin.register(Visitante)
 
@@ -558,8 +416,6 @@ class VisitanteAdmin(TenantAdminMixin, ModelAdmin):
 
     autocomplete_fields = ['morador_responsavel', 'condominio']
 
-
-
 @admin.register(Encomenda)
 
 class EncomendaAdmin(TenantAdminMixin, ModelAdmin):
@@ -571,8 +427,6 @@ class EncomendaAdmin(TenantAdminMixin, ModelAdmin):
     search_fields = ('morador__nome',)
 
     autocomplete_fields = ['morador', 'condominio']
-
-
 
 @admin.register(Solicitacao)
 
@@ -586,8 +440,6 @@ class SolicitacaoAdmin(TenantAdminMixin, ModelAdmin):
 
     autocomplete_fields = ['morador', 'condominio']
 
-
-
 @admin.register(Cobranca)
 
 class CobrancaAdmin(TenantAdminMixin, ModelAdmin):
@@ -599,8 +451,6 @@ class CobrancaAdmin(TenantAdminMixin, ModelAdmin):
     search_fields = ('descricao', 'morador__nome', 'morador__apartamento')
 
     autocomplete_fields = ['morador', 'condominio']
-
-
 
     def get_status_html(self, obj):
 
@@ -632,8 +482,6 @@ class CobrancaAdmin(TenantAdminMixin, ModelAdmin):
 
     get_status_html.short_description = 'Status'
 
-
-
 @admin.register(Mensagem)
 
 class MensagemAdmin(TenantAdminMixin, ModelAdmin):
@@ -646,8 +494,6 @@ class MensagemAdmin(TenantAdminMixin, ModelAdmin):
 
     autocomplete_fields = ['remetente', 'destinatario', 'condominio']
 
-
-
 @admin.register(Ocorrencia)
 
 class OcorrenciaAdmin(TenantAdminMixin, ModelAdmin):
@@ -659,14 +505,6 @@ class OcorrenciaAdmin(TenantAdminMixin, ModelAdmin):
     search_fields = ('autor__nome', 'infrator', 'descricao')
 
     autocomplete_fields = ['autor', 'condominio']
-
-
-
-
-
-
-
-
 
 @admin.register(DocumentoCondominio)
 

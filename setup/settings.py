@@ -4,31 +4,13 @@ import os
 
 from dotenv import load_dotenv
 
-
-
-
-
 load_dotenv()
-
-
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-
-
-
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-chave-padrao-desenvolvimento')
 
-
-
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
-
-
-
-
-
-
 
 VAPID_PUBLIC_KEY = os.getenv('VAPID_PUBLIC_KEY', 'BFLk6_JdSQnw2tF8upjINQuU831-MEP92iLNSccazaBh5CKAW3qSUkwJSHM8N38cfJO3rNvAGc5CfetVVgWs5NM')
 
@@ -36,17 +18,7 @@ VAPID_PRIVATE_KEY = os.getenv('VAPID_PRIVATE_KEY', 'vsIus-mzPP8jOr-wU7hLmRI3WDWS
 
 VAPID_ADMIN_EMAIL = os.getenv('VAPID_ADMIN_EMAIL', 'mailto:discipuloleonardo@gmail.com')
 
-
-
-
-
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,*').split(',')
-
-
-
-
-
-
 
 _csrf_origins_env = os.getenv('CSRF_TRUSTED_ORIGINS', '')
 
@@ -60,45 +32,17 @@ CSRF_TRUSTED_ORIGINS = [
 
 ] + [o.strip() for o in _csrf_origins_env.split(',') if o.strip()]
 
-
-
-
-
 CSRF_COOKIE_SAMESITE = 'Lax'
 
 SESSION_COOKIE_SAMESITE = 'Lax'
 
 CSRF_COOKIE_HTTPONLY = False
 
-
-
-
-
-
-
-
-
-
-
-
-
 SECURE_BROWSER_XSS_FILTER = True
-
-
-
-
 
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
-
-
-
-
 X_FRAME_OPTIONS = 'SAMEORIGIN'
-
-
-
-
 
 if not DEBUG:
 
@@ -114,10 +58,6 @@ if not DEBUG:
 
     SECURE_HSTS_PRELOAD = True
 
-
-
-
-
 INSTALLED_APPS = [
 
     'unfold',                                         
@@ -127,8 +67,6 @@ INSTALLED_APPS = [
     'unfold.contrib.forms',                          
 
     'unfold.contrib.import_export',                                
-
-
 
     'django.contrib.admin',
 
@@ -144,11 +82,7 @@ INSTALLED_APPS = [
 
     'django.contrib.staticfiles',
 
-
-
     'import_export',                    
-
-
 
     'allauth',
 
@@ -158,13 +92,9 @@ INSTALLED_APPS = [
 
     'allauth.socialaccount.providers.google',
 
-
-
     'portaria',           
 
 ]
-
-
 
 MIDDLEWARE = [
 
@@ -186,11 +116,7 @@ MIDDLEWARE = [
 
 ]
 
-
-
 ROOT_URLCONF = 'setup.urls'
-
-
 
 TEMPLATES = [
 
@@ -224,11 +150,7 @@ TEMPLATES = [
 
 ]
 
-
-
 WSGI_APPLICATION = 'setup.wsgi.application'
-
-
 
 DATABASES = {
 
@@ -241,8 +163,6 @@ DATABASES = {
     }
 
 }
-
-
 
 AUTH_PASSWORD_VALIDATORS = [
 
@@ -272,8 +192,6 @@ AUTH_PASSWORD_VALIDATORS = [
 
 ]
 
-
-
 LANGUAGE_CODE = 'pt-br'
 
 TIME_ZONE = 'America/Sao_Paulo'
@@ -281,8 +199,6 @@ TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
 
 USE_TZ = True
-
-
 
 STATIC_URL = 'static/'
 
@@ -294,35 +210,23 @@ STATICFILES_DIRS = [
 
 ]
 
-
-
 MEDIA_URL = '/media/'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800
 
 FILE_UPLOAD_MAX_MEMORY_SIZE = 52428800
 
-
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
-
 AUTH_USER_MODEL = 'portaria.CustomUser'
-
-
 
 LOGIN_REDIRECT_URL = 'home'
 
 LOGIN_URL = 'login'
 
 LOGOUT_REDIRECT_URL = 'login'
-
-
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
@@ -342,11 +246,7 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 
 DEFAULT_FROM_EMAIL = 'Gestão Condominial <noreply@gestaocondominial.com>'
 
-
-
 from django.urls import reverse_lazy
-
-
 
 UNFOLD = {
 
@@ -586,11 +486,7 @@ UNFOLD = {
 
 }
 
-
-
 SITE_ID = 1
-
-
 
 AUTHENTICATION_BACKENDS = [
 
@@ -599,8 +495,6 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
 
 ]
-
-
 
 SOCIALACCOUNT_PROVIDERS = {
 
@@ -626,15 +520,11 @@ SOCIALACCOUNT_PROVIDERS = {
 
 }
 
-
-
 SOCIALACCOUNT_ADAPTER = 'portaria.adapters.MySocialAccountAdapter'
 
 SOCIALACCOUNT_LOGIN_ON_GET = True
 
 LOGIN_REDIRECT_URL = '/login/popup-close/'
-
-
 
 ACCOUNT_LOGIN_METHODS = {'email'}
 
@@ -643,6 +533,4 @@ ACCOUNT_SIGNUP_FIELDS = ['email*']
 ACCOUNT_UNIQUE_EMAIL = True
 
 SOCIALACCOUNT_AUTO_SIGNUP = True
-
-
 

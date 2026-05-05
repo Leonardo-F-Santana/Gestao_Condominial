@@ -1,12 +1,6 @@
 
 
-
-
 from django.db import migrations
-
-
-
-
 
 def forward_func(apps, schema_editor):
 
@@ -18,27 +12,17 @@ def forward_func(apps, schema_editor):
 
             user.condominios.add(user.condominio_id)
 
-
-
 def reverse_func(apps, schema_editor):
 
     pass
 
-
-
-
-
 class Migration(migrations.Migration):
-
-
 
     dependencies = [
 
         ('portaria', '0013_customuser_condominios'),
 
     ]
-
-
 
     operations = [
 

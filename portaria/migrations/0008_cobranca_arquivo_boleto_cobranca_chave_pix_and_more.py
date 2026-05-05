@@ -1,24 +1,14 @@
 
 
-
-
 from django.db import migrations, models
 
-
-
-
-
 class Migration(migrations.Migration):
-
-
 
     dependencies = [
 
         ('portaria', '0007_mensagem_resposta_a'),
 
     ]
-
-
 
     operations = [
 

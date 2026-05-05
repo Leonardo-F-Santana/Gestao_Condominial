@@ -9238,7 +9238,7 @@ jQuery.extend( {
 		
 		
 		s.url = ( ( url || s.url || location.href ) + "" )
-			.replace( rprotocol, location.protocol + "//" );
+			.replace( rprotocol, location.protocol + "
 
 		
 		s.type = options.method || options.type || s.method || s.type;
@@ -9259,8 +9259,8 @@ jQuery.extend( {
 				
 				
 				urlAnchor.href = urlAnchor.href;
-				s.crossDomain = originAnchor.protocol + "//" + originAnchor.host !==
-					urlAnchor.protocol + "//" + urlAnchor.host;
+				s.crossDomain = originAnchor.protocol + "
+					urlAnchor.protocol + "
 			} catch ( e ) {
 
 				

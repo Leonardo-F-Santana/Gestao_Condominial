@@ -6,17 +6,9 @@ from unfold.forms import UserChangeForm as BaseUserChangeForm, UserCreationForm 
 
 from django.contrib.auth import get_user_model
 
-
-
 User = get_user_model()
 
 from django.core.validators import RegexValidator
-
-
-
-
-
-
 
 def validate_email_domain(email):
 
@@ -26,10 +18,6 @@ def validate_email_domain(email):
 
     domain = email.split('@')[-1].lower() if '@' in email else ''
 
-
-
-
-
     valid_tlds = ['.com', '.com.br', '.net', '.org', '.edu', '.gov', '.mil', '.int', '.io', '.coop']
 
     if not any(domain.endswith(tld) for tld in valid_tlds) or domain.startswith('.') or domain.endswith('.co') or domain.endswith('.con'):
@@ -37,10 +25,6 @@ def validate_email_domain(email):
         raise forms.ValidationError("Informe um e-mail com um domínio válido (ex: .com, .com.br, .net, .org).")
 
     return email
-
-
-
-
 
 username_validator = RegexValidator(
 
@@ -50,19 +34,11 @@ username_validator = RegexValidator(
 
 )
 
-
-
-
-
 class PermissionToggleWidget(forms.Widget):
 
     pass
 
     template_name = 'admin/widgets/permission_toggles.html'
-
-
-
-
 
     MODEL_LABELS = {
 
@@ -88,10 +64,6 @@ class PermissionToggleWidget(forms.Widget):
 
     }
 
-
-
-
-
     ACTION_LABELS = {
 
         'view': {'label': 'Visualizar', 'order': 0},
@@ -104,15 +76,9 @@ class PermissionToggleWidget(forms.Widget):
 
     }
 
-
-
     def get_context(self, name, value, attrs):
 
         context = super().get_context(name, value, attrs)
-
-
-
-
 
         selected_ids = set()
 
@@ -130,10 +96,6 @@ class PermissionToggleWidget(forms.Widget):
 
                         selected_ids.add(v.pk)
 
-
-
-
-
         relevant_apps = ['portaria', 'auth']
 
         permissions = (
@@ -148,15 +110,9 @@ class PermissionToggleWidget(forms.Widget):
 
         )
 
-
-
-
-
         grouped = {}
 
         shown_ids = set()
-
-
 
         for perm in permissions:
 
@@ -164,15 +120,9 @@ class PermissionToggleWidget(forms.Widget):
 
             model_key = f"{ct.app_label}.{ct.model}"
 
-
-
-
-
             if model_key not in self.MODEL_LABELS:
 
                 continue
-
-
 
             if model_key not in grouped:
 
@@ -188,10 +138,6 @@ class PermissionToggleWidget(forms.Widget):
 
                 }
 
-
-
-
-
             action = perm.codename.split('_', 1)[0]
 
             action_info = self.ACTION_LABELS.get(
@@ -199,8 +145,6 @@ class PermissionToggleWidget(forms.Widget):
                 action, {'label': perm.name, 'order': 9}
 
             )
-
-
 
             grouped[model_key]['actions'].append({
 
@@ -216,25 +160,15 @@ class PermissionToggleWidget(forms.Widget):
 
             shown_ids.add(perm.id)
 
-
-
-
-
         for model_key in grouped:
 
             grouped[model_key]['actions'].sort(key=lambda a: a['order'])
-
-
-
-
 
         other_selected = [
 
             {'id': pid} for pid in (selected_ids - shown_ids)
 
         ]
-
-
 
         context['grouped_permissions'] = grouped
 
@@ -244,31 +178,17 @@ class PermissionToggleWidget(forms.Widget):
 
         return context
 
-
-
     def value_from_datadict(self, data, files, name):
 
         return data.getlist(name)
 
-
-
     def value_omitted_from_data(self, data, files, name):
 
-
-
-
-
         return False
-
-
-
-
 
 class CustomUserChangeForm(BaseUserChangeForm):
 
     pass
-
-
 
     username = forms.CharField(
 
@@ -281,8 +201,6 @@ class CustomUserChangeForm(BaseUserChangeForm):
         label='Nome de usuário',
 
     )
-
-
 
     def __init__(self, *args, **kwargs):
 
@@ -298,15 +216,11 @@ class CustomUserChangeForm(BaseUserChangeForm):
 
             )
 
-
-
     class Meta(BaseUserChangeForm.Meta):
 
         model = User
 
         fields = '__all__'
-
-
 
     def clean(self):
 
@@ -324,15 +238,9 @@ class CustomUserChangeForm(BaseUserChangeForm):
 
         return cleaned_data
 
-
-
-
-
 class CustomUserCreationForm(BaseUserCreationForm):
 
     pass
-
-
 
     username = forms.CharField(
 
@@ -346,15 +254,11 @@ class CustomUserCreationForm(BaseUserCreationForm):
 
     )
 
-
-
     class Meta(BaseUserCreationForm.Meta):
 
         model = User
 
         fields = ('username', 'tipo_usuario', 'condominios')
-
-
 
     def clean(self):
 
@@ -370,19 +274,13 @@ class CustomUserCreationForm(BaseUserCreationForm):
 
         return cleaned_data
 
-
-
 from .models import Morador, Sindico, Porteiro
-
-
 
 class MoradorPerfilForm(forms.ModelForm):
 
     username = forms.CharField(label="Usuário (Login)", required=True)
 
     email = forms.EmailField(label="E-mail", required=False)
-
-
 
     class Meta:
 
@@ -399,8 +297,6 @@ class MoradorPerfilForm(forms.ModelForm):
             'bloco': forms.TextInput(attrs={'class': 'form-control'}),
 
         }
-
-
 
     def __init__(self, *args, **kwargs):
 
@@ -422,15 +318,11 @@ class MoradorPerfilForm(forms.ModelForm):
 
         self.fields['bloco'].disabled = True
 
-
-
     def clean_email(self):
 
         email = self.cleaned_data.get('email')
 
         return validate_email_domain(email)
-
-
 
     def save(self, commit=True):
 
@@ -454,8 +346,6 @@ class MoradorPerfilForm(forms.ModelForm):
 
         return morador
 
-
-
 class SindicoPerfilForm(forms.ModelForm):
 
     username = forms.CharField(label="Usuário (Login)", required=True)
@@ -463,8 +353,6 @@ class SindicoPerfilForm(forms.ModelForm):
     email = forms.EmailField(label="E-mail", required=False)
 
     receber_push = forms.BooleanField(label="Receber Notificações Push", required=False)
-
-
 
     class Meta:
 
@@ -477,8 +365,6 @@ class SindicoPerfilForm(forms.ModelForm):
             'telefone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(00) 00000-0000'}),
 
         }
-
-
 
     def __init__(self, *args, **kwargs):
 
@@ -498,15 +384,11 @@ class SindicoPerfilForm(forms.ModelForm):
 
             self.fields['receber_push'].initial = self.user.receber_push
 
-
-
     def clean_email(self):
 
         email = self.cleaned_data.get('email')
 
         return validate_email_domain(email)
-
-
 
     def save(self, commit=True):
 
@@ -530,15 +412,11 @@ class SindicoPerfilForm(forms.ModelForm):
 
         return sindico
 
-
-
 class PorteiroForm(forms.ModelForm):
 
     username = forms.CharField(label="Usuário (Login)", required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: login.porteiro'}))
 
     password = forms.CharField(label="Senha", required=False, widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Mínimo 6 caracteres'}))
-
-
 
     class Meta:
 
@@ -552,8 +430,6 @@ class PorteiroForm(forms.ModelForm):
 
         }
 
-
-
     def __init__(self, *args, **kwargs):
 
         self.user = kwargs.pop('user', None)
@@ -564,17 +440,11 @@ class PorteiroForm(forms.ModelForm):
 
             self.fields['username'].initial = self.user.username
 
-
-
             self.fields['password'].required = False
-
-
 
     def save(self, commit=True):
 
         porteiro = super().save(commit=False)
 
         return porteiro
-
-
 

@@ -4,23 +4,13 @@ from django.urls import reverse
 
 from django.contrib.auth import get_user_model
 
-
-
-
-
 User = get_user_model()
 
-
-
 class KSTech_Testes_Blindagem(TestCase):
-
-
 
     def setUp(self):
 
         self.navegador_virtual = Client()
-
-
 
         self.usuario_teste = User.objects.create_user(
 
@@ -34,8 +24,6 @@ class KSTech_Testes_Blindagem(TestCase):
 
         )
 
-
-
     def test_criacao_usuario_valido(self):
 
         usuario = User.objects.get(username='porteiro_teste')
@@ -44,15 +32,11 @@ class KSTech_Testes_Blindagem(TestCase):
 
         self.assertTrue(usuario.check_password('senha_blindada_123'))                        
 
-
-
     def test_seguranca_pagina_home_sem_login(self):
 
         resposta = self.navegador_virtual.get(reverse('home'))
 
         self.assertEqual(resposta.status_code, 302) 
-
-
 
     def test_acesso_pagina_home_com_login(self):
 
@@ -62,13 +46,9 @@ class KSTech_Testes_Blindagem(TestCase):
 
         self.assertEqual(resposta.status_code, 200)
 
-
-
     def test_api_stats_retorna_json_valido(self):
 
         self.navegador_virtual.login(username='porteiro_teste', password='senha_blindada_123')
-
-
 
         try:
 
@@ -76,11 +56,7 @@ class KSTech_Testes_Blindagem(TestCase):
 
             self.assertEqual(resposta.status_code, 200)
 
-
-
             self.assertEqual(resposta['Content-Type'], 'application/json')
-
-
 
             dados = resposta.json()
 
@@ -90,27 +66,17 @@ class KSTech_Testes_Blindagem(TestCase):
 
             pass
 
-
-
 from unittest.mock import patch
 
 from .models import Morador, PushSubscription, Solicitacao
 
 from .utils import disparar_push_individual
 
-
-
 class WebPushAutomatedTests(TestCase):
 
     def setUp(self):
 
-
-
         self.user = User.objects.create_user(username='morador_teste', password='123')
-
-
-
-
 
         self.inscricao = PushSubscription.objects.create(
 
@@ -124,15 +90,11 @@ class WebPushAutomatedTests(TestCase):
 
         )
 
-
-
     @patch('pywebpush.webpush')
 
     def test_disparo_push_isolado(self, mock_webpush):
 
         pass
-
-
 
         disparar_push_individual(
 
@@ -145,9 +107,5 @@ class WebPushAutomatedTests(TestCase):
             link="/morador/"
 
         )
-
-
-
-
 
         self.assertEqual(mock_webpush.call_count, 1)

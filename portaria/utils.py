@@ -8,23 +8,15 @@ from django.conf import settings
 
 from .models import PushSubscription
 
-
-
-
-
 def _is_subscription_gone(ex):
 
     pass
-
-
 
     if ex.response is not None:
 
         if ex.response.status_code in (410, 404, 401):
 
             return True
-
-
 
     msg = str(ex)
 
@@ -34,10 +26,6 @@ def _is_subscription_gone(ex):
 
     return False
 
-
-
-
-
 def _enviar_push_thread(usuario_id, payload, inscricao_ids):
 
     pass
@@ -45,8 +33,6 @@ def _enviar_push_thread(usuario_id, payload, inscricao_ids):
     from django.contrib.auth import get_user_model
 
     User = get_user_model()
-
-
 
     try:
 
@@ -56,15 +42,11 @@ def _enviar_push_thread(usuario_id, payload, inscricao_ids):
 
         return
 
-
-
     inscricoes = PushSubscription.objects.filter(id__in=inscricao_ids)
 
     ids_para_deletar = []
 
     sucessos = 0
-
-
 
     for inscricao in inscricoes:
 
@@ -114,8 +96,6 @@ def _enviar_push_thread(usuario_id, payload, inscricao_ids):
 
         except Exception as ex:
 
-
-
             error_name = type(ex).__name__
 
             if 'Timeout' in error_name or 'ConnectionError' in error_name:
@@ -128,23 +108,13 @@ def _enviar_push_thread(usuario_id, payload, inscricao_ids):
 
                 print(f"  [-] ERRO GENÉRICO -> {usuario.username}: {repr(ex)}")
 
-
-
-
-
     if ids_para_deletar:
 
         deletados = PushSubscription.objects.filter(id__in=ids_para_deletar).delete()[0]
 
         print(f"  [🧹] Limpeza: {deletados} inscrições expiradas removidas para {usuario.username}")
 
-
-
     print(f"  [📊] Push finalizado: {sucessos} sucesso(s), {len(ids_para_deletar)} removida(s)")
-
-
-
-
 
 def enviar_push_notification(usuario, title, body, icon='/static/img/icon-192.png', url='/'):
 
@@ -154,19 +124,13 @@ def enviar_push_notification(usuario, title, body, icon='/static/img/icon-192.pn
 
     vapid_admin_email = getattr(settings, 'VAPID_ADMIN_EMAIL', None)
 
-
-
     if not vapid_private_key or not vapid_admin_email:
 
         return
 
-
-
     if not getattr(usuario, 'receber_push', False):
 
         return
-
-
 
     payload = json.dumps({
 
@@ -180,15 +144,11 @@ def enviar_push_notification(usuario, title, body, icon='/static/img/icon-192.pn
 
     })
 
-
-
     inscricao_ids = list(PushSubscription.objects.filter(usuario=usuario).values_list('id', flat=True))
 
     if not inscricao_ids:
 
         return
-
-
 
     t = threading.Thread(
 
@@ -202,10 +162,6 @@ def enviar_push_notification(usuario, title, body, icon='/static/img/icon-192.pn
 
     t.start()
 
-
-
-
-
 def disparar_push_individual(usuario, titulo, mensagem, link):
 
     pass
@@ -214,15 +170,9 @@ def disparar_push_individual(usuario, titulo, mensagem, link):
 
         return
 
-
-
     inscricao_ids = list(PushSubscription.objects.filter(usuario=usuario).values_list('id', flat=True))
 
-
-
     print(f"\n=== PUSH INDIVIDUAL -> {usuario.username} ({len(inscricao_ids)} inscrições) ===")
-
-
 
     if not inscricao_ids:
 
@@ -231,8 +181,6 @@ def disparar_push_individual(usuario, titulo, mensagem, link):
         print("==========================================\n")
 
         return
-
-
 
     payload = json.dumps({
 
@@ -243,10 +191,6 @@ def disparar_push_individual(usuario, titulo, mensagem, link):
         'link': link
 
     })
-
-
-
-
 
     t = threading.Thread(
 

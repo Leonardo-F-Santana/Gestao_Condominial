@@ -14,16 +14,6 @@ from django.dispatch import receiver
 
 import uuid
 
-
-
-
-
-
-
-
-
-
-
 class Condominio(models.Model):
 
     pass
@@ -46,13 +36,9 @@ class Condominio(models.Model):
 
     ativo = models.BooleanField(default=True, verbose_name="Ativo")
 
-
-
     def __str__(self):
 
         return self.nome
-
-
 
     class Meta:
 
@@ -61,10 +47,6 @@ class Condominio(models.Model):
         verbose_name_plural = "Condomínios"
 
         ordering = ['nome']
-
-
-
-
 
 class CustomUser(AbstractUser):
 
@@ -81,8 +63,6 @@ class CustomUser(AbstractUser):
 
     receber_push = models.BooleanField(default=False, verbose_name="Permitir Push")
 
-
-
     @property
 
     def get_condominio_ativo(self):
@@ -91,8 +71,6 @@ class CustomUser(AbstractUser):
 
         return self.condominios.first()
 
-
-
     @property
 
     def condominio(self):
@@ -100,8 +78,6 @@ class CustomUser(AbstractUser):
         pass
 
         return self.get_condominio_ativo
-
-
 
     def __str__(self):
 
@@ -112,10 +88,6 @@ class CustomUser(AbstractUser):
             return f"{self.username} - {condominio_ativo.nome}"
 
         return self.username
-
-
-
-
 
 class Sindico(models.Model):
 
@@ -129,23 +101,15 @@ class Sindico(models.Model):
 
     condominio = models.ForeignKey(Condominio, on_delete=models.CASCADE, related_name='sindicos_perfil', verbose_name="Condomínio")
 
-
-
     def __str__(self):
 
         return f"{self.nome} ({self.usuario.username})"
-
-
 
     class Meta:
 
         verbose_name = "Síndico"
 
         verbose_name_plural = "Síndicos"
-
-
-
-
 
 class Porteiro(models.Model):
 
@@ -163,31 +127,15 @@ class Porteiro(models.Model):
 
                               help_text="Ex: Porteiro, Zelador, Segurança")
 
-
-
     def __str__(self):
 
         return f"{self.nome} — {self.condominio.nome} ({self.cargo})"
-
-
 
     class Meta:
 
         verbose_name = "Porteiro / Acesso"
 
         verbose_name_plural = "Porteiros e Acessos"
-
-
-
-
-
-
-
-
-
-
-
-
 
 class Morador(models.Model):
 
@@ -211,8 +159,6 @@ class Morador(models.Model):
 
     apartamento = models.CharField(max_length=10, verbose_name="Apartamento")
 
-
-
     STATUS_APROVACAO_CHOICES = [
 
         ('AGUARDANDO', 'Aguardando Aprovação'),
@@ -235,8 +181,6 @@ class Morador(models.Model):
 
     )
 
-
-
     def __str__(self):
 
         if self.bloco:
@@ -245,8 +189,6 @@ class Morador(models.Model):
 
         return f"{self.apartamento} - {self.nome}"
 
-
-
     class Meta:
 
         verbose_name = "Morador"
@@ -254,10 +196,6 @@ class Morador(models.Model):
         verbose_name_plural = "Moradores"
 
         ordering = ['bloco', 'apartamento']
-
-
-
-
 
 class Cobranca(models.Model):
 
@@ -277,8 +215,6 @@ class Cobranca(models.Model):
 
     ]
 
-
-
     condominio = models.ForeignKey(Condominio, on_delete=models.CASCADE, 
 
                                     related_name='cobrancas', verbose_name="Condomínio")
@@ -297,25 +233,17 @@ class Cobranca(models.Model):
 
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDENTE', verbose_name="Status")
 
-
-
     arquivo_boleto = models.FileField(upload_to='cobrancas/boletos/', null=True, blank=True, verbose_name="Arquivo do Boleto")
 
     comprovante = models.FileField(upload_to='cobrancas/comprovantes/', null=True, blank=True, verbose_name="Comprovante de Pagamento")
 
     chave_pix = models.CharField(max_length=255, null=True, blank=True, verbose_name="Chave PIX ou Link")
 
-
-
     data_criacao = models.DateTimeField(auto_now_add=True, verbose_name="Gerado em")
-
-
 
     def __str__(self):
 
         return f"{self.descricao} - {self.morador} ({self.get_status_display()})"
-
-
 
     class Meta:
 
@@ -324,10 +252,6 @@ class Cobranca(models.Model):
         verbose_name_plural = "Cobranças"
 
         ordering = ['-data_vencimento']
-
-
-
-
 
 class Visitante(models.Model):
 
@@ -359,13 +283,9 @@ class Visitante(models.Model):
 
     registrado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Porteiro Responsável")
 
-
-
     def __str__(self):
 
         return self.nome_completo
-
-
 
 class Encomenda(models.Model):
 
@@ -397,13 +317,9 @@ class Encomenda(models.Model):
 
     porteiro_entrega = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='entregou_encomenda')
 
-
-
     def __str__(self):
 
         return f"{self.volume} - {self.morador}"
-
-
 
 class Solicitacao(models.Model):
 
@@ -412,8 +328,6 @@ class Solicitacao(models.Model):
         ('MANUTENCAO', '🛠️ Manutenção'),
         ('MUDANCA', '🚚 Mudança'),
     ]
-
-
 
     STATUS_CHOICES = [
 
@@ -426,8 +340,6 @@ class Solicitacao(models.Model):
         ('CANCELADO', '🔴 Cancelado'),
 
     ]
-
-
 
     tipo = models.CharField(max_length=20, choices=TIPOS_CHOICES, verbose_name="Tipo de Solicitação")
 
@@ -445,31 +357,21 @@ class Solicitacao(models.Model):
 
     arquivo = models.FileField(upload_to='solicitacoes/%Y/%m/', blank=True, verbose_name="Foto/Vídeo")
 
-
-
     criado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, verbose_name="Registrado por")
 
     data_criacao = models.DateTimeField(auto_now_add=True, verbose_name="Data do Registro")
 
     resposta_admin = models.TextField(blank=True, verbose_name="Resposta da Administração")
 
-
-
     def __str__(self):
 
         return f"{self.get_tipo_display()} - {self.morador or 'Portaria'}"
-
-
 
     class Meta:
 
         verbose_name = "Solicitação / Ocorrência"
 
         verbose_name_plural = "Solicitações e Ocorrências"
-
-
-
-
 
 class Aviso(models.Model):
 
@@ -495,13 +397,9 @@ class Aviso(models.Model):
 
     criado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, verbose_name="Publicado por")
 
-
-
     def __str__(self):
 
         return self.titulo
-
-
 
     class Meta:
 
@@ -510,10 +408,6 @@ class Aviso(models.Model):
         verbose_name_plural = "Avisos"
 
         ordering = ['-data_publicacao']
-
-
-
-
 
 class Notificacao(models.Model):
 
@@ -533,8 +427,6 @@ class Notificacao(models.Model):
 
     ]
 
-
-
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notificacoes')
 
     condominio = models.ForeignKey('Condominio', on_delete=models.CASCADE, related_name='notificacoes', null=True, blank=True)
@@ -549,13 +441,9 @@ class Notificacao(models.Model):
 
     data_criacao = models.DateTimeField(auto_now_add=True)
 
-
-
     def __str__(self):
 
         return f"{self.get_tipo_display()} → {self.usuario.username}"
-
-
 
     class Meta:
 
@@ -564,18 +452,6 @@ class Notificacao(models.Model):
         verbose_name_plural = "Notificações"
 
         ordering = ['-data_criacao']
-
-
-
-
-
-
-
-
-
-
-
-
 
 class AreaComum(models.Model):
 
@@ -609,13 +485,9 @@ class AreaComum(models.Model):
 
     )
 
-
-
     def __str__(self):
 
         return f"{self.nome} — {self.condominio.nome}"
-
-
 
     class Meta:
 
@@ -624,10 +496,6 @@ class AreaComum(models.Model):
         verbose_name_plural = "Áreas Comuns"
 
         ordering = ['nome']
-
-
-
-
 
 class Reserva(models.Model):
 
@@ -644,8 +512,6 @@ class Reserva(models.Model):
         ('CANCELADA', '⚫ Cancelada'),
 
     ]
-
-
 
     area = models.ForeignKey(AreaComum, on_delete=models.CASCADE,
 
@@ -681,13 +547,9 @@ class Reserva(models.Model):
 
     data_liberacao = models.DateTimeField(null=True, blank=True, verbose_name="Data/Hora da Liberação")
 
-
-
     def __str__(self):
 
         return f"{self.area.nome} — {self.data} ({self.get_status_display()})"
-
-
 
     class Meta:
 
@@ -696,16 +558,6 @@ class Reserva(models.Model):
         verbose_name_plural = "Reservas"
 
         ordering = ['-data', '-horario_inicio']
-
-
-
-
-
-
-
-
-
-
 
 class Mensagem(models.Model):
 
@@ -723,13 +575,9 @@ class Mensagem(models.Model):
 
     data_envio = models.DateTimeField(auto_now_add=True, verbose_name="Enviada em")
 
-
-
     def __str__(self):
 
         return f"De {self.remetente} para {self.destinatario} - {self.data_envio.strftime('%d/%m %H:%M')}"
-
-
 
     class Meta:
 
@@ -738,18 +586,6 @@ class Mensagem(models.Model):
         verbose_name_plural = "Mensagens"
 
         ordering = ['-data_envio']
-
-
-
-
-
-
-
-
-
-
-
-
 
 class Ocorrencia(models.Model):
 
@@ -762,8 +598,6 @@ class Ocorrencia(models.Model):
         ('RESOLVIDA', 'Resolvida')
 
     )
-
-
 
     condominio = models.ForeignKey(Condominio, on_delete=models.CASCADE, related_name='ocorrencias')
 
@@ -783,13 +617,9 @@ class Ocorrencia(models.Model):
 
     advertencia_emitida = models.BooleanField(default=False, verbose_name="Advertência Emitida")
 
-
-
     def __str__(self):
 
         return f"Ocorrência {self.id} - {self.condominio.nome}"
-
-
 
     class Meta:
 
@@ -798,16 +628,6 @@ class Ocorrencia(models.Model):
         verbose_name_plural = "Ocorrências"
 
         ordering = ['-data_registro']
-
-
-
-
-
-
-
-
-
-
 
 class PushSubscription(models.Model):
 
@@ -821,31 +641,15 @@ class PushSubscription(models.Model):
 
     criado_em = models.DateTimeField(auto_now_add=True)
 
-
-
     class Meta:
 
         verbose_name = "Inscrição Web Push"
 
         verbose_name_plural = "Inscrições Web Push"
 
-
-
     def __str__(self):
 
         return f"Push Sub de {self.usuario.username}"
-
-
-
-
-
-
-
-
-
-
-
-
 
 class DocumentoCondominio(models.Model):
 
@@ -863,8 +667,6 @@ class DocumentoCondominio(models.Model):
 
     )
 
-
-
     condominio = models.ForeignKey(Condominio, on_delete=models.CASCADE, related_name='documentos')
 
     titulo = models.CharField(max_length=200, verbose_name="Título do Documento")
@@ -875,13 +677,9 @@ class DocumentoCondominio(models.Model):
 
     data_upload = models.DateTimeField(auto_now_add=True, verbose_name="Data de Upload")
 
-
-
     def __str__(self):
 
         return f"{self.titulo} — {self.condominio.nome}"
-
-
 
     class Meta:
 
@@ -890,18 +688,6 @@ class DocumentoCondominio(models.Model):
         verbose_name_plural = "Documentos"
 
         ordering = ['-data_upload']
-
-
-
-
-
-
-
-
-
-
-
-
 
 class TarefaSindico(models.Model):
 
@@ -913,8 +699,6 @@ class TarefaSindico(models.Model):
 
     criado_em = models.DateTimeField(auto_now_add=True)
 
-
-
     class Meta:
 
         verbose_name = "Tarefa do Síndico"
@@ -923,13 +707,9 @@ class TarefaSindico(models.Model):
 
         ordering = ['concluida', '-criado_em']
 
-
-
     def __str__(self):
 
         return f"{self.condominio.nome} - {self.descricao[:30]}"
-
-
 
 class FeedbackMorador(models.Model):
 
@@ -961,13 +741,9 @@ class FeedbackMorador(models.Model):
 
     lido_pela_gestao = models.BooleanField(default=False)
 
-
-
     def __str__(self):
 
         return f"{self.tipo} - {self.assunto}"
-
-
 
     class Meta:
 

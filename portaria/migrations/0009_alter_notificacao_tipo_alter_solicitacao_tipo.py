@@ -1,24 +1,14 @@
 
 
-
-
 from django.db import migrations, models
 
-
-
-
-
 class Migration(migrations.Migration):
-
-
 
     dependencies = [
 
         ('portaria', '0008_cobranca_arquivo_boleto_cobranca_chave_pix_and_more'),
 
     ]
-
-
 
     operations = [
 

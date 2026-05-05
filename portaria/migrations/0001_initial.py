@@ -1,7 +1,5 @@
 
 
-
-
 import django.contrib.auth.models
 
 import django.contrib.auth.validators
@@ -16,25 +14,15 @@ from django.conf import settings
 
 from django.db import migrations, models
 
-
-
-
-
 class Migration(migrations.Migration):
 
-
-
     initial = True
-
-
 
     dependencies = [
 
         ('auth', '0013_alter_user_username'),
 
     ]
-
-
 
     operations = [
 

@@ -1,24 +1,14 @@
 
 
-
-
 from django.db import migrations, models
 
-
-
-
-
 class Migration(migrations.Migration):
-
-
 
     dependencies = [
 
         ('portaria', '0009_alter_notificacao_tipo_alter_solicitacao_tipo'),
 
     ]
-
-
 
     operations = [
 
