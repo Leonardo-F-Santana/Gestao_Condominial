@@ -753,4 +753,68 @@ class FeedbackMorador(models.Model):
 
         ordering = ['-data_envio']
 
+def validate_foto_conclusao(value):
+    from django.core.exceptions import ValidationError
+    if value.size > 5242880:
+        raise ValidationError("O tamanho máximo da foto é 5MB")
+
+class OrdemServico(models.Model):
+    STATUS_CHOICES = (
+        ('Pendente', 'Pendente'),
+        ('Em Andamento', 'Em Andamento'),
+        ('Concluída', 'Concluída'),
+    )
+    condominio = models.ForeignKey('Condominio', on_delete=models.CASCADE, null=True, blank=True)
+    zelador = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    solicitacao_origem = models.ForeignKey('Solicitacao', on_delete=models.SET_NULL, null=True, blank=True)
+    titulo = models.CharField(max_length=200)
+    descricao = models.TextField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pendente')
+    feedback_texto = models.TextField(blank=True, null=True)
+    foto_conclusao = models.ImageField(upload_to='os_zelador_conclusao/', blank=True, null=True, validators=[validate_foto_conclusao])
+    data_criacao = models.DateTimeField(auto_now_add=True)
+    data_conclusao = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return self.titulo
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+@receiver(post_save, sender=Solicitacao)
+def triagem_inteligente_solicitacao(sender, instance, created, **kwargs):
+    if created:
+        if instance.tipo == 'MANUTENCAO':
+            OrdemServico.objects.create(
+                condominio=instance.condominio,
+                solicitacao_origem=instance,
+                titulo=f"Manutenção Automática - {instance.get_tipo_display()}",
+                descricao=instance.descricao,
+                status='Pendente'
+            )
+    else:
+        # Sincronização: Síndico altera Solicitação -> Atualiza O.S.
+        status_map = {
+            'PENDENTE': 'Pendente',
+            'EM_ANDAMENTO': 'Em Andamento',
+            'CONCLUIDO': 'Concluída',
+            'CANCELADO': 'Concluída'
+        }
+        novo_status = status_map.get(instance.status)
+        if novo_status:
+            OrdemServico.objects.filter(solicitacao_origem=instance).update(status=novo_status)
+
+@receiver(post_save, sender=OrdemServico)
+def sync_os_to_solicitacao(sender, instance, created, **kwargs):
+    # Sincronização: Zelador altera O.S. -> Atualiza Solicitação
+    if instance.solicitacao_origem:
+        status_map = {
+            'Pendente': 'PENDENTE',
+            'Em Andamento': 'EM_ANDAMENTO',
+            'Concluída': 'CONCLUIDO'
+        }
+        novo_status = status_map.get(instance.status)
+        if novo_status:
+            Solicitacao.objects.filter(id=instance.solicitacao_origem.id).update(status=novo_status)
+
 from .models_zelador import *

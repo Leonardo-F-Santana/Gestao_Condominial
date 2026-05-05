@@ -723,12 +723,25 @@ def responder_solicitacao_sindico(request, solicitacao_id):
     solicitacao = get_object_or_404(Solicitacao, id=solicitacao_id)
 
     if request.method == 'POST':
+        if solicitacao.status == 'CONCLUIDO':
+            messages.error(request, 'Esta solicitação já está concluída e não pode ser alterada.')
+            return redirect('sindico_solicitacoes')
 
+        status_anterior = solicitacao.status
         solicitacao.resposta_admin = request.POST.get('resposta', '').strip()
-
         solicitacao.status = request.POST.get('status', solicitacao.status)
-
         solicitacao.save()
+
+        if status_anterior != 'EM_ANDAMENTO' and solicitacao.status == 'EM_ANDAMENTO':
+            from portaria.models import OrdemServico
+            if not OrdemServico.objects.filter(solicitacao_origem=solicitacao).exists():
+                OrdemServico.objects.create(
+                    condominio=solicitacao.condominio,
+                    solicitacao_origem=solicitacao,
+                    titulo=f"Solicitação Aprovada - {solicitacao.get_tipo_display()}",
+                    descricao=solicitacao.descricao,
+                    status='Pendente'
+                )
 
         if solicitacao.morador and solicitacao.morador.usuario:
 

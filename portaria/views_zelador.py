@@ -3,9 +3,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q, F
 from datetime import date
-from portaria.models import Condominio, CustomUser, Aviso
+from portaria.models import Condominio, CustomUser, Aviso, OrdemServico
 from portaria.models_zelador import (
-    ChecklistZelador, OrdemServicoZelador, AgendaZelador, 
+    ChecklistZelador, AgendaZelador, 
     LivroOcorrenciaZelador, PrestadorServicoZelador, EstoqueZelador
 )
 
@@ -25,7 +25,7 @@ def zelador_home(request):
         messages.error(request, 'Usuário zelador não associado a nenhum condomínio.')
         return redirect('login')
 
-    os_pendentes = OrdemServicoZelador.objects.filter(condominio=cond, status__in=['ABERTA', 'EM_ANDAMENTO']).count()
+    os_pendentes = OrdemServico.objects.filter(condominio=cond, status__in=['Pendente', 'Em Andamento']).count()
     checklists_hoje = ChecklistZelador.objects.filter(condominio=cond, concluido=False).count()
     alertas_estoque = EstoqueZelador.objects.filter(
         condominio=cond, 
@@ -79,34 +79,63 @@ def ordens_servico_zelador(request):
             descricao = request.POST.get('descricao')
             foto = request.FILES.get('foto')
 
-            os = OrdemServicoZelador(
+            os = OrdemServico(
                 condominio=cond, titulo=titulo, descricao=descricao, zelador=request.user
             )
             if foto:
                 if foto.size > 5242880:
                     messages.error(request, 'A foto excede o limite de 5MB.')
                     return redirect('zelador_os')
-                os.foto = foto
+                os.foto_conclusao = foto
             os.save()
             messages.success(request, 'Ordem de serviço aberta.')
         except Exception as e:
             messages.error(request, f'Erro: {e}')
         return redirect('zelador_os')
 
-    ordens = OrdemServicoZelador.objects.filter(condominio=cond).order_by('-data_abertura')
+    ordens = OrdemServico.objects.filter(condominio=cond).order_by('-data_criacao')
     return render(request, 'zelador/ordens_servico_zelador.html', {'ordens': ordens})
 
 @login_required
 def mudar_status_os(request, pk):
     if not is_zelador(request.user): return redirect('home')
-    os = get_object_or_404(OrdemServicoZelador, pk=pk, condominio=get_condominio(request.user))
+    os = get_object_or_404(OrdemServico, pk=pk, condominio=get_condominio(request.user))
+    if os.status == 'Concluída':
+        messages.error(request, 'Esta O.S. já está concluída e não pode ser alterada.')
+        return redirect('zelador_os')
+
     novo_status = request.POST.get('status')
-    if novo_status in ['ABERTA', 'EM_ANDAMENTO', 'CONCLUIDA']:
+    if novo_status in ['Pendente', 'Em Andamento', 'Concluída']:
         os.status = novo_status
-        if novo_status == 'CONCLUIDA':
+        if novo_status == 'Concluída':
             from django.utils import timezone
-            os.data_encerramento = timezone.now()
+            os.data_conclusao = timezone.now()
+            
+            feedback = request.POST.get('feedback_texto')
+            if feedback:
+                os.feedback_texto = feedback
+            
+            foto = request.FILES.get('foto_conclusao')
+            if foto:
+                if foto.size > 5242880:
+                    messages.error(request, 'A foto excede o limite de 5MB.')
+                    return redirect('zelador_os')
+                os.foto_conclusao = foto
         os.save()
+
+        if novo_status == 'Concluída' and os.solicitacao_origem:
+            sol = os.solicitacao_origem
+            texto = "A Ordem de Serviço foi concluída pelo zelador."
+            if os.feedback_texto:
+                texto += f"\nFeedback do Zelador: {os.feedback_texto}"
+            if not sol.resposta_admin:
+                sol.resposta_admin = texto
+            else:
+                sol.resposta_admin += f"\n\n--- Atualização do Zelador ---\n{texto}"
+            if os.foto_conclusao and not sol.arquivo:
+                sol.arquivo = os.foto_conclusao
+            sol.save(update_fields=['resposta_admin', 'arquivo'])
+
         messages.success(request, 'Status atualizado.')
     return redirect('zelador_os')
 

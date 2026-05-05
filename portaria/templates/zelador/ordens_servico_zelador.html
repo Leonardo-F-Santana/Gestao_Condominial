@@ -2,6 +2,46 @@
 {% block title %}Ordens de Serviço - Zelador{% endblock %}
 
 {% block content %}
+<style>
+@media (max-width: 768px) {
+    .table-responsive table, .table-responsive thead, .table-responsive tbody, .table-responsive th, .table-responsive td, .table-responsive tr {
+        display: block;
+    }
+    .table-responsive thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+    .table-responsive tr { border: 1px solid #dee2e6; margin-bottom: 15px; border-radius: 8px; padding: 10px; background-color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .table-responsive td {
+        border: none;
+        position: relative;
+        padding-left: 45% !important;
+        text-align: right;
+        margin-bottom: 8px;
+    }
+    .table-responsive td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 10px;
+        width: 40%;
+        padding-right: 10px;
+        white-space: nowrap;
+        font-weight: bold;
+        text-align: left;
+        color: #495057;
+    }
+    .table-responsive td:last-child {
+        margin-bottom: 0;
+        text-align: center;
+        padding-left: 10px !important;
+    }
+    .table-responsive td:last-child::before {
+        display: none;
+    }
+}
+</style>
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="fw-bold"><i class="bi bi-wrench-adjustable text-warning"></i> Ordens de Serviço (O.S.)</h2>
     <button class="btn btn-warning fw-bold text-dark" data-bs-toggle="modal" data-bs-target="#modalOS">
@@ -26,36 +66,75 @@
                 <tbody>
                     {% for os in ordens %}
                     <tr>
-                        <td>{{ os.data_abertura|date:"d/m/Y H:i" }}</td>
-                        <td class="fw-bold">{{ os.titulo }}</td>
-                        <td>{{ os.descricao }}</td>
-                        <td>
-                            {% if os.foto %}
-                                <a href="{{ os.foto.url }}" target="_blank" class="btn btn-sm btn-info text-white"><i class="bi bi-image"></i> Ver Foto</a>
+                        <td data-label="Data">{{ os.data_criacao|date:"d/m/Y H:i" }}</td>
+                        <td data-label="O.S." class="fw-bold">{{ os.titulo }}</td>
+                        <td data-label="Descrição">{{ os.descricao }}</td>
+                        <td data-label="Anexo">
+                            {% if os.foto_conclusao %}
+                                <a href="{{ os.foto_conclusao.url }}" target="_blank" class="btn btn-sm btn-info text-white"><i class="bi bi-image"></i> Ver Foto</a>
                             {% else %}
                                 <span class="text-muted">-</span>
                             {% endif %}
                         </td>
-                        <td>
-                            {% if os.status == 'ABERTA' %}
-                                <span class="badge bg-danger">Aberta</span>
-                            {% elif os.status == 'EM_ANDAMENTO' %}
+                        <td data-label="Status">
+                            {% if os.status == 'Pendente' %}
+                                <span class="badge bg-danger">Pendente</span>
+                            {% elif os.status == 'Em Andamento' %}
                                 <span class="badge bg-warning text-dark">Em Andamento</span>
                             {% else %}
                                 <span class="badge bg-success">Concluída</span>
                             {% endif %}
                         </td>
                         <td>
-                            <form action="{% url 'zelador_mudar_status_os' os.id %}" method="post" class="d-flex gap-2">
+                            {% if os.status != 'Concluída' %}
+                            <form action="{% url 'zelador_mudar_status_os' os.id %}" method="post" class="d-flex gap-2 justify-content-end justify-content-md-start">
                                 {% csrf_token %}
                                 <select name="status" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
-                                    <option value="ABERTA" {% if os.status == 'ABERTA' %}selected{% endif %}>Aberta</option>
-                                    <option value="EM_ANDAMENTO" {% if os.status == 'EM_ANDAMENTO' %}selected{% endif %}>Em Andamento</option>
-                                    <option value="CONCLUIDA" {% if os.status == 'CONCLUIDA' %}selected{% endif %}>Concluída</option>
+                                    <option value="Pendente" {% if os.status == 'Pendente' %}selected{% endif %}>Pendente</option>
+                                    <option value="Em Andamento" {% if os.status == 'Em Andamento' %}selected{% endif %}>Em Andamento</option>
                                 </select>
+                                <button type="button" class="btn btn-sm btn-success fw-bold" data-bs-toggle="modal" data-bs-target="#modalConcluirOS{{ os.id }}">
+                                    <i class="bi bi-check-circle"></i> Concluir
+                                </button>
                             </form>
+                            {% else %}
+                                <span class="text-success fw-bold"><i class="bi bi-check-all"></i> Finalizada</span>
+                            {% endif %}
                         </td>
                     </tr>
+
+                    <!-- Modal de Conclusão -->
+                    {% if os.status != 'Concluída' %}
+                    <div class="modal fade" id="modalConcluirOS{{ os.id }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <form method="post" action="{% url 'zelador_mudar_status_os' os.id %}" enctype="multipart/form-data">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="status" value="Concluída">
+                                    <div class="modal-header bg-success text-white">
+                                        <h5 class="modal-title fw-bold">Concluir Ordem de Serviço</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body text-start">
+                                        <p><strong>O.S.:</strong> {{ os.titulo }}</p>
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">Feedback do Serviço (Opcional)</label>
+                                            <textarea class="form-control" name="feedback_texto" rows="3" placeholder="Descreva o que foi feito..."></textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">Foto da Conclusão (Opcional, Máx 5MB)</label>
+                                            <input type="file" class="form-control" name="foto_conclusao" accept="image/*">
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="submit" class="btn btn-success fw-bold">Finalizar Serviço</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
                     {% empty %}
                     <tr><td colspan="6" class="text-center py-4">Nenhuma ordem de serviço.</td></tr>
                     {% endfor %}

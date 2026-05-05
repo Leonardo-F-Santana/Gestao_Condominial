@@ -70,7 +70,30 @@
         <p class="mb-3 text-stone-700">{{ solicitacao.resposta_admin }}</p>
     </div>
 </div>
-{% else %}
+{% endif %}
+
+{% with os=solicitacao.ordemservico_set.first %}
+{% if solicitacao.status == 'CONCLUIDO' and os and os.feedback_texto %}
+<div class="glass-card panel-success-left mt-3">
+    <div class="card-body p-4">
+        <h6 class="fw-bold mb-3 text-success">
+            <i class="bi bi-check-circle"></i> Serviço Concluído pelo Zelador
+        </h6>
+        <p class="mb-3 text-stone-700">{{ os.feedback_texto }}</p>
+        {% if os.foto_conclusao %}
+            <label class="form-label text-muted small fw-semibold mt-2">FOTO DA CONCLUSÃO</label>
+            <div class="bg-light rounded-3 p-3 text-center">
+                <a href="{{ os.foto_conclusao.url }}" target="_blank">
+                    <img src="{{ os.foto_conclusao.url }}" class="img-fluid rounded-3 shadow mt-2 file-preview-img cursor-pointer" style="max-height: 200px;">
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endwith %}
+
+{% if not solicitacao.resposta_admin and solicitacao.status != 'CONCLUIDO' %}
 <div class="glass-card">
     <div class="card-body p-4 text-center">
         <div class="mb-2 icon-2xl">⏳</div>
