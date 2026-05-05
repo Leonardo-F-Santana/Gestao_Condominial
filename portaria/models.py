@@ -413,17 +413,9 @@ class Encomenda(models.Model):
 class Solicitacao(models.Model):
 
     TIPOS_CHOICES = [
-
-        ('DUVIDA', '❓ Dúvida'),
-
-        ('SUGESTAO', '💡 Sugestão'),
-
+        ('RECLAMACAO', '📢 Reclamação'),
         ('MANUTENCAO', '🛠️ Manutenção'),
-
         ('MUDANCA', '🚚 Mudança'),
-
-        ('OUTRO', '📝 Outro'),
-
     ]
 
 

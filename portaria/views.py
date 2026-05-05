@@ -702,15 +702,29 @@ def home(request):
 
     fim_semana = inicio_semana + datetime.timedelta(days=6)
 
-    lista_reservas_semana = base_reservas.filter(
+    lista_reservas_semana = base_reservas.filter(status='APROVADA')
 
-        data__gte=inicio_semana,
+    if query:
+        q_filter = Q(morador__nome__icontains=query) | Q(area__nome__icontains=query)
+        import datetime as dt_module
+        try:
+            parsed_date = dt_module.datetime.strptime(query.strip(), '%d/%m/%Y').date()
+            q_filter |= Q(data=parsed_date)
+        except ValueError:
+            pass
+        try:
+            parsed_date2 = dt_module.datetime.strptime(query.strip(), '%Y-%m-%d').date()
+            q_filter |= Q(data=parsed_date2)
+        except ValueError:
+            pass
+        lista_reservas_semana = lista_reservas_semana.filter(q_filter)
+    else:
+        lista_reservas_semana = lista_reservas_semana.filter(
+            data__gte=inicio_semana,
+            data__lte=fim_semana
+        )
 
-        data__lte=fim_semana,
-
-        status='APROVADA'
-
-    ).select_related('area', 'morador').order_by('data', 'horario_inicio')
+    lista_reservas_semana = lista_reservas_semana.select_related('area', 'morador').order_by('data', 'horario_inicio')
 
 
 
@@ -1306,92 +1320,93 @@ def registrar_solicitacao(request):
 
 def historico_solicitacoes(request):
 
-    solicitacoes_list = Solicitacao.objects.select_related('morador').all().order_by('-data_criacao')
-
     cond = get_condominio_porteiro(request.user)
 
+    solicitacoes_qs = Solicitacao.objects.select_related('morador', 'criado_por').all().order_by('-data_criacao')
     if cond:
+        solicitacoes_qs = solicitacoes_qs.filter(condominio=cond)
 
-        solicitacoes_list = solicitacoes_list.filter(condominio=cond)
+    solicitacoes_qs = solicitacoes_qs.exclude(tipo='RECLAMACAO', criado_por__tipo_usuario='morador')
 
-
+    reservas_qs = Reserva.objects.select_related('morador', 'area').all().order_by('-data_criacao')
+    if cond:
+        reservas_qs = reservas_qs.filter(area__condominio=cond)
 
     busca = request.GET.get('busca')
-
     if busca:
-
-        solicitacoes_list = solicitacoes_list.filter(
-
+        solicitacoes_qs = solicitacoes_qs.filter(
             Q(descricao__icontains=busca) | 
-
             Q(morador__nome__icontains=busca)
-
+        )
+        reservas_qs = reservas_qs.filter(
+            Q(area__nome__icontains=busca) | 
+            Q(morador__nome__icontains=busca) |
+            Q(observacoes__icontains=busca)
         )
 
-
-
     tipo_filtro = request.GET.get('tipo')
-
     if tipo_filtro:
-
-        solicitacoes_list = solicitacoes_list.filter(tipo=tipo_filtro)
-
-
+        if tipo_filtro == 'RESERVA':
+            solicitacoes_qs = Solicitacao.objects.none()
+        else:
+            solicitacoes_qs = solicitacoes_qs.filter(tipo=tipo_filtro)
+            reservas_qs = Reserva.objects.none()
 
     status_filtro = request.GET.get('status')
-
     if status_filtro:
-
-        solicitacoes_list = solicitacoes_list.filter(status=status_filtro)
-
-
+        solicitacoes_qs = solicitacoes_qs.filter(status=status_filtro)
+        if status_filtro == 'EM_ANDAMENTO':
+            reservas_qs = Reserva.objects.none()
+        elif status_filtro == 'CONCLUIDO':
+            reservas_qs = reservas_qs.filter(status='APROVADA')
+        else:
+            reservas_qs = reservas_qs.filter(status=status_filtro)
 
     data_inicio = request.GET.get('data_inicio')
-
     data_fim = request.GET.get('data_fim')
-
     if data_inicio and data_fim:
-
         from datetime import datetime, timedelta
-
         try:
-
             dt_i = datetime.strptime(data_inicio, "%Y-%m-%d")
-
             dt_f = datetime.strptime(data_fim, "%Y-%m-%d") + timedelta(days=1)
-
-            solicitacoes_list = solicitacoes_list.filter(data_criacao__range=(dt_i, dt_f))
-
+            solicitacoes_qs = solicitacoes_qs.filter(data_criacao__range=(dt_i, dt_f))
+            reservas_qs = reservas_qs.filter(data_criacao__range=(dt_i, dt_f))
         except ValueError:
-
             pass
 
+    combined_list = []
+    for sol in solicitacoes_qs:
+        combined_list.append(sol)
+        
+    for res in reservas_qs:
+        setattr(res, 'get_tipo_display', lambda: "📅 Reserva")
+        res.descricao = f"Reserva: {res.area.nome} - {res.data.strftime('%d/%m/%Y')} {res.horario_inicio.strftime('%H:%M')} às {res.horario_fim.strftime('%H:%M')}"
+        if res.observacoes:
+            res.descricao += f" | Obs: {res.observacoes}"
+            
+        if res.status == 'APROVADA':
+            res.status = 'CONCLUIDO'
+        elif res.status in ['CANCELADA', 'RECUSADA']:
+            res.status = 'CANCELADO'
+            
+        res.criado_por = None
+        res.data_conclusao = res.data_liberacao
+        combined_list.append(res)
+        
+    combined_list.sort(key=lambda x: x.data_criacao, reverse=True)
 
-
-    paginator = Paginator(solicitacoes_list, 20)
-
+    paginator = Paginator(combined_list, 20)
     page_number = request.GET.get('page')
-
     page_obj = paginator.get_page(page_number)
 
-
-
     context = {
-
         'solicitacoes': page_obj,
-
         'busca': busca,
-
         'tipo_filtro': tipo_filtro,
-
         'status_filtro': status_filtro,
-
         'data_inicio': data_inicio,
-
         'data_fim': data_fim
-
     }
-
     return render(request, 'historico_solicitacoes.html', context)
 
 
@@ -1503,55 +1518,65 @@ def exportar_relatorio_encomendas(request):
 @login_required
 
 def exportar_relatorio_solicitacoes(request):
-
     data_inicio = request.GET.get('data_inicio')
-
     data_fim = request.GET.get('data_fim')
-
     tipo = request.GET.get('tipo_filtro')
+    cond = get_condominio_porteiro(request.user)
 
+    solicitacoes_qs = Solicitacao.objects.select_related('morador', 'criado_por').all().order_by('-data_criacao')
+    if cond:
+        solicitacoes_qs = solicitacoes_qs.filter(condominio=cond)
 
+    solicitacoes_qs = solicitacoes_qs.exclude(tipo='RECLAMACAO', criado_por__tipo_usuario='morador')
 
-    solicitacoes = Solicitacao.objects.all().order_by('-data_criacao')
-
-
+    reservas_qs = Reserva.objects.select_related('morador', 'area').all().order_by('-data_criacao')
+    if cond:
+        reservas_qs = reservas_qs.filter(area__condominio=cond)
 
     if data_inicio and data_fim:
-
         from datetime import datetime, timedelta
-
         try:
-
             dt_i = datetime.strptime(data_inicio, "%Y-%m-%d")
-
             dt_f = datetime.strptime(data_fim, "%Y-%m-%d") + timedelta(days=1)
-
-            solicitacoes = solicitacoes.filter(data_criacao__range=(dt_i, dt_f))
-
+            solicitacoes_qs = solicitacoes_qs.filter(data_criacao__range=(dt_i, dt_f))
+            reservas_qs = reservas_qs.filter(data_criacao__range=(dt_i, dt_f))
         except ValueError:
-
             pass
 
-
-
     if tipo:
+        if tipo == 'RESERVA':
+            solicitacoes_qs = Solicitacao.objects.none()
+        else:
+            solicitacoes_qs = solicitacoes_qs.filter(tipo=tipo)
+            reservas_qs = Reserva.objects.none()
 
-        solicitacoes = solicitacoes.filter(tipo=tipo)
-
-
+    combined_list = []
+    for sol in solicitacoes_qs:
+        combined_list.append(sol)
+        
+    for res in reservas_qs:
+        setattr(res, 'get_tipo_display', lambda: "📅 Reserva")
+        res.descricao = f"Reserva: {res.area.nome} - {res.data.strftime('%d/%m/%Y')} {res.horario_inicio.strftime('%H:%M')} às {res.horario_fim.strftime('%H:%M')}"
+        if res.observacoes:
+            res.descricao += f" | Obs: {res.observacoes}"
+            
+        if res.status == 'APROVADA':
+            res.status = 'CONCLUIDO'
+        elif res.status in ['CANCELADA', 'RECUSADA']:
+            res.status = 'CANCELADO'
+            
+        res.criado_por = None
+        res.data_conclusao = res.data_liberacao
+        combined_list.append(res)
+        
+    combined_list.sort(key=lambda x: x.data_criacao, reverse=True)
 
     context = {
-
         'titulo': 'Relatório de Ocorrências e Solicitações',
-
-        'solicitacoes': solicitacoes,
-
+        'solicitacoes': combined_list,
         'user': request.user,
-
         'tipo_relatorio': 'solicitacoes'
-
     }
-
     return _gerar_pdf(request, 'relatorio_pdf.html', context, 'relatorio_ocorrencias.pdf')
 
 
