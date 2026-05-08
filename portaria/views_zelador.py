@@ -179,6 +179,16 @@ def livro_ocorrencias_zelador(request):
                     return redirect('zelador_ocorrencias')
                 ocorrencia.foto = foto
             ocorrencia.save()
+
+            from portaria.views_morador import notificar_sindicos_do_condominio
+            notificar_sindicos_do_condominio(
+                condominio=cond,
+                tipo='ocorrencia',
+                titulo='Nova Ocorrência',
+                mensagem=f'O zelador {request.user.first_name or request.user.username} registrou uma nova ocorrência no Livro Digital.',
+                link='/sindico/ocorrencias/'
+            )
+
             messages.success(request, 'Ocorrência registrada.')
         except Exception as e:
             messages.error(request, f'Erro: {e}')
