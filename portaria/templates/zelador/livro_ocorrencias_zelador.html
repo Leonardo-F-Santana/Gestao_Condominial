@@ -2,6 +2,101 @@
 {% block title %}Livro de Ocorrências - Zelador{% endblock %}
 
 {% block content %}
+<style>
+@media (max-width: 768px) {
+    .table-responsive table, .table-responsive thead, .table-responsive tbody, .table-responsive th, .table-responsive td, .table-responsive tr {
+        display: block;
+    }
+    .table-responsive thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+    .table-responsive tr { 
+        border: 1px solid #e5e7eb; 
+        margin-bottom: 1.25rem; 
+        border-radius: 0.75rem; 
+        padding: 1rem; 
+        background-color: #fff; 
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); 
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .table-responsive td {
+        border: none;
+        width: 100%;
+        padding: 0.75rem 0 !important;
+        border-bottom: 1px solid #f3f4f6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: #111827; 
+        font-weight: 500;
+        text-align: right;
+        order: 1;
+    }
+    .table-responsive td:last-child {
+        border-bottom: none;
+    }
+    .table-responsive td::before {
+        content: attr(data-label);
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #6b7280;
+        text-align: left;
+    }
+    
+    .table-responsive td.td-long {
+        display: block;
+        text-align: justify;
+        font-weight: 400;
+        color: #374151;
+        line-height: 1.5;
+    }
+    .table-responsive td.td-long::before {
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .table-responsive td.td-footer-left {
+        flex: 1;
+        order: 98;
+        border-bottom: none;
+        border-top: 1px solid #e5e7eb;
+        margin-top: 0.5rem;
+        padding-top: 1rem !important;
+        justify-content: flex-start;
+    }
+    .table-responsive td.td-footer-left::before { display: none; }
+    
+    .table-responsive td.td-footer-right {
+        flex: 2;
+        order: 99;
+        border-bottom: none;
+        border-top: 1px solid #e5e7eb;
+        margin-top: 0.5rem;
+        padding-top: 1rem !important;
+        justify-content: flex-end;
+    }
+    .table-responsive td.td-footer-right::before { display: none; }
+    
+    .table-responsive td.td-footer-full {
+        width: 100%;
+        order: 100;
+        border-bottom: none;
+        border-top: 1px solid #e5e7eb;
+        margin-top: 0.5rem;
+        padding-top: 1rem !important;
+        justify-content: center;
+    }
+    .table-responsive td.td-footer-full::before { display: none; }
+
+    .table-responsive td.td-no-border {
+        border-bottom: none !important;
+    }
+}
+</style>
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="fw-bold"><i class="bi bi-exclamation-triangle text-danger"></i> Livro de Ocorrências Digital</h2>
     <button class="btn btn-danger text-white fw-bold" data-bs-toggle="modal" data-bs-target="#modalOcorrencia">
@@ -25,17 +120,17 @@
                 <tbody>
                     {% for o in ocorrencias %}
                     <tr>
-                        <td>{{ o.data_registro|date:"d/m/Y H:i" }}</td>
-                        <td class="fw-bold">{{ o.titulo }}</td>
-                        <td>{{ o.descricao }}</td>
-                        <td>
+                        <td data-label="Data">{{ o.data_registro|date:"d/m/Y H:i" }}</td>
+                        <td data-label="Incidente" class="fw-bold">{{ o.titulo }}</td>
+                        <td data-label="Descrição" class="td-long td-no-border">{{ o.descricao }}</td>
+                        <td data-label="Anexo" class="td-footer-right">
                             {% if o.foto %}
                                 <a href="{{ o.foto.url }}" target="_blank" class="btn btn-sm btn-info text-white"><i class="bi bi-image"></i> Ver Foto</a>
                             {% else %}
                                 <span class="text-muted">-</span>
                             {% endif %}
                         </td>
-                        <td>
+                        <td data-label="Gravidade" class="td-footer-left">
                             {% if o.gravidade == 'ALTA' %}
                                 <span class="badge bg-danger">Alta (Grave)</span>
                             {% elif o.gravidade == 'MEDIA' %}

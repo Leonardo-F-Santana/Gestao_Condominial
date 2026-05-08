@@ -1729,6 +1729,28 @@ def mensagens_sindico(request):
 
     return render(request, 'sindico/mensagens.html', context)
 
+from portaria.models_zelador import LivroOcorrenciaZelador
+from itertools import chain
+from operator import attrgetter
+
+class ZeladorOcorrenciaProxy:
+    def __init__(self, obj):
+        self.id = obj.id + 1000000
+        class AutorMock:
+            def __init__(self, zelador):
+                self.nome = f"{zelador.get_full_name() or zelador.username} (Zelador)"
+                self.bloco = ""
+                self.apartamento = ""
+                self.usuario = zelador
+        self.autor = AutorMock(obj.zelador)
+        self.infrator = obj.titulo
+        self.descricao = f"[GRAVIDADE: {obj.get_gravidade_display().upper()}]\n{obj.descricao}"
+        self.foto = obj.foto
+        self.status = 'REGISTRADA'
+        self.resposta_sindico = "Registro interno gerado pelo Zelador."
+        self.data_registro = obj.data_registro
+        self.advertencia_emitida = False
+
 @login_required
 
 def ocorrencias_sindico(request):
@@ -1750,6 +1772,7 @@ def ocorrencias_sindico(request):
     q = request.GET.get('q', '').strip()
 
     ocorrencias_list = Ocorrencia.objects.filter(condominio=condominio)
+    zelador_ocorrencias = LivroOcorrenciaZelador.objects.filter(condominio=condominio)
 
     if q:
 
@@ -1762,16 +1785,27 @@ def ocorrencias_sindico(request):
             Q(descricao__icontains=q)
 
         )
+        
+        zelador_ocorrencias = zelador_ocorrencias.filter(
+            Q(zelador__first_name__icontains=q) |
+            Q(zelador__username__icontains=q) |
+            Q(titulo__icontains=q) |
+            Q(descricao__icontains=q)
+        )
 
     if status != 'TODOS':
 
         ocorrencias_list = ocorrencias_list.filter(status=status)
+        if status != 'REGISTRADA':
+            zelador_ocorrencias = zelador_ocorrencias.none()
 
-    ocorrencias_list = ocorrencias_list.order_by('-data_registro')
+    zelador_proxies = [ZeladorOcorrenciaProxy(zo) for zo in zelador_ocorrencias]
+    ocorrencias_combinadas = list(chain(ocorrencias_list, zelador_proxies))
+    ocorrencias_combinadas.sort(key=attrgetter('data_registro'), reverse=True)
 
     context = sindico_context(request, {
 
-        'ocorrencias': ocorrencias_list,
+        'ocorrencias': ocorrencias_combinadas,
 
         'status_filtro': status,
 
@@ -1790,6 +1824,10 @@ def alterar_status_ocorrencia(request, ocorrencia_id):
         return redirect('home')
 
     if request.method == 'POST':
+    
+        if ocorrencia_id > 1000000:
+            messages.warning(request, 'Não é possível alterar o status de ocorrências geradas pelo Zelador no Livro Digital.')
+            return redirect('sindico_ocorrencias')
 
         novo_status = request.POST.get('status')
 
@@ -1957,7 +1995,11 @@ def gerar_advertencia_pdf(request, ocorrencia_id):
 
         return redirect('sindico_home')
 
-    ocorrencia = get_object_or_404(Ocorrencia, id=ocorrencia_id, condominio=condominio)
+    if ocorrencia_id > 1000000:
+        ocorrencia_zelador = get_object_or_404(LivroOcorrenciaZelador, id=ocorrencia_id - 1000000, condominio=condominio)
+        ocorrencia = ZeladorOcorrenciaProxy(ocorrencia_zelador)
+    else:
+        ocorrencia = get_object_or_404(Ocorrencia, id=ocorrencia_id, condominio=condominio)
 
     sindico_obj = getattr(request.user, 'sindico', None)
 
@@ -2001,7 +2043,7 @@ def gerar_advertencia_pdf(request, ocorrencia_id):
 
         return HttpResponse(f'Erro ao gerar PDF: {pisa_status.err}')
 
-    if not ocorrencia.advertencia_emitida:
+    if not (ocorrencia_id > 1000000) and not ocorrencia.advertencia_emitida:
 
         ocorrencia.advertencia_emitida = True
 

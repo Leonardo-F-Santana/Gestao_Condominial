@@ -12,32 +12,87 @@
         top: -9999px;
         left: -9999px;
     }
-    .table-responsive tr { border: 1px solid #dee2e6; margin-bottom: 15px; border-radius: 8px; padding: 10px; background-color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .table-responsive tr { 
+        border: 1px solid #e5e7eb; 
+        margin-bottom: 1.25rem; 
+        border-radius: 0.75rem; 
+        padding: 1rem; 
+        background-color: #fff; 
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); 
+        display: flex;
+        flex-wrap: wrap;
+    }
     .table-responsive td {
         border: none;
-        position: relative;
-        padding-left: 45% !important;
+        width: 100%;
+        padding: 0.75rem 0 !important;
+        border-bottom: 1px solid #f3f4f6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: #111827; 
+        font-weight: 500;
         text-align: right;
-        margin-bottom: 8px;
+        order: 1;
+    }
+    .table-responsive td:last-child {
+        border-bottom: none;
     }
     .table-responsive td::before {
         content: attr(data-label);
-        position: absolute;
-        left: 10px;
-        width: 40%;
-        padding-right: 10px;
-        white-space: nowrap;
-        font-weight: bold;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #6b7280;
         text-align: left;
-        color: #495057;
     }
-    .table-responsive td:last-child {
-        margin-bottom: 0;
-        text-align: center;
-        padding-left: 10px !important;
+    
+    .table-responsive td.td-long {
+        display: block;
+        text-align: justify;
+        font-weight: 400;
+        color: #374151;
+        line-height: 1.5;
     }
-    .table-responsive td:last-child::before {
-        display: none;
+    .table-responsive td.td-long::before {
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .table-responsive td.td-footer-left {
+        flex: 1;
+        order: 98;
+        border-bottom: none;
+        border-top: 1px solid #e5e7eb;
+        margin-top: 0.5rem;
+        padding-top: 1rem !important;
+        justify-content: flex-start;
+    }
+    .table-responsive td.td-footer-left::before { display: none; }
+    
+    .table-responsive td.td-footer-right {
+        flex: 2;
+        order: 99;
+        border-bottom: none;
+        border-top: 1px solid #e5e7eb;
+        margin-top: 0.5rem;
+        padding-top: 1rem !important;
+        justify-content: flex-end;
+    }
+    .table-responsive td.td-footer-right::before { display: none; }
+    
+    .table-responsive td.td-footer-full {
+        width: 100%;
+        order: 100;
+        border-bottom: none;
+        border-top: 1px solid #e5e7eb;
+        margin-top: 0.5rem;
+        padding-top: 1rem !important;
+        justify-content: center;
+    }
+    .table-responsive td.td-footer-full::before { display: none; }
+
+    .table-responsive td.td-no-border {
+        border-bottom: none !important;
     }
 }
 </style>
@@ -68,15 +123,15 @@
                     <tr>
                         <td data-label="Data">{{ os.data_criacao|date:"d/m/Y H:i" }}</td>
                         <td data-label="O.S." class="fw-bold">{{ os.titulo }}</td>
-                        <td data-label="Descrição">{{ os.descricao }}</td>
-                        <td data-label="Anexo">
+                        <td data-label="Descrição" class="td-long">{{ os.descricao }}</td>
+                        <td data-label="Anexo" class="td-no-border">
                             {% if os.foto_conclusao %}
                                 <a href="{{ os.foto_conclusao.url }}" target="_blank" class="btn btn-sm btn-info text-white"><i class="bi bi-image"></i> Ver Foto</a>
                             {% else %}
                                 <span class="text-muted">-</span>
                             {% endif %}
                         </td>
-                        <td data-label="Status">
+                        <td data-label="Status" class="td-footer-left">
                             {% if os.status == 'Pendente' %}
                                 <span class="badge bg-danger">Pendente</span>
                             {% elif os.status == 'Em Andamento' %}
@@ -85,7 +140,7 @@
                                 <span class="badge bg-success">Concluída</span>
                             {% endif %}
                         </td>
-                        <td>
+                        <td data-label="Ação" class="td-footer-right">
                             {% if os.status != 'Concluída' %}
                             <form action="{% url 'zelador_mudar_status_os' os.id %}" method="post" class="d-flex gap-2 justify-content-end justify-content-md-start">
                                 {% csrf_token %}
