@@ -355,9 +355,20 @@
                                     {% if sol.arquivo %}
                                         <br>
                                         {% if '.jpg' in sol.arquivo.url or '.png' in sol.arquivo.url or '.jpeg' in sol.arquivo.url or '.webp' in sol.arquivo.url or '.JPG' in sol.arquivo.url or '.PNG' in sol.arquivo.url or 'image' in sol.arquivo.url %}
-                                            <a href="{{ sol.arquivo.url }}" target="_blank">
-                                                <img src="{{ sol.arquivo.url }}" class="img-fluid rounded-2 shadow-sm mt-1 img-thumbnail-sm">
-                                            </a>
+                                            <img src="{{ sol.arquivo.url }}" class="img-fluid rounded-2 shadow-sm mt-1 cursor-pointer" style="width: 80px; height: 80px; object-fit: cover; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#modalImagem{{ sol.id }}">
+                                            
+                                            <div class="modal fade" id="modalImagem{{ sol.id }}" tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered modal-lg">
+                                                    <div class="modal-content bg-transparent border-0">
+                                                        <div class="modal-header border-0 pb-0 justify-content-end">
+                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(1) grayscale(100%) brightness(200%);"></button>
+                                                        </div>
+                                                        <div class="modal-body text-center pt-0">
+                                                            <img src="{{ sol.arquivo.url }}" class="img-fluid rounded shadow-lg" style="max-height: 80vh; object-fit: contain;">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         {% else %}
                                             <a href="{{ sol.arquivo.url }}" target="_blank" class="badge bg-secondary text-decoration-none mt-1"><i class="bi bi-paperclip"></i> Anexo</a>
                                         {% endif %}
