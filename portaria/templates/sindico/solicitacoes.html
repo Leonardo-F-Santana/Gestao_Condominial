@@ -5,9 +5,33 @@
 {% block content %}
 <div class="page-header">
     <h1 class="page-title">Solicitações</h1>
-    <p class="page-subtitle">{{ solicitacoes.count }} registradas</p>
+    <p class="page-subtitle">{{ page_obj.paginator.count }} registradas</p>
 </div>
 
+<div class="card card-custom mb-4 border-0 shadow-sm rounded-4">
+    <div class="card-body p-4">
+        <form method="GET" class="row g-3">
+            <div class="col-12 col-md-6">
+                <label class="form-label text-muted fw-bold small text-uppercase mb-2"><i class="bi bi-funnel me-1"></i> Status</label>
+                <select name="status" class="form-select fw-semibold" onchange="this.form.submit()">
+                    <option value="">Todos</option>
+                    {% for key, value in status_choices %}
+                    <option value="{{ key }}" {% if status_filtro == key %}selected{% endif %}>{{ value }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-6">
+                <label class="form-label text-muted fw-bold small text-uppercase mb-2"><i class="bi bi-tags me-1"></i> Categoria</label>
+                <select name="tipo" class="form-select fw-semibold" onchange="this.form.submit()">
+                    <option value="">Todas</option>
+                    {% for key, value in tipos_choices %}
+                    <option value="{{ key }}" {% if tipo_filtro == key %}selected{% endif %}>{{ value }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+    </div>
+</div>
 
 <div class="card-section">
     <div class="card-section-body">
@@ -127,4 +151,31 @@
         {% endfor %}
     </div>
 </div>
+
+{% if page_obj.has_other_pages %}
+<div class="d-flex justify-content-center mt-4 mb-4">
+    <ul class="pagination pagination-sm shadow-sm">
+        {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if status_filtro %}&status={{ status_filtro }}{% endif %}{% if tipo_filtro %}&tipo={{ tipo_filtro }}{% endif %}"><i class="bi bi-chevron-left"></i> Anterior</a></li>
+        {% else %}
+            <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-left"></i> Anterior</span></li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item"><a class="page-link" href="?page={{ num }}{% if status_filtro %}&status={{ status_filtro }}{% endif %}{% if tipo_filtro %}&tipo={{ tipo_filtro }}{% endif %}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if status_filtro %}&status={{ status_filtro }}{% endif %}{% if tipo_filtro %}&tipo={{ tipo_filtro }}{% endif %}">Próxima <i class="bi bi-chevron-right"></i></a></li>
+        {% else %}
+            <li class="page-item disabled"><span class="page-link">Próxima <i class="bi bi-chevron-right"></i></span></li>
+        {% endif %}
+    </ul>
+</div>
+{% endif %}
+
 {% endblock %}

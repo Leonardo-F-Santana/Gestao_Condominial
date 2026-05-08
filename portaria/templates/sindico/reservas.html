@@ -19,23 +19,20 @@
 </div>
 
 
-<div class="mb-3 d-flex gap-2 flex-wrap">
-    <a href="{% url 'sindico_reservas' %}" class="btn-exec btn-exec-sm 
-        {% if not status_filtro %}bg-navy{% else %}bg-slate-400{% endif %}">
-        Todas
-    </a>
-    <a href="?status=PENDENTE" class="btn-exec btn-exec-sm 
-        {% if status_filtro == 'PENDENTE' %}bg-orange{% else %}bg-slate-400{% endif %}">
-        🟡 Pendentes
-    </a>
-    <a href="?status=APROVADA" class="btn-exec btn-exec-sm 
-        {% if status_filtro == 'APROVADA' %}bg-green{% else %}bg-slate-400{% endif %}">
-        🟢 Aprovadas
-    </a>
-    <a href="?status=RECUSADA" class="btn-exec btn-exec-sm 
-        {% if status_filtro == 'RECUSADA' %}bg-red{% else %}bg-slate-400{% endif %}">
-        🔴 Recusadas
-    </a>
+<div class="card card-custom mb-4 border-0 shadow-sm rounded-4">
+    <div class="card-body p-4">
+        <form method="GET" class="row g-3">
+            <div class="col-12 col-md-6">
+                <label class="form-label text-muted fw-bold small text-uppercase mb-2"><i class="bi bi-funnel me-1"></i> Status</label>
+                <select name="status" class="form-select fw-semibold" onchange="this.form.submit()">
+                    <option value="">Todas</option>
+                    <option value="PENDENTE" {% if status_filtro == 'PENDENTE' %}selected{% endif %}>Pendentes</option>
+                    <option value="APROVADA" {% if status_filtro == 'APROVADA' %}selected{% endif %}>Aprovadas</option>
+                    <option value="RECUSADA" {% if status_filtro == 'RECUSADA' %}selected{% endif %}>Recusadas</option>
+                </select>
+            </div>
+        </form>
+    </div>
 </div>
 
 

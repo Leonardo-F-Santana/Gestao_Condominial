@@ -684,6 +684,9 @@ def resetar_senha_morador(request, morador_id):
 
     return redirect('sindico_moradores')
 
+from django.db.models import Case, When, IntegerField
+from django.core.paginator import Paginator
+
 @login_required
 
 def solicitacoes_sindico(request):
@@ -706,13 +709,43 @@ def solicitacoes_sindico(request):
 
     ).update(lida=True)
 
+    status_filtro = request.GET.get('status', '')
+    tipo_filtro = request.GET.get('tipo', '')
+
     solicitacoes = Solicitacao.objects.filter(
 
         condominio=condominio
 
-    ).select_related('morador', 'criado_por').order_by('-data_criacao')
+    ).select_related('morador', 'criado_por')
 
-    ctx = sindico_context(request, {'solicitacoes': solicitacoes}, active_page='solicitacoes')
+    if status_filtro:
+        solicitacoes = solicitacoes.filter(status=status_filtro)
+    if tipo_filtro:
+        solicitacoes = solicitacoes.filter(tipo=tipo_filtro)
+
+    solicitacoes = solicitacoes.annotate(
+        prioridade=Case(
+            When(status='PENDENTE', then=1),
+            When(status='EM_ANDAMENTO', then=2),
+            When(status='CONCLUIDO', then=3),
+            When(status='CANCELADO', then=4),
+            default=5,
+            output_field=IntegerField(),
+        )
+    ).order_by('prioridade', '-data_criacao')
+
+    page_number = request.GET.get('page', 1)
+    paginator = Paginator(solicitacoes, 10)
+    page_obj = paginator.get_page(page_number)
+
+    ctx = sindico_context(request, {
+        'solicitacoes': page_obj,
+        'page_obj': page_obj,
+        'status_filtro': status_filtro,
+        'tipo_filtro': tipo_filtro,
+        'tipos_choices': Solicitacao.TIPOS_CHOICES,
+        'status_choices': Solicitacao.STATUS_CHOICES,
+    }, active_page='solicitacoes')
 
     return render(request, 'sindico/solicitacoes.html', ctx)
 
