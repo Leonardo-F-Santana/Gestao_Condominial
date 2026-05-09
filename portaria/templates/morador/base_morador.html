@@ -67,7 +67,7 @@
                     <li class="nav-item">
                         <a class="nav-link {% if 'solicitac' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'morador_solicitacoes' %}">
                             <i class="bi bi-clipboard2-check-fill"></i> Solicitações
-                            {% if notif_solicitacoes %}<span class="badge bg-danger rounded-pill ms-1">{{ notif_solicitacoes }}</span>{% endif %}
+                            {% if notif_solicitacoes %}<span class="badge bg-danger rounded-pill ms-1" id="notif-badge-morador" data-count="{{ notif_solicitacoes }}">{{ notif_solicitacoes }}</span>{% endif %}
                         </a>
                     </li>
                     <li class="nav-item">
@@ -310,10 +310,23 @@
                     });
                     
                 } else if (Notification.permission === 'granted') {
-                    
                     assinarNotificacoes();
                 }
             }
+            
+            // Client-side fallback notification
+            var badgeNotif = document.getElementById("notif-badge-morador");
+            var countNotif = badgeNotif ? (parseInt(badgeNotif.getAttribute("data-count")) || 0) : 0;
+            var lastCountNotif = parseInt(localStorage.getItem("morador_notif_count")) || 0;
+            if (countNotif > lastCountNotif) {
+                if ("Notification" in window && Notification.permission === "granted") {
+                    new Notification('{{ condominio_atual.nome|default:"KSTech Condomínios" }}', { 
+                        body: 'Você tem uma nova notificação ou atualização.',
+                        icon: '/static/img/icon-192.png'
+                    });
+                }
+            }
+            localStorage.setItem("morador_notif_count", countNotif);
         });
         
     </script>

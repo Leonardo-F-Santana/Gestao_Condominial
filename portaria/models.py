@@ -783,6 +783,7 @@ from django.dispatch import receiver
 
 @receiver(post_save, sender=Solicitacao)
 def triagem_inteligente_solicitacao(sender, instance, created, **kwargs):
+    update_fields = kwargs.get('update_fields')
     if created:
         if instance.tipo == 'MANUTENCAO':
             OrdemServico.objects.create(
@@ -793,6 +794,8 @@ def triagem_inteligente_solicitacao(sender, instance, created, **kwargs):
                 status='Pendente'
             )
     else:
+        if update_fields is not None and 'status' not in update_fields:
+            return
         # Sincronização: Síndico altera Solicitação -> Atualiza O.S.
         status_map = {
             'PENDENTE': 'Pendente',
@@ -806,6 +809,9 @@ def triagem_inteligente_solicitacao(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=OrdemServico)
 def sync_os_to_solicitacao(sender, instance, created, **kwargs):
+    update_fields = kwargs.get('update_fields')
+    if update_fields is not None and 'status' not in update_fields:
+        return
     # Sincronização: Zelador altera O.S. -> Atualiza Solicitação
     if instance.solicitacao_origem:
         status_map = {
@@ -816,5 +822,22 @@ def sync_os_to_solicitacao(sender, instance, created, **kwargs):
         novo_status = status_map.get(instance.status)
         if novo_status:
             Solicitacao.objects.filter(id=instance.solicitacao_origem.id).update(status=novo_status)
+
+@receiver(post_save, sender=OrdemServico)
+def notificar_zelador_nova_os(sender, instance, created, **kwargs):
+    if created and instance.condominio:
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        zeladores = User.objects.filter(tipo_usuario='zelador', condominios=instance.condominio)
+        for zelador in zeladores:
+            if instance.zelador == zelador:
+                continue
+            Notificacao.objects.create(
+                usuario=zelador,
+                condominio=instance.condominio,
+                tipo='solicitacao',
+                mensagem=f'Nova O.S. (Ordem de Serviço): {instance.titulo}',
+                link='/zelador/os/'
+            )
 
 from .models_zelador import *

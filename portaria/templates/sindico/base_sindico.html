@@ -55,7 +55,7 @@
                 <a href="{% url 'sindico_notificacoes' %}" class="topbar-icon position-relative" title="Notificações">
                     <i class="bi bi-bell"></i>
                     {% if notificacoes|length > 0 %}
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger topbar-badge">
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger topbar-badge" id="notif-badge" data-count="{{ notificacoes|length }}">
                         {{ notificacoes|length }}
                     </span>
                     {% endif %}
@@ -221,6 +221,24 @@
         }
         
         document.addEventListener("DOMContentLoaded", function() {
+            if ("Notification" in window) {
+                if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+                    Notification.requestPermission();
+                }
+            }
+            var badgeNotif = document.getElementById("notif-badge");
+            var countNotif = badgeNotif ? (parseInt(badgeNotif.getAttribute("data-count")) || 0) : 0;
+            var lastCountNotif = parseInt(localStorage.getItem("sindico_notif_count")) || 0;
+            if (countNotif > lastCountNotif) {
+                if ("Notification" in window && Notification.permission === "granted") {
+                    new Notification('{{ condominio.nome|default:"KSTech Condomínios" }}', { 
+                        body: 'Você tem uma nova notificação ou atualização.',
+                        icon: '/static/img/icon-192.png'
+                    });
+                }
+            }
+            localStorage.setItem("sindico_notif_count", countNotif);
+
             var cobrancasAnalise = [
                 {% if condominio %}
                 {% for c in condominio.cobrancas.all %}

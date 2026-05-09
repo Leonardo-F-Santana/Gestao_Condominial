@@ -41,6 +41,19 @@ def zelador_home(request):
     return render(request, 'zelador/home_zelador.html', context)
 
 @login_required
+def zelador_notificacoes(request):
+    if not is_zelador(request.user): return redirect('home')
+    
+    from portaria.models import Notificacao
+    
+    notificacoes_todas = Notificacao.objects.filter(usuario=request.user).order_by('-data_criacao')
+    Notificacao.objects.filter(usuario=request.user, lida=False).update(lida=True)
+    
+    return render(request, 'zelador/notificacoes_zelador.html', {
+        'notificacoes_lista': notificacoes_todas
+    })
+
+@login_required
 def checklists_zelador(request):
     if not is_zelador(request.user): return redirect('home')
     cond = get_condominio(request.user)

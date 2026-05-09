@@ -27,9 +27,19 @@
                 <i class="bi bi-tools text-warning me-2"></i> Portal do Zelador
             </a>
             
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
-            </button>
+            <div class="d-flex align-items-center ms-auto me-2 me-lg-0 order-lg-last">
+                <a href="{% url 'zelador_notificacoes' %}" class="nav-link position-relative text-white me-3" title="Notificações" id="zelador-bell-icon">
+                    <i class="bi bi-bell fs-5"></i>
+                    {% if notificacoes|length > 0 %}
+                    <span class="position-absolute top-25 start-75 translate-middle badge rounded-pill bg-danger" id="notif-badge" data-count="{{ notificacoes|length }}" style="font-size: 0.65em; padding: 0.25em 0.4em;">
+                        {{ notificacoes|length }}
+                    </span>
+                    {% endif %}
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+                </button>
+            </div>
             
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto gap-3 align-items-center">
@@ -77,6 +87,32 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            if ("Notification" in window) {
+                if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+                    Notification.requestPermission();
+                }
+            }
+
+            var badge = document.getElementById("notif-badge");
+            var count = badge ? (parseInt(badge.getAttribute("data-count")) || 0) : 0;
+            var lastCount = parseInt(localStorage.getItem("zelador_notif_count")) || 0;
+
+            if (count > lastCount) {
+                if ("Notification" in window && Notification.permission === "granted") {
+                    new Notification('{{ condominio_atual.nome|default:"KSTech Condomínios" }}', { 
+                        body: 'Você tem uma nova Ordem de Serviço ou Ocorrência.',
+                        icon: '/static/img/icon-192.png'
+                    });
+                }
+            }
+            
+            localStorage.setItem("zelador_notif_count", count);
+            
+            // Simular atualização a cada X tempo para verificar se aumentou (opcional, recarregamento da página cuidará disso)
+        });
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

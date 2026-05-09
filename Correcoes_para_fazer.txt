@@ -1,16 +1,20 @@
-botão pra receber ou não notificações não funciona corretamente;
- as notificações individuais tbm não funcionam, quero que gere notificação push para cobranças lançadas pelo sindico pro morador A, encomendas respostas de: livro negro, reserva de areas comuns;
-no titulo da mensagem push, não quero que apareca o nome da KS Tech, quero assim exemplo de nova encomenda,: Sua encomenda chegou!  
-Olá (nome do morador), tem uma entrega esperando por você na portaria. Passe quando puder para retirar.;
-responsividade do app sindico e botão cobrança colocar dentro do menu
-
-pagina do sindico:
-criar filtros para pagina de solicitações e ordenar da mais nova pendente pra mais antiga e depois as resolvidas
-em livro de ocorrência, suportar upload de video e audio pequeno
 
 
 
+melhorar a caixa de mensagem da portaria, dentro da pagina quando um morador envia mensagem, não aparece qual foi, quero que dentro da pagina apareca alguma notificação destacando qual morador enviou mensagem, atualmente mostra todas as conversas mas não mostra quem foi que enviou;
 
-pagina de portaria:
-aba reservas tornar o filtro funcional pois não mostra os eventos
-pooling não esta legal
+quando um documento é enviado pelo sindico no app, não aparece notificação pro morador, quero que conserte isso;
+
+toda vez que o sistema retorna uma mensagem pelo popup informando alguma coisa pro usuário, sempre aparece o link da pagina, quero que mude isso, ao invés de colocar o link do site, quero que coloque o nome do condomínio vigente;
+
+o status de em andamento no app do morador, o balão fica fora do bloco;
+
+o filtro de pesquisa na pagina de gestão financeira do sindico não está funcionando;
+
+na pagina do sindico criat outro link pra ele criar o perfil do zelador, assim como faz com porteiro;
+
+
+criar um navbar na pagina do zelador;
+
+
+criar pagina de alterar senha do zelador;
