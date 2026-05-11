@@ -14,7 +14,7 @@ from django.utils import timezone
 
 from django.db import transaction
 
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, Count
 
 import json
 
@@ -1726,6 +1726,11 @@ def mensagens_sindico(request):
 
             messages.error(request, 'Destinatário, conteúdo e condomínio são obrigatórios.')
 
+    nao_lidas_qs = Mensagem.objects.filter(
+        destinatario=usuario, lida=False
+    ).values('remetente').annotate(total=Count('id'))
+    nao_lidas_por_contato = {item['remetente']: item['total'] for item in nao_lidas_qs}
+
     Mensagem.objects.filter(destinatario=usuario, lida=False).update(lida=True)
 
     mensagens_list = Mensagem.objects.filter(
@@ -1751,6 +1756,11 @@ def mensagens_sindico(request):
     for k in conversas:
 
         conversas[k] = list(reversed(conversas[k]))
+
+    for contato in conversas:
+        contato.nao_lidas_count = nao_lidas_por_contato.get(contato.id, 0)
+
+    conversas = dict(sorted(conversas.items(), key=lambda x: x[0].nao_lidas_count, reverse=True))
 
     context = sindico_context(request, {
 

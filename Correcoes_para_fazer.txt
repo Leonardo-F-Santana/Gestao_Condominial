@@ -1,6 +1,4 @@
 
-
-
 melhorar a caixa de mensagem da portaria, dentro da pagina quando um morador envia mensagem, não aparece qual foi, quero que dentro da pagina apareca alguma notificação destacando qual morador enviou mensagem, atualmente mostra todas as conversas mas não mostra quem foi que enviou;
 
 quando um documento é enviado pelo sindico no app, não aparece notificação pro morador, quero que conserte isso;
@@ -18,3 +16,6 @@ criar um navbar na pagina do zelador;
 
 
 criar pagina de alterar senha do zelador;
+
+
+

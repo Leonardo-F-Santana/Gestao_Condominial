@@ -692,6 +692,11 @@ def mensagens_portaria(request):
 
             return redirect('mensagens_portaria')
 
+    nao_lidas_qs = Mensagem.objects.filter(
+        destinatario=request.user, lida=False
+    ).values('remetente').annotate(total=Count('id'))
+    nao_lidas_por_contato = {item['remetente']: item['total'] for item in nao_lidas_qs}
+
     Mensagem.objects.filter(destinatario=request.user, lida=False).update(lida=True)
 
     mensagens = Mensagem.objects.filter(
@@ -726,7 +731,10 @@ def mensagens_portaria(request):
 
         conversas[other_user].append(msg)
 
-    mensagens_nao_lidas = 0                                                        
+    for contato in conversas:
+        contato.nao_lidas_count = nao_lidas_por_contato.get(contato.id, 0)
+
+    conversas = dict(sorted(conversas.items(), key=lambda x: x[0].nao_lidas_count, reverse=True))
 
     context = {
 
@@ -735,8 +743,6 @@ def mensagens_portaria(request):
         'conversas': conversas,
 
         'destinatarios': destinatarios,
-
-        'mensagens_nao_lidas': mensagens_nao_lidas
 
     }
 
