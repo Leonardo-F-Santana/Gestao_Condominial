@@ -248,6 +248,13 @@ def portal_home(request):
 
     ).count()
 
+    notificacoes_documentos = Notificacao.objects.filter(
+        usuario=request.user,
+        tipo='aviso',
+        lida=False,
+        mensagem__icontains='documento'
+    ).count()
+
     context = {
 
         'morador': morador,
@@ -263,6 +270,8 @@ def portal_home(request):
         'avisos': avisos,
 
         'cobrancas_pendentes': cobrancas_pendentes,
+
+        'notificacoes_documentos': notificacoes_documentos,
 
     }
 

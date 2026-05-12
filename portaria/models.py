@@ -840,4 +840,21 @@ def notificar_zelador_nova_os(sender, instance, created, **kwargs):
                 link='/zelador/os/'
             )
 
+@receiver(post_save, sender=DocumentoCondominio)
+def notificar_moradores_novo_documento(sender, instance, created, **kwargs):
+    if created and instance.condominio:
+        moradores = Morador.objects.filter(condominio=instance.condominio).exclude(usuario__isnull=True)
+        notificacoes = [
+            Notificacao(
+                usuario=morador.usuario,
+                condominio=instance.condominio,
+                tipo='aviso',
+                mensagem=f'O documento {instance.titulo} foi adicionado pelo Síndico.',
+                lida=False
+            )
+            for morador in moradores
+        ]
+        if notificacoes:
+            Notificacao.objects.bulk_create(notificacoes)
+
 from .models_zelador import *

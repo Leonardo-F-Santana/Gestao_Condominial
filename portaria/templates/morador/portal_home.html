@@ -102,8 +102,13 @@
     </div>
     <div class="col-6">
         <a href="{% url 'morador_documentos' %}" class="text-decoration-none d-flex align-items-center p-2 rounded-4 shadow-sm bg-white h-100 card-animate delay-5" style="border: 1px solid rgba(0,0,0,0.05); transition: transform 0.2s;">
-            <div class="d-flex align-items-center justify-content-center rounded-3 me-2" style="width: 40px; height: 40px; background-color: rgba(var(--bs-info-rgb), 0.1); color: var(--bs-info); font-size: 1.2rem;">
+            <div class="position-relative d-flex align-items-center justify-content-center rounded-3 me-2" style="width: 40px; height: 40px; background-color: rgba(var(--bs-info-rgb), 0.1); color: var(--bs-info); font-size: 1.2rem;">
                 <i class="bi bi-folder2-open"></i>
+                {% if notificacoes_documentos > 0 %}
+                <span class="badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle badge-notificacao">
+                    {{ notificacoes_documentos }}
+                </span>
+                {% endif %}
             </div>
             <span class="small fw-bold text-dark lh-sm">Central de<br>Documentos</span>
         </a>
@@ -152,7 +157,7 @@
         {% for sol in solicitacoes_recentes %}
         <a href="{% url 'morador_ver_solicitacao' sol.id %}" class="text-decoration-none text-body">
             <div class="glass-card mb-3 rounded-4 shadow-sm p-3 p-md-4 card-animate delay-2 list-item-animated">
-                <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <div>
                         <span class="badge bg-light text-dark rounded-pill mb-2"><i class="bi bi-tag me-1"></i> {{ sol.get_tipo_display }}</span>
                         <h6 class="mb-0 fw-semibold text-stone-700 text-truncate" style="max-width: 200px;">{{ sol.descricao|truncatechars:40 }}</h6>

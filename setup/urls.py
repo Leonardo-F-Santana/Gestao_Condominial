@@ -167,7 +167,7 @@ from portaria.views_sindico import (
     gerar_advertencia_pdf,
 
     gerenciar_portaria,
-
+    criar_zelador,
     central_tarefas_sindico,
 
     feedbacks_sindico
@@ -361,6 +361,7 @@ urlpatterns = [
     path('sindico/documentos/', documentos_sindico, name='sindico_documentos'),
 
     path('sindico/portaria/', gerenciar_portaria, name='sindico_portaria'),
+    path('sindico/zelador/', criar_zelador, name='criar_zelador'),
 
     path('sindico/feedbacks/', feedbacks_sindico, name='sindico_feedbacks'),
 

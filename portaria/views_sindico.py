@@ -1126,6 +1126,66 @@ def gerenciar_portaria(request):
 
     return render(request, 'sindico/portaria.html', ctx)
 
+@login_required
+def criar_zelador(request):
+    if not is_sindico(request.user):
+        return redirect('home')
+    
+    condominio = get_condominio_ativo(request)
+    if not condominio:
+        return redirect('sindico_home')
+
+    if request.method == 'POST':
+        action = request.POST.get('action', 'cadastrar')
+        
+        if action == 'cadastrar':
+            nome = request.POST.get('nome', '').strip()
+            username = request.POST.get('username', '').strip()
+            password = request.POST.get('password', '').strip()
+            
+            if nome and username and password:
+                if User.objects.filter(username=username).exists():
+                    messages.error(request, f"O usuário '{username}' já está em uso.")
+                else:
+                    user_obj = User.objects.create_user(
+                        username=username,
+                        password=password,
+                        first_name=nome.split()[0] if nome else '',
+                        tipo_usuario='zelador'
+                    )
+                    user_obj.condominios.add(condominio)
+                    messages.success(request, f"Zelador '{nome}' cadastrado com sucesso!")
+            else:
+                messages.error(request, "Todos os campos (Nome, Usuário e Senha) são obrigatórios para cadastro.")
+
+        elif action == 'editar':
+            zelador_id = request.POST.get('zelador_id')
+            zelador = get_object_or_404(User, id=zelador_id, condominios=condominio, tipo_usuario='zelador')
+            nome = request.POST.get('nome', zelador.first_name).strip()
+            password = request.POST.get('password', '').strip()
+            
+            zelador.first_name = nome.split()[0] if nome else ''
+            if password:
+                zelador.set_password(password)
+            zelador.save()
+            messages.success(request, f"Dados do zelador atualizados!")
+
+        elif action == 'excluir':
+            zelador_id = request.POST.get('zelador_id')
+            zelador = get_object_or_404(User, id=zelador_id, condominios=condominio, tipo_usuario='zelador')
+            zelador.delete()
+            messages.success(request, f"Zelador excluído com sucesso!")
+            
+        return redirect('criar_zelador')
+        
+    zeladores = User.objects.filter(condominios=condominio, tipo_usuario='zelador')
+    
+    ctx = sindico_context(request, {
+        'zeladores': zeladores,
+    }, active_page='zelador')
+    
+    return render(request, 'sindico/zelador.html', ctx)
+
 def dashboard_condominio(request, condominio_id):
 
     pass
@@ -1639,6 +1699,24 @@ def financeiro_sindico(request):
         return redirect('sindico_financeiro')
 
     cobrancas = Cobranca.objects.filter(condominio=condominio).select_related('morador').order_by('-data_vencimento')
+
+    busca_nome = request.GET.get('busca_nome')
+    status = request.GET.get('status')
+    data_inicio = request.GET.get('data_inicio')
+    data_fim = request.GET.get('data_fim')
+
+    if busca_nome:
+        cobrancas = cobrancas.filter(
+            Q(morador__nome__icontains=busca_nome) |
+            Q(morador__apartamento__icontains=busca_nome) |
+            Q(morador__bloco__icontains=busca_nome)
+        )
+    if status:
+        cobrancas = cobrancas.filter(status=status)
+    if data_inicio:
+        cobrancas = cobrancas.filter(data_vencimento__gte=data_inicio)
+    if data_fim:
+        cobrancas = cobrancas.filter(data_vencimento__lte=data_fim)
 
     moradores = Morador.objects.filter(condominio=condominio).order_by('bloco', 'apartamento')
 

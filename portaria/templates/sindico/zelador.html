@@ -1,0 +1,164 @@
+{% extends 'sindico/base_sindico.html' %}
+
+{% block title %}Portaria e Acesso — {{ condominio.nome }}{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="page-title">Equipe de Manutenção</h1>
+        <p class="page-subtitle">{{ zeladors.count }} cadastrados</p>
+    </div>
+    <div>
+        <button class="btn-exec btn-exec-sm" data-bs-toggle="modal" data-bs-target="#modalNovo">
+            <i class="bi bi-plus-lg"></i> Novo Zelador
+        </button>
+    </div>
+</div>
+
+<div class="card-section">
+    <div class="card-section-body">
+        {% for p in zeladors %}
+        <div class="list-row">
+            <div class="flex-grow-1">
+                <div class="list-row-name">{{ p.nome }}</div>
+                <div class="list-row-sub flex-grow-1">
+                    {{ p.cargo }}
+                </div>
+                {% if p.usuario %}
+                <div class="list-row-sub text-green mt-1">
+                    <i class="bi bi-person-check"></i> Login (Acesso): <strong>{{ p.usuario.username }}</strong>
+                </div>
+                {% else %}
+                <div class="list-row-sub text-slate-500 mt-1">
+                    <i class="bi bi-x-circle"></i> Sem acesso ao app
+                </div>
+                {% endif %}
+            </div>
+            <div class="d-flex gap-1">
+                <button class="btn-exec btn-exec-sm bg-slate-500" title="Editar" data-bs-toggle="modal" data-bs-target="#modalEditar{{ p.id }}">
+                    <i class="bi bi-pencil"></i>
+                </button>
+                <button class="btn-exec btn-exec-sm bg-red" title="Excluir" data-bs-toggle="modal" data-bs-target="#modalExcluir{{ p.id }}">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        </div>
+
+        
+        <div class="modal fade" id="modalEditar{{ p.id }}" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="bi bi-pencil"></i> Editar Portaria</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form action="{% url 'criar_zelador' %}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="editar">
+                        <input type="hidden" name="zelador_id" value="{{ p.id }}">
+                        
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Nome Completo *</label>
+                                <input type="text" name="nome" class="form-control" value="{{ p.nome }}" required>
+                            </div>
+                            <hr>
+                            <p class="form-label mb-2 fw-bold text-navy">
+                                <i class="bi bi-key"></i> Atualizar Acesso
+                            </p>
+                            {% if p.usuario %}
+                            <p class="txt-072 text-green mb-3">
+                                <i class="bi bi-person"></i> Usuário (Login): <strong>{{ p.usuario.username }}</strong>
+                                <br><small class="text-muted">Para alterar o usuário, é necessário excluir e recadastrar (por segurança).</small>
+                            </p>
+                            {% endif %}
+                            <div class="mb-3">
+                                <label class="form-label">Nova Senha</label>
+                                <input type="text" name="password" class="form-control" placeholder="Deixe em branco para não alterar">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn-exec-outline" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn-exec">Salvar Edição</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="modal fade" id="modalExcluir{{ p.id }}" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered modal-sm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title text-danger"><i class="bi bi-trash"></i> Excluir</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form action="{% url 'criar_zelador' %}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="excluir">
+                        <input type="hidden" name="zelador_id" value="{{ p.id }}">
+                        
+                        <div class="modal-body text-center">
+                            <p>Tem certeza que deseja excluir <strong>{{ p.nome }}</strong>?</p>
+                            <small class="text-danger">O acesso ao sistema também será revogado.</small>
+                        </div>
+                        <div class="modal-footer justify-content-center">
+                            <button type="button" class="btn-exec-outline" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn-exec bg-red">Sim, Excluir</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <div class="empty-state-icon"><i class="bi bi-person-badge"></i></div>
+            <div class="empty-state-text">Nenhum zelador cadastrado na equipe.</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+
+<div class="modal fade" id="modalNovo" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cadastrar Zelador</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{% url 'criar_zelador' %}" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="cadastrar">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nome Completo *</label>
+                        <input type="text" name="nome" class="form-control" required placeholder="Ex: Roberto Gomes">
+                    </div>
+                    <hr>
+                    <p class="form-label mb-2 fw-bold text-navy">
+                        <i class="bi bi-key"></i> Dados de Acesso
+                    </p>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Usuário *</label>
+                            <input type="text" name="username" class="form-control" required placeholder="Ex: zelador.roberto">
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Senha *</label>
+                            <input type="text" name="password" class="form-control" required placeholder="Mín. 6 caracteres">
+                        </div>
+                    </div>
+                    <small class="text-muted">A senha deve conter no mínimo 6 caracteres e o nome de usuário deve ser único.</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-exec-outline" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn-exec">Cadastrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
