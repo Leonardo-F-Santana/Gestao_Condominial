@@ -15,8 +15,58 @@
         .navbar-zelador .navbar-brand { color: white; font-weight: 700; }
         .navbar-zelador a { color: #cbd5e1; text-decoration: none; }
         .navbar-zelador a:hover { color: white; }
-        .main-container { padding-top: 2rem; padding-bottom: 2rem; }
+        .main-container { padding-top: 2rem; padding-bottom: 5rem; }
         .zelador-card { border: none; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        
+        /* Bottom Tab Bar Styles */
+        .bottom-tab-bar {
+            background-color: #ffffff;
+            border-top: 1px solid #e2e8f0;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.03);
+            z-index: 1050;
+            height: 65px;
+        }
+        .tab-item {
+            color: #64748b;
+            text-decoration: none;
+            transition: color 0.2s;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .tab-item:hover, .tab-item.active { color: #1e293b; }
+        .tab-icon { font-size: 1.25rem; line-height: 1; }
+        .tab-label { font-size: 0.65rem; font-weight: 600; margin-top: 4px; }
+        
+        .fab-wrapper {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            position: relative;
+        }
+        .fab-btn {
+            background-color: #10b981;
+            color: white;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            box-shadow: 0 8px 15px -3px rgba(16, 185, 129, 0.4);
+            position: absolute;
+            top: -28px;
+            border: 4px solid #f8fafc;
+            transition: transform 0.2s;
+            text-decoration: none;
+        }
+        .fab-btn:hover {
+            color: white;
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body>
@@ -85,6 +135,40 @@
         {% block content %}
         {% endblock %}
     </div>
+
+    <!-- Bottom Tab Bar (Apenas Mobile) -->
+    <nav class="bottom-tab-bar fixed-bottom d-md-none d-flex w-100">
+        <!-- 1. Início -->
+        <a href="{% url 'zelador_home' %}" class="tab-item">
+            <i class="bi bi-house-door tab-icon"></i>
+            <span class="tab-label">Início</span>
+        </a>
+        
+        <!-- 2. O.S. -->
+        <a href="{% url 'zelador_os' %}" class="tab-item">
+            <i class="bi bi-wrench-adjustable tab-icon"></i>
+            <span class="tab-label">O.S.</span>
+        </a>
+        
+        <!-- 3. Botão Central FAB (Ação Rápida) -->
+        <div class="fab-wrapper">
+            <a href="{% url 'zelador_ocorrencias' %}" class="fab-btn">
+                <i class="bi bi-plus"></i>
+            </a>
+        </div>
+        
+        <!-- 4. Estoque -->
+        <a href="{% url 'zelador_estoque' %}" class="tab-item">
+            <i class="bi bi-box-seam tab-icon"></i>
+            <span class="tab-label">Estoque</span>
+        </a>
+        
+        <!-- 5. Perfil/Agenda -->
+        <a href="{% url 'perfil_zelador' %}" class="tab-item">
+            <i class="bi bi-person tab-icon"></i>
+            <span class="tab-label">Perfil</span>
+        </a>
+    </nav>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>

@@ -1,3 +1,3 @@
 toda vez que o sistema retorna uma mensagem pelo popup informando alguma coisa pro usuário, sempre aparece o link da pagina, quero que mude isso, ao invés de colocar o link do site, quero que coloque o nome do condomínio vigente;
 
-criar pagina de alterar senha do zelador;
+Mudar o CB para postgree

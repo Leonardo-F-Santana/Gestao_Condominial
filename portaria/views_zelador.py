@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
 from django.db.models import Q, F
 from datetime import date
@@ -276,3 +277,44 @@ def atualizar_estoque(request, pk):
         item.save()
         messages.success(request, 'Estoque atualizado.')
     return redirect('zelador_estoque')
+
+@login_required
+def perfil_zelador(request):
+    if not is_zelador(request.user):
+        return redirect('home')
+        
+    usuario = request.user
+    condominio = get_condominio(usuario)
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'alterar_senha':
+            nova_senha = request.POST.get('nova_senha')
+            confirmar_senha = request.POST.get('confirmar_senha')
+            
+            if nova_senha != confirmar_senha:
+                messages.error(request, 'As senhas não coincidem.')
+            elif len(nova_senha) < 8:
+                messages.error(request, 'A nova senha deve ter no mínimo 8 caracteres.')
+            else:
+                usuario.set_password(nova_senha)
+                usuario.save()
+                update_session_auth_hash(request, usuario)
+                messages.success(request, 'Senha atualizada com sucesso!')
+        
+        elif action == 'atualizar_dados':
+            nome = request.POST.get('nome')
+            email = request.POST.get('email')
+            
+            if nome:
+                usuario.first_name = nome.split()[0]
+                usuario.last_name = " ".join(nome.split()[1:]) if len(nome.split()) > 1 else ""
+            if email:
+                usuario.email = email
+            usuario.save()
+            messages.success(request, 'Dados atualizados com sucesso!')
+            
+        return redirect('perfil_zelador')
+
+    return render(request, 'zelador/perfil_zelador.html', {'usuario': usuario, 'condominio': condominio})

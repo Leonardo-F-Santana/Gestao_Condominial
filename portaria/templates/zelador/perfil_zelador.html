@@ -1,0 +1,73 @@
+{% extends 'zelador/base_zelador.html' %}
+
+{% block title %}Meu Perfil - Portal do Zelador{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold text-dark mb-1">
+            <i class="bi bi-person-fill text-primary me-2"></i>Meu Perfil
+        </h4>
+        <p class="text-muted mb-0">Atualize suas informações</p>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0 rounded-4">
+    <div class="card-body p-4">
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="atualizar_dados">
+            
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Condomínio</label>
+                <div class="form-control bg-light text-muted">
+                    {{ condominio.nome }}
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Usuário (Login)</label>
+                <div class="form-control bg-light text-muted">
+                    {{ usuario.username }}
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Nome Completo</label>
+                <input type="text" name="nome" class="form-control" value="{{ usuario.get_full_name|default:usuario.first_name }}">
+            </div>
+            
+            <div class="mb-4">
+                <label class="form-label fw-semibold">E-mail</label>
+                <input type="email" name="email" class="form-control" value="{{ usuario.email }}">
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 mb-3 py-2 fw-semibold rounded-8">
+                <i class="bi bi-save me-2"></i> Salvar Alterações
+            </button>
+        </form>
+        
+        <hr class="my-4 border-secondary opacity-25">
+        <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-key-fill text-warning me-2"></i>Segurança</h5>
+        
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="alterar_senha">
+            
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Nova Senha</label>
+                <input type="password" name="nova_senha" class="form-control" minlength="8" required>
+            </div>
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Confirmar Nova Senha</label>
+                <input type="password" name="confirmar_senha" class="form-control" minlength="8" required>
+            </div>
+            
+            <button type="submit" class="btn btn-outline-secondary w-100 py-2 fw-semibold rounded-8">
+                <i class="bi bi-lock me-2"></i> Atualizar Senha
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
