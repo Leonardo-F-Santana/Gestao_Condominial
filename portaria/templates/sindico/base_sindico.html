@@ -230,7 +230,13 @@
         document.addEventListener("DOMContentLoaded", function() {
             if ("Notification" in window) {
                 if (Notification.permission !== "granted" && Notification.permission !== "denied") {
-                    Notification.requestPermission();
+                    Notification.requestPermission().then(function(permission) {
+                        if (permission === "granted") {
+                            assinarNotificacoes();
+                        }
+                    });
+                } else if (Notification.permission === "granted") {
+                    assinarNotificacoes();
                 }
             }
             var badgeNotif = document.getElementById("notif-badge");
