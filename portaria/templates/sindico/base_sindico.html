@@ -22,10 +22,10 @@
     
     <header class="topbar">
         <div class="d-flex justify-content-between align-items-center topbar-container">
-            <span class="topbar-brand" style="max-width: calc(100vw - 180px); display: inline-block;">
+            <span class="topbar-brand" style="max-width: calc(100vw - 180px); min-width: 0;">
                 {% if request.user.condominios.count > 1 %}
                 <div class="dropdown d-inline">
-                    <button class="btn btn-link text-white text-decoration-none p-0 fw-bold dropdown-toggle d-inline-flex align-items-center" style="max-width: 100%;" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button class="btn btn-link text-white text-decoration-none p-0 fw-bold dropdown-toggle d-inline-flex align-items-center" style="max-width: 100%; min-width: 0; overflow: hidden;" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-buildings me-1 flex-shrink-0"></i> 
                         <span class="text-truncate">{{ condominio.nome }}</span>
                     </button>
@@ -36,7 +36,7 @@
                     </ul>
                 </div>
                 {% elif condominio %}
-                <span class="text-white fw-bold d-inline-flex align-items-center" style="max-width: 100%;">
+                <span class="text-white fw-bold d-inline-flex align-items-center" style="max-width: 100%; min-width: 0; overflow: hidden;">
                     <i class="bi bi-buildings me-1 flex-shrink-0"></i> 
                     <span class="text-truncate">{{ condominio.nome }}</span>
                 </span>
