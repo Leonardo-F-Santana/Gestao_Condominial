@@ -425,6 +425,8 @@ class Notificacao(models.Model):
 
         ('ocorrencia', '🚨 Nova Ocorrência'),
 
+        ('geral', '🔔 Notificação Geral'),
+
     ]
 
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notificacoes')
