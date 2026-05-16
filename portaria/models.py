@@ -829,6 +829,7 @@ def sync_os_to_solicitacao(sender, instance, created, **kwargs):
 def notificar_zelador_nova_os(sender, instance, created, **kwargs):
     if created and instance.condominio:
         from django.contrib.auth import get_user_model
+        from .utils import disparar_push_individual
         User = get_user_model()
         zeladores = User.objects.filter(tipo_usuario='zelador', condominios=instance.condominio)
         for zelador in zeladores:
@@ -839,6 +840,12 @@ def notificar_zelador_nova_os(sender, instance, created, **kwargs):
                 condominio=instance.condominio,
                 tipo='solicitacao',
                 mensagem=f'Nova O.S. (Ordem de Serviço): {instance.titulo}',
+                link='/zelador/os/'
+            )
+            disparar_push_individual(
+                zelador,
+                titulo='🔧 Nova Ordem de Serviço',
+                mensagem=f'{instance.titulo}',
                 link='/zelador/os/'
             )
 
